@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stone Tycoon — Custom Assets & Audio</title>
+    <title>Stone Tycoon — Custom Assets, Audio & Firebase Sync</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #05070d; overflow: hidden; font-family: system-ui, sans-serif; }
@@ -14,17 +14,51 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Russo+One&display=swap" rel="stylesheet">
 
+    <!-- Adsgram SDK Integration -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfontloader.js"></script>
+
+    <!-- Firebase SDKs (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div id="game"></div>
 
     <script>
         // =========================================================================
-        // 🎵 CUSTOM SOUND FILES (Aapke sfx folder se link kar diya gaya hai)
+        // 🔥 FIREBASE & ADSGRAM CONFIGURATION
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA-bk9Wq1Vg1WAqJKCM6po5_Jvrts1-C4",
+            authDomain: "tycoon-39d69.firebaseapp.com",
+            databaseURL: "https://tycoon-39d69-default-rtdb.firebaseio.com",
+            projectId: "tycoon-39d69",
+            storageBucket: "tycoon-39d69.firebasestorage.app",
+            messagingSenderId: "283367174972",
+            appId: "1:283367174972:web:625e9ab3ddee4b9f5e2439",
+            measurementId: "G-P1QJYNH7W5"
+        };
+
+        // Separate Adsgram Block IDs for Miners & FREE+ Rewards
+        const ADSGRAM_BLOCK_ID_MINERS = "int-41522";
+        const ADSGRAM_BLOCK_ID_REWARDS = "int-41524";
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let currentUser = null;
+
+        // =========================================================================
+        // 🎵 CUSTOM SOUND FILES
         // =========================================================================
         const CUSTOM_SOUNDS = {
             click: 'click.wav',
@@ -88,29 +122,22 @@
                     const s = v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : String(Math.floor(v));
                     return s + SUF[i];
                 }
-                function money(n) {
-                    const neg = n < 0;
-                    const s = Math.abs(n).toFixed(2);
-                    const parts = s.split('.');
-                    const whole = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                    return (neg ? '-$' : '$') + whole + '.' + parts[1];
-                }
                 function comma(n) {
                     return Math.floor(Math.max(0, n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 }
-                function gold(n) { return fmt(n) + ' GOLD'; }
                 function goldFull(n) {
                     return comma(n) + ' GOLD';
                 }
                 function pad2(n) { return n < 10 ? '0' + n : String(n); }
                 function clock(sec) {
                     const s = Math.max(0, Math.ceil(sec));
-                    return pad2(Math.floor(s / 60)) + ':' + pad2(s % 60);
-                }
-                function dateStr(ts) {
-                    const d = new Date(ts);
-                    const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    return `${pad2(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()} \u00b7 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+                    const h = Math.floor(s / 3600);
+                    const m = Math.floor((s % 3600) / 60);
+                    const sc = s % 60;
+                    if (h > 0) {
+                        return pad2(h) + ':' + pad2(m) + ':' + pad2(sc);
+                    }
+                    return pad2(m) + ':' + pad2(sc);
                 }
 
                 /* ==== src/data.ts ================================================= */
@@ -128,6 +155,8 @@
                     boostSeconds: 60,
                     minWithdraw: 11000,
                     bossTime: 30,
+                    disabledPayouts: [],
+                    payoutStatus: { paypal: true, upi: true, bank: true, crypto: true }
                 };
                 function adminConfig() {
                     try {
@@ -156,36 +185,36 @@
                     clean.boostSeconds = num(clean.boostSeconds, 60, 1);
                     clean.minWithdraw = num(clean.minWithdraw, 11000, 0);
                     clean.bossTime = num(clean.bossTime, 30, 5);
-                    if (Array.isArray(clean.miners)) {
-                        clean.miners.forEach((m, i) => {
-                            if (!m || !MINERS[i]) return;
-                            const patch = {};
-                            if (typeof m.name === 'string' && m.name.trim()) patch.name = m.name.trim();
-                            if (typeof m.title === 'string' && m.title.trim()) patch.title = m.title.trim();
-                            if (m.baseDps != null) patch.baseDps = num(m.baseDps, MINERS[i].baseDps, 0);
-                            if (m.baseCost != null) patch.baseCost = num(m.baseCost, MINERS[i].baseCost, 0);
-                            if (m.adsRequired != null) patch.adsRequired = Math.floor(num(m.adsRequired, MINERS[i].adsRequired, 0));
-                            if (m.gemCost != null) patch.gemCost = Math.floor(num(m.gemCost, MINERS[i].gemCost, 0));
-                            if (m.swing != null) patch.swing = Math.floor(num(m.swing, MINERS[i].swing, 100));
-                            Object.assign(MINERS[i], patch);
-                            clean.miners[i] = { ...clean.miners[i], ...patch };
-                        });
-                    }
                     try { localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(clean)); } catch {}
                 }
+
+                function isPayoutAvailable(id) {
+                    const cfg = adminConfig();
+                    if (cfg.disabledPayouts && Array.isArray(cfg.disabledPayouts) && cfg.disabledPayouts.includes(id)) {
+                        return false;
+                    }
+                    if (cfg.payoutStatus && cfg.payoutStatus[id] === false) {
+                        return false;
+                    }
+                    if (cfg[id + 'Enabled'] === false || cfg['enable_' + id] === false) {
+                        return false;
+                    }
+                    return true;
+                }
+
                 function getAdCashReward() { return adminConfig().adCashReward; }
                 function getAdGemReward() { return Math.floor(adminConfig().adGemReward); }
                 function getBoostSeconds() { return Math.floor(adminConfig().boostSeconds); }
-                function getMinWithdraw() { return adminConfig().minWithdraw; }
                 function getBossTime() { return Math.floor(adminConfig().bossTime); }
 
+                // Updated Miner Ads requirements: 0, 3, 4, 5, 7, 8
                 const MINERS = [
                     { id: 0, name: 'PICKY', title: 'Rookie Miner', key: 'miner1', baseDps: 1.4, baseCost: 60, adsRequired: 0, gemCost: 0, tint: 0x4ea8ff, swing: 900 },
-                    { id: 1, name: 'BRUNO', title: 'Veteran Digger', key: 'miner2', baseDps: 6, baseCost: 520, adsRequired: 1, gemCost: 25, tint: 0xffa43d, swing: 1000 },
-                    { id: 2, name: 'GRIMM', title: 'Forge Dwarf', key: 'miner3', baseDps: 27, baseCost: 4400, adsRequired: 2, gemCost: 60, tint: 0xff5d5d, swing: 1150 },
-                    { id: 3, name: 'DRIL-9', title: 'Mining Droid', key: 'miner4', baseDps: 120, baseCost: 36000, adsRequired: 3, gemCost: 140, tint: 0x3ddc97, swing: 700 },
-                    { id: 4, name: 'NOVA', title: 'Plasma Cutter', key: 'miner5', baseDps: 540, baseCost: 290000, adsRequired: 4, gemCost: 320, tint: 0xc46bff, swing: 820 },
-                    { id: 5, name: 'MIDAS', title: 'The Gold King', key: 'miner6', baseDps: 2400, baseCost: 2500000, adsRequired: 5, gemCost: 750, tint: 0xffd23d, swing: 1000 },
+                    { id: 1, name: 'BRUNO', title: 'Veteran Digger', key: 'miner2', baseDps: 6, baseCost: 520, adsRequired: 3, gemCost: 25, tint: 0xffa43d, swing: 1000 },
+                    { id: 2, name: 'GRIMM', title: 'Forge Dwarf', key: 'miner3', baseDps: 27, baseCost: 4400, adsRequired: 4, gemCost: 60, tint: 0xff5d5d, swing: 1150 },
+                    { id: 3, name: 'DRIL-9', title: 'Mining Droid', key: 'miner4', baseDps: 120, baseCost: 36000, adsRequired: 5, gemCost: 140, tint: 0x3ddc97, swing: 700 },
+                    { id: 4, name: 'NOVA', title: 'Plasma Cutter', key: 'miner5', baseDps: 540, baseCost: 290000, adsRequired: 7, gemCost: 320, tint: 0xc46bff, swing: 820 },
+                    { id: 5, name: 'MIDAS', title: 'The Gold King', key: 'miner6', baseDps: 2400, baseCost: 2500000, adsRequired: 8, gemCost: 750, tint: 0xffd23d, swing: 1000 },
                 ];
                 const TIERS = [
                     { name: 'GRANITE', key: 'rock_stone', color: 0x9aa3b0, glow: 0xc8d2e0, css: '#c8d2e0' },
@@ -222,10 +251,10 @@
                 }
                 
                 const PAYOUTS = [
-                    { id: 'paypal', name: 'PayPal', short: 'PP', color: 0x0b7ec4, hint: 'PayPal e-mail address', placeholder: 'you@email.com', eta: 'within 24 hours', fee: 0 },
-                    { id: 'upi', name: 'UPI', short: 'UPI', color: 0x12a05c, hint: 'UPI ID / VPA', placeholder: 'name@okbank', eta: 'within 2 hours', fee: 0 },
-                    { id: 'bank', name: 'Bank', short: 'BNK', color: 0x5b6bd6, hint: 'Bank account number', placeholder: '0000 0000 0000', eta: '3 - 5 business days', fee: 0 },
-                    { id: 'crypto', name: 'Crypto', short: 'USDT', color: 0xd98014, hint: 'USDT (TRC-20) wallet', placeholder: 'TX9f\u2026wallet', eta: 'within 1 hour', fee: 0 },
+                    { id: 'paypal', name: 'PayPal', short: 'PP', color: 0x0b7ec4, headerColor: 0x007bd0, hint: 'PayPal e-mail address', placeholder: 'you@email.com', eta: 'within 24 hours', presets: ['gmail.com', 'yahoo.com', 'outlook.com'], keypadType: 'email' },
+                    { id: 'upi', name: 'UPI', short: 'UPI', color: 0x12a05c, headerColor: 0x059669, hint: 'UPI ID / VPA', placeholder: 'name@okbank', eta: 'within 2 hours', presets: ['@okaxis', '@okhdfcbank', '@paytm'], keypadType: 'vpa' },
+                    { id: 'bank', name: 'Bank', short: 'BNK', color: 0x5b6bd6, headerColor: 0x5a67d8, hint: 'Bank account number', placeholder: '0000 0000 0000', eta: '3 - 5 business days', presets: [], keypadType: 'numeric' },
+                    { id: 'crypto', name: 'Crypto', short: 'USDT', color: 0xd98014, headerColor: 0xd97706, hint: 'USDT (TRC-20) wallet', placeholder: 'TX9f…wallet', eta: 'within 1 hour', presets: ['TRC20', 'BEP20', 'ERC20'], keypadType: 'crypto' },
                 ];
                 
                 const AMOUNTS_UPI = [11000, 21000, 40000, 60000, 100000];
@@ -239,7 +268,7 @@
                 ];
 
                 /* ==== src/save.ts ================================================= */
-                const KEY = 'stone_tycoon_save_v2'; // Key updated for new save structure
+                const KEY = 'stone_tycoon_save_v2';
                 function fresh() {
                     return {
                         coins: 0, gems: 0, cash: 0, level: 1,
@@ -249,45 +278,93 @@
                         adProgress: [0, 0, 0, 0, 0, 0], adsWatched: 0, totalBroken: 0,
                         bestLevel: 1, totalCoins: 0, boostUntil: 0, muted: false,
                         account: {}, lastMethod: 'upi', withdrawals: [], lastSeen: Date.now(), intro: false,
-                        runStartTime: Date.now() // Timer tracker for 26 hour reset
+                        runStartTime: Date.now(), adCooldownUntil: 0,
+                        minerResetTime: Date.now(), // 10 Hours Reset Timer for Miners
+                        rewardAdProgress: [0, 0, 0, 0], // 4 Ads per offer in FREE+
+                        rewardCooldownUntil: 0 // 4 Hours Cooldown after 16 Ads
                     };
                 }
+
+                function applyDataToState(p) {
+                    const base = fresh();
+                    if (!p) return base;
+                    const s = { ...base, ...p };
+                    s.minerLevel = MINERS.map((_, i) => (Array.isArray(p.minerLevel) ? Number(p.minerLevel[i]) || 0 : base.minerLevel[i]));
+                    s.unlocked = MINERS.map((_, i) => (Array.isArray(p.unlocked) ? !!p.unlocked[i] : base.unlocked[i]));
+                    s.adProgress = MINERS.map((_, i) => (Array.isArray(p.adProgress) ? Number(p.adProgress[i]) || 0 : 0));
+                    s.unlocked[0] = true;
+                    if (s.minerLevel[0] < 1) s.minerLevel[0] = 1;
+                    s.withdrawals = Array.isArray(p.withdrawals) ? p.withdrawals.slice(0, 30) : [];
+                    s.account = typeof p.account === 'object' && p.account ? p.account : {};
+                    s.level = Math.max(1, Math.floor(s.level));
+                    s.maxHp = rockMaxHp(s.level);
+                    if (!isFinite(s.hp) || s.hp <= 0 || s.hp > s.maxHp) s.hp = s.maxHp;
+                    s.coins = Math.max(0, s.coins || 0);
+                    s.gems = Math.max(0, s.gems || 0);
+                    s.cash = Math.max(0, s.cash || 0);
+                    s.runStartTime = p.runStartTime || Date.now();
+                    s.adCooldownUntil = p.adCooldownUntil || 0;
+                    s.minerResetTime = p.minerResetTime || Date.now();
+                    s.rewardAdProgress = Array.isArray(p.rewardAdProgress) ? p.rewardAdProgress : [0, 0, 0, 0];
+                    s.rewardCooldownUntil = p.rewardCooldownUntil || 0;
+                    return s;
+                }
+
                 function load() {
                     const base = fresh();
                     try {
                         const raw = localStorage.getItem(KEY);
                         if (!raw) return base;
                         const p = JSON.parse(raw);
-                        const s = { ...base, ...p };
-                        s.minerLevel = MINERS.map((_, i) => (Array.isArray(p.minerLevel) ? Number(p.minerLevel[i]) || 0 : base.minerLevel[i]));
-                        s.unlocked = MINERS.map((_, i) => (Array.isArray(p.unlocked) ? !!p.unlocked[i] : base.unlocked[i]));
-                        s.adProgress = MINERS.map((_, i) => (Array.isArray(p.adProgress) ? Number(p.adProgress[i]) || 0 : 0));
-                        s.unlocked[0] = true;
-                        if (s.minerLevel[0] < 1) s.minerLevel[0] = 1;
-                        s.withdrawals = Array.isArray(p.withdrawals) ? p.withdrawals.slice(0, 30) : [];
-                        s.account = typeof p.account === 'object' && p.account ? p.account : {};
-                        s.level = Math.max(1, Math.floor(s.level));
-                        s.maxHp = rockMaxHp(s.level);
-                        if (!isFinite(s.hp) || s.hp <= 0 || s.hp > s.maxHp) s.hp = s.maxHp;
-                        s.coins = Math.max(0, s.coins || 0);
-                        s.gems = Math.max(0, s.gems || 0);
-                        s.cash = Math.max(0, s.cash || 0);
-                        s.runStartTime = p.runStartTime || Date.now(); // Load start time
-                        return s;
+                        return applyDataToState(p);
                     } catch { return base; }
                 }
+
                 const S = load();
+
                 function save() {
-                    try { S.lastSeen = Date.now(); localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+                    S.lastSeen = Date.now();
+                    try { 
+                        localStorage.setItem(KEY, JSON.stringify(S)); 
+                    } catch {}
+
+                    if (currentUser && db) {
+                        db.collection('users').doc(currentUser.uid).set(S, { merge: true })
+                            .catch(err => console.error("Firebase Firestore Save Error:", err));
+                    }
                 }
 
-                /* ==== src/audio.ts (UPDATED FOR CUSTOM SOUNDS) =================== */
+                // Authenticate & Sync with Firebase
+                auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        db.collection('users').doc(user.uid).get().then(doc => {
+                            if (doc.exists) {
+                                const cloudData = doc.data();
+                                const merged = applyDataToState(cloudData);
+                                Object.assign(S, merged);
+                                try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+                            } else {
+                                save();
+                            }
+                        }).catch(err => console.error("Firestore Load Error:", err));
+
+                        // Admin Config real-time listener
+                        db.collection('admin').doc('config').onSnapshot(doc => {
+                            if (doc.exists) {
+                                applyAdminConfig(doc.data());
+                            }
+                        }, err => console.log("Admin config listener:", err));
+                    }
+                });
+
+                /* ==== src/audio.ts ================================================ */
                 const pool = {};
                 let ready = false, muted = false;
                 function initAudio() {
                     if (ready || typeof Howl === 'undefined') return;
                     ready = true;
-                    // Load local audio files from sfx folder
                     Object.keys(CUSTOM_SOUNDS).forEach((k) => {
                         pool[k] = new Howl({ 
                             src: [CUSTOM_SOUNDS[k]], 
@@ -316,7 +393,7 @@
                     if (ready && typeof Howler !== 'undefined') Howler.mute(m);
                 }
 
-                /* ==== src/ui.ts ========================== */
+                /* ==== src/ui.ts =================================================== */
                 const FONT = 'Russo One';
                 const FONT_D = 'Bangers';
                 const C = {
@@ -484,14 +561,14 @@
                 function toast(scene, msg, color = C.gold) {
                     const cam = scene.cameras.main, cx = cam.width / 2, y = cam.height * 0.30;
                     const cont = scene.add.container(cx, y).setDepth(9000);
-                    const txt = scene.add.text(0, 0, msg, t(26, TXT.light)).setOrigin(0.5);
-                    const w = Math.max(240, txt.width + 60);
+                    const txt = scene.add.text(0, 0, msg, t(24, TXT.light)).setOrigin(0.5);
+                    const w = Math.max(260, txt.width + 60);
                     const g = scene.add.graphics();
                     rr(g, -w / 2, -30, w, 60, 18, 0x0b1223, 0.96);
                     rrs(g, -w / 2, -30, w, 60, 18, color, 2, 0.95);
                     cont.add([g, txt]); cont.setAlpha(0).setScale(0.9);
                     scene.tweens.add({ targets: cont, alpha: 1, scaleX: 1, scaleY: 1, duration: 180, ease: 'Back.easeOut' });
-                    scene.tweens.add({ targets: cont, alpha: 0, y: y - 46, delay: 1250, duration: 320, ease: 'Quad.easeIn', onComplete: () => cont.destroy() });
+                    scene.tweens.add({ targets: cont, alpha: 0, y: y - 46, delay: 1400, duration: 320, ease: 'Quad.easeIn', onComplete: () => cont.destroy() });
                 }
 
                 function attachScroll(scene, container, vx, vy, vw, vh, contentH) {
@@ -545,7 +622,7 @@
                         this.panelOpen = false; this.hitSoundAcc = 0;
                         this.ROCK_Y = 428; this.MINER_Y = 742;
                         this.coinPillPos = new Phaser.Math.Vector2(0, 0);
-                        this.isResetting = false; // Flag to prevent multiple reset popups
+                        this.isResetting = false;
                     }
                     create() {
                         this.displayCoins = S.coins;
@@ -618,7 +695,7 @@
                         this.hpBar.setColor(boss ? C.red : tier.color);
                         this.hpBar.set(S.hp / S.maxHp, instant);
                         this.tierTxt.setText(tier.name + (S.lucky ? '  \u2726 LUCKY' : ''));
-                        this.tierTxt.setColor(S.lucky ? '#ffe066' : tier.css);
+                        this.tierTxt.setStyle({ color: S.lucky ? '#ffe066' : tier.css });
                         this.levelTxt.setText('LEVEL ' + S.level);
                         this.zoneTxt.setText(zoneName(S.level));
                         this.drawCracks();
@@ -673,18 +750,19 @@
                     refreshMiners() {
                         for (let i = 0; i < MINERS.length; i++) {
                             const sp = this.minerSprites[i], lock = this.minerLocks[i], lv = this.minerLvTxt[i];
+                            if (!sp || !lv) continue;
                             const unlocked = S.unlocked[i], hired = unlocked && S.minerLevel[i] > 0;
                             sp.setVisible(true);
                             if (hired) {
                                 sp.clearTint().setAlpha(1); lock.setVisible(false);
-                                lv.setText('Lv ' + S.minerLevel[i]).setColor(TXT.gold);
+                                lv.setText('Lv ' + S.minerLevel[i]).setStyle({ color: TXT.gold });
                             } else if (unlocked) {
                                 sp.setTint(0x50607f).setAlpha(0.7); lock.setVisible(false);
-                                lv.setText('HIRE').setColor('#7bf0ae');
+                                lv.setText('HIRE').setStyle({ color: '#7bf0ae' });
                             } else {
                                 sp.setTint(0x0a0f1a).setAlpha(0.85); lock.setVisible(true);
                                 lock.getData('txt').setText(`${S.adProgress[i]}/${MINERS[i].adsRequired} AD`);
-                                lv.setText('LOCKED').setColor('#6d7c99');
+                                lv.setText('LOCKED').setStyle({ color: '#6d7c99' });
                             }
                         }
                     }
@@ -764,7 +842,7 @@
                         this.cashBtn.setDepth(42);
                         this.tweens.add({ targets: this.cashBtn, scaleX: 1.018, scaleY: 1.018, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
                         this.add.image(96, top + 216, 'gold').setDisplaySize(84, 84).setDepth(43);
-                        this.add.text(DW / 2, DH - 34, 'Demo gold withdrawals \u00b7 simulated rewarded ads', t(13, '#5d6b88')).setOrigin(0.5).setDepth(42);
+                        this.add.text(DW / 2, DH - 34, 'Demo gold withdrawals \u00b7 Adsgram ads', t(13, '#5d6b88')).setOrigin(0.5).setDepth(42);
                     }
                     buildFx() {
                         this.dust = this.add.particles(0, 0, 'particle', {
@@ -797,7 +875,6 @@
                         const lvl = S.level, boss = isBoss(lvl), luckMul = S.lucky ? 3 : 1;
                         let coins = Math.floor(coinReward(lvl) * goldMult() * luckMul);
                         
-                        // NEW FEATURE: Slower coins if user has 7000 or more coins (Reduced by 95%)
                         if (S.coins >= 7000) {
                             coins = Math.max(1, Math.floor(coins * 0.05));
                         }
@@ -870,8 +947,6 @@
                         if (rocks < 1) return;
                         
                         let coins = Math.floor(coinReward(S.level) * goldMult() * rocks * 0.7);
-                        
-                        // NEW FEATURE: Slower offline coins if user has 7000 or more coins
                         if (S.coins >= 7000) {
                             coins = Math.max(1, Math.floor(coins * 0.05));
                         }
@@ -917,12 +992,12 @@
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                // Reset Stats but keep Cash and Gems
                                 S.coins = 0; S.level = 1; S.hp = rockMaxHp(1); S.maxHp = S.hp;
                                 S.tapLv = 1; S.goldLv = 0; S.luckLv = 0;
                                 S.minerLevel = [1, 0, 0, 0, 0, 0]; S.unlocked = [true, false, false, false, false, false];
                                 S.adProgress = [0, 0, 0, 0, 0, 0];
                                 S.runStartTime = Date.now(); S.boostUntil = 0;
+                                S.minerResetTime = Date.now();
                                 save();
                                 window.location.reload();
                             },
@@ -946,12 +1021,25 @@
                     update(_time, delta) {
                         const dt = delta / 1000;
                         
-                        // NEW FEATURE: 26-Hour Reset Check
+                        // 26-Hour Reset Check
                         const HOURS_26_MS = 26 * 60 * 60 * 1000;
                         if (!this.isResetting && Date.now() - S.runStartTime >= HOURS_26_MS) {
                             this.isResetting = true;
                             this.showResetPopup();
-                            return; // Stop updating if resetting
+                            return;
+                        }
+
+                        // 10-Hour Miner Reset Logic
+                        const HOURS_10_MS = 10 * 60 * 60 * 1000;
+                        if (!S.minerResetTime) S.minerResetTime = Date.now();
+                        if (Date.now() - S.minerResetTime >= HOURS_10_MS) {
+                            S.minerResetTime = Date.now();
+                            S.minerLevel = [1, 0, 0, 0, 0, 0];
+                            S.unlocked = [true, false, false, false, false, false];
+                            S.adProgress = [0, 0, 0, 0, 0, 0];
+                            save();
+                            toast(this, 'Miners reset after 10 hours!', C.gold);
+                            this.refreshMiners();
                         }
 
                         if (this.displayCoins !== S.coins) {
@@ -982,7 +1070,7 @@
                             const r = Phaser.Math.Clamp(S.bossTime / getBossTime(), 0, 1);
                             this.bossBar.set(r, true); this.bossBar.tick(delta);
                             this.bossTimerTxt.setText(clock(S.bossTime));
-                            this.bossTimerTxt.setColor(S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff');
+                            this.bossTimerTxt.setStyle({ color: S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff' });
                             if (S.bossTime <= 0) this.bossFail();
                         }
 
@@ -1050,7 +1138,7 @@
                     }
                 }
 
-                /* ==== src/scenes/Panel.ts ========================================= */
+                /* ==== src/scenes/Panel.ts (ADSGRAM + 5s TIMER INTEGRATION) ======== */
                 class Panel extends Phaser.Scene {
                     constructor() {
                         super(...arguments);
@@ -1133,19 +1221,58 @@
                             this.tweens.add({ targets: this.coinTxt, scaleX: 1.18, scaleY: 1.18, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
                         }
                     }
-                    playAd(reason, cb) {
+
+                    // ADSGRAM INTEGRATION WITH DYNAMIC BLOCK ID & 5s COOLDOWN TIMER
+                    playAd(reason, cb, blockId = ADSGRAM_BLOCK_ID_MINERS) {
+                        const now = Date.now();
+                        if (S.adCooldownUntil && now < S.adCooldownUntil) {
+                            const left = Math.ceil((S.adCooldownUntil - now) / 1000);
+                            toast(this, `Please wait ${left}s before watching another ad!`, C.gold);
+                            return;
+                        }
+
+                        const onAdComplete = (ok) => {
+                            if (ok) {
+                                S.adsWatched = (S.adsWatched || 0) + 1;
+                                S.adCooldownUntil = Date.now() + 5000; // 5 SECOND COOLDOWN
+                                save();
+                            }
+                            cb(ok);
+                        };
+
+                        // Try Adsgram SDK first
+                        if (window.Adsgram) {
+                            try {
+                                const AdController = window.Adsgram.init({ blockId: blockId });
+                                AdController.show().then((result) => {
+                                    onAdComplete(true);
+                                }).catch((err) => {
+                                    console.log("Adsgram notice / fallback to simulation:", err);
+                                    this.playAdSimulated(reason, onAdComplete);
+                                });
+                                return;
+                            } catch(e) {
+                                console.warn("Adsgram exception:", e);
+                            }
+                        }
+
+                        // Fallback to simulated ad
+                        this.playAdSimulated(reason, onAdComplete);
+                    }
+
+                    playAdSimulated(reason, cb) {
                         if (this.scene.isActive('AdScene')) return;
                         this.input.enabled = false;
                         this.scene.launch('AdScene', {
                             reason,
                             done: (ok) => {
                                 this.input.enabled = true;
-                                if (ok) { S.adsWatched++; save(); }
                                 cb(ok);
                             },
                         });
                         this.scene.bringToTop('AdScene');
                     }
+
                     close() {
                         if (this.closing) return;
                         this.closing = true; save(); this.input.enabled = false;
@@ -1165,7 +1292,7 @@
                     }
                     preload() {
                         const W = this.scale.width, H = this.scale.height;
-                        const fontSizeInt = Math.floor(Math.min(W * 0.16, 92)); // Fixed to Integer
+                        const fontSizeInt = Math.floor(Math.min(W * 0.16, 92));
                         const logo = this.add.text(W / 2, H * 0.42, 'STONE\nTYCOON', {
                             fontFamily: 'Impact, system-ui, sans-serif',
                             fontSize: `${fontSizeInt}px`, color: '#ffc23d', align: 'center',
@@ -1444,7 +1571,7 @@
                         this.skipBtnG.clear();
                         rr(this.skipBtnG, -150, -32, 300, 64, 18, 0x000000, canSkip ? 0.55 : 0.32);
                         rrs(this.skipBtnG, -150, -32, 300, 64, 18, 0xffffff, 2, canSkip ? 0.7 : 0.2);
-                        this.skipTxt.setText(canSkip ? 'SKIP AD  \u25b6' : 'SKIP IN ' + Math.max(1, Math.ceil(this.left - (AD_SECONDS - 3)))).setColor(canSkip ? '#ffffff' : '#ffffff77');
+                        this.skipTxt.setText(canSkip ? 'SKIP AD  \u25b6' : 'SKIP IN ' + Math.max(1, Math.ceil(this.left - (AD_SECONDS - 3)))).setStyle({ color: canSkip ? '#ffffff' : '#ffffff77' });
                         if (this.left <= 0) this.finish(true);
                     }
                     finish(ok) {
@@ -1466,7 +1593,7 @@
                     }
                     init() {
                         this.headerColor = C.blue; this.titleText = 'MINER CREW';
-                        this.subtitleText = 'Hire & upgrade \u00b7 they mine automatically';
+                        this.subtitleText = 'Hire & upgrade \u00b7 resets every 10 hours';
                         this.sheetTop = 130; this.closing = false; this.rowRefs = [];
                     }
                     create() {
@@ -1475,6 +1602,11 @@
                         this.list = this.add.container(0, vy).setDepth(2);
                         MINERS.forEach((_, i) => this.buildRow(i, i * (ROW_H + GAP)));
                         attachScroll(this, this.list, 0, vy, DW, vh, MINERS.length * (ROW_H + GAP) + 20);
+
+                        this.time.addEvent({
+                            delay: 500, loop: true,
+                            callback: () => this.refreshAll()
+                        });
                     }
                     buildRow(i, y) {
                         const m = MINERS[i];
@@ -1514,9 +1646,9 @@
                             rr(g, 18, y, 8, ROW_H, 4, m.tint, un ? 0.95 : 0.3);
 
                             portrait.setAlpha(un ? 1 : 0.32); portrait.setTint(un ? 0xffffff : 0x2a3550);
-                            nameTxt.setText(m.name).setColor(un ? TXT.light : '#66759a');
+                            nameTxt.setText(m.name).setStyle({ color: un ? TXT.light : '#66759a' });
                             titleTxt.setText(m.title);
-                            lvTxt.setText(un ? 'Lv ' + lv : 'LOCKED').setColor(un ? '#9fb4d8' : '#ff9a6a');
+                            lvTxt.setText(un ? 'Lv ' + lv : 'LOCKED').setStyle({ color: un ? '#9fb4d8' : '#ff9a6a' });
 
                             if (un) {
                                 dpsTxt.setText('\u26a1 ' + fmt(minerDps(i, lv)) + ' DPS   \u2192 ' + fmt(minerDps(i, lv + 1)));
@@ -1528,13 +1660,19 @@
                                 progTxt.setText(`\ud83d\udcfa  Ads watched  ${got} / ${need}`);
                                 progG.clear();
                                 for (let k = 0; k < need; k++) {
-                                    rr(progG, 178 + k * 30, y + 146, 24, 10, 5, k < got ? C.gold : 0x2a3550, 1);
+                                    rr(progG, 178 + k * 22, y + 146, 18, 10, 4, k < got ? C.gold : 0x2a3550, 1);
                                 }
                                 mainBtn.setVisible(true);
                                 if (adsDone) {
                                     mainBtn.setLabel('UNLOCK').setSub(fmt(m.baseCost) + ' coins').setColorTheme(C.gold).setEnabled(S.coins >= m.baseCost);
                                 } else {
-                                    mainBtn.setLabel('WATCH AD').setSub(`${need - got} more to unlock`).setColorTheme(C.blue).setEnabled(true);
+                                    const now = Date.now();
+                                    const cd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
+                                    if (cd > 0) {
+                                        mainBtn.setLabel(`WAIT ${cd}s`).setSub('Cooldown timer').setColorTheme(C.greyDk).setEnabled(false);
+                                    } else {
+                                        mainBtn.setLabel('WATCH AD').setSub(`${need - got} more to unlock`).setColorTheme(C.blue).setEnabled(true);
+                                    }
                                 }
                                 gemBtn.setVisible(true).setLabel('\ud83d\udc8e ' + m.gemCost).setEnabled(S.gems >= m.gemCost);
                             }
@@ -1556,13 +1694,14 @@
                             if (S.coins < m.baseCost) { toast(this, 'Not enough coins', C.red); return; }
                             S.coins -= m.baseCost; this.doUnlock(i); return;
                         }
+                        // Use Adsgram Block ID int-41522 for Miners Unlock
                         this.playAd(`Unlock ${m.name}`, (ok) => {
                             if (!ok) return;
                             S.adProgress[i] = Math.min(need, S.adProgress[i] + 1); save(); sfx('unlock', 1.2);
                             const left = need - S.adProgress[i];
                             toast(this, left > 0 ? `Ad complete! ${left} more for ${m.name}` : `${m.name} ready to unlock!`, C.gold);
                             this.refreshAll();
-                        });
+                        }, ADSGRAM_BLOCK_ID_MINERS);
                     }
                     buyWithGems(i) {
                         const m = MINERS[i];
@@ -1646,74 +1785,154 @@
                     refreshAll() { this.rows.forEach((r) => r()); this.refreshWallet(); }
                 }
 
-                /* ==== src/scenes/RewardsPanel.ts ================================== */
+                /* ==== src/scenes/RewardsPanel.ts (4 ADS PER OFFER & 4 HOURS COOLDOWN) === */
                 class RewardsPanel extends Panel {
                     constructor() { super('RewardsPanel'); this.redraws = []; }
                     init() {
                         this.headerColor = C.purple; this.titleText = 'FREE REWARDS';
-                        this.subtitleText = 'Watch ads \u00b7 earn GOLD, gems & boosts';
+                        this.subtitleText = 'Watch 4 ads per reward \u00b7 4h cooldown after 16 ads';
                         this.sheetTop = 150; this.closing = false; this.redraws = [];
                     }
                     create() {
                         this.buildChrome();
                         const offers = [
                             {
-                                title: 'GOLD BONUS', desc: 'Instant GOLD added to your withdrawable balance.',
+                                id: 0,
+                                title: 'GOLD BONUS', desc: 'Watch 4 ads to get instant GOLD added to balance.',
                                 reward: '+' + goldFull(getAdCashReward()), icon: 'gold', color: C.green, shadow: C.greenDk, cta: 'WATCH AD',
-                                claim: (done) => {
-                                    this.playAd('Gold bonus ' + goldFull(getAdCashReward()), (ok) => {
-                                        if (!ok) return;
-                                        S.cash += getAdCashReward(); save(); sfx('coin', 1.15);
-                                        toast(this, 'Earned ' + goldFull(getAdCashReward()) + '!', C.gold); done();
-                                    });
-                                },
+                                rewardGrant: () => {
+                                    S.cash += getAdCashReward(); save(); sfx('coin', 1.15);
+                                    toast(this, 'Earned ' + goldFull(getAdCashReward()) + '!', C.gold);
+                                }
                             },
                             {
-                                title: 'GEM PACK', desc: 'Gems instantly unlock miners \u2014 no ads needed.',
+                                id: 1,
+                                title: 'GEM PACK', desc: 'Watch 4 ads to get gems to unlock miners.',
                                 reward: '+' + getAdGemReward() + ' \ud83d\udc8e', icon: 'gem', color: C.cyan, shadow: 0x1a7f95, cta: 'WATCH AD',
-                                claim: (done) => {
-                                    this.playAd('Gem pack +' + getAdGemReward(), (ok) => {
-                                        if (!ok) return;
-                                        S.gems += getAdGemReward(); save(); sfx('coin', 1.4);
-                                        toast(this, '+' + getAdGemReward() + ' gems!', C.cyan); done();
-                                    });
-                                },
+                                rewardGrant: () => {
+                                    S.gems += getAdGemReward(); save(); sfx('coin', 1.4);
+                                    toast(this, '+' + getAdGemReward() + ' gems!', C.cyan);
+                                }
                             },
                             {
-                                title: 'x2 MINING BOOST', desc: 'Double all miner DPS for 60 seconds.',
+                                id: 2,
+                                title: 'x2 MINING BOOST', desc: 'Watch 4 ads to double miner DPS for 60s.',
                                 reward: 'x2 \u00b7 ' + getBoostSeconds() + 's', icon: 'tools', color: C.purple, shadow: C.purpleDk, cta: 'ACTIVATE',
-                                note: () => (boostActive() ? 'Active: ' + clock((S.boostUntil - Date.now()) / 1000) : ''),
-                                claim: (done) => {
-                                    this.playAd('x2 mining boost', (ok) => {
-                                        if (!ok) return;
-                                        S.boostUntil = Math.max(Date.now(), S.boostUntil) + getBoostSeconds() * 1000;
-                                        save(); sfx('unlock', 1.1); toast(this, 'x2 BOOST ACTIVE!', C.purple); done();
-                                    });
-                                },
+                                rewardGrant: () => {
+                                    S.boostUntil = Math.max(Date.now(), S.boostUntil) + getBoostSeconds() * 1000;
+                                    save(); sfx('unlock', 1.1); toast(this, 'x2 BOOST ACTIVE!', C.purple);
+                                }
+                            },
+                            {
+                                id: 3,
+                                title: 'COIN JACKPOT', desc: 'Watch 4 ads for a huge pile of coins.',
+                                reward: '+1,000 COINS', icon: 'coin', color: C.gold, shadow: C.goldDk, cta: 'WATCH AD',
+                                rewardGrant: () => {
+                                    S.coins += 1000; S.totalCoins += 1000; save(); sfx('coin', 1.25);
+                                    toast(this, '+1,000 COINS EARNED!', C.gold);
+                                }
                             },
                         ];
-                        const vy = this.contentTop, vh = DH - vy - 24, list = this.add.container(0, vy).setDepth(2);
-                        const H = 168, GAP = 16;
+                        const vy = this.contentTop, vh = DH - vy - 90, list = this.add.container(0, vy).setDepth(2);
+                        const H = 178, GAP = 16;
                         offers.forEach((o, i) => this.buildOffer(list, o, i * (H + GAP), H));
-                        attachScroll(this, list, 0, vy, DW, vh, offers.length * (H + GAP) + 40);
+                        
+                        const statY = offers.length * (H + GAP) + 20;
+                        const statG = this.add.graphics();
+                        rr(statG, 20, statY, DW - 40, 84, 20, 0x0f172a, 0.95);
+                        rrs(statG, 20, statY, DW - 40, 84, 20, C.stroke, 2, 0.6);
+                        const statTxt = this.add.text(DW / 2, statY + 26, '', t(20, TXT.gold)).setOrigin(0.5);
+                        const statSub = this.add.text(DW / 2, statY + 56, '16 Ads watched = 4 Hours Cooldown', t(14, TXT.dim)).setOrigin(0.5);
+                        list.add([statG, statTxt, statSub]);
+                        
+                        this.redraws.push(() => {
+                            const totalRewardAds = S.rewardAdProgress.reduce((a, b) => a + b, 0);
+                            statTxt.setText(`\ud83d\udcfa REWARD ADS: ${totalRewardAds} / 16 WATCHED`);
+                        });
+
+                        attachScroll(this, list, 0, vy, DW, vh, offers.length * (H + GAP) + 130);
+
+                        this.time.addEvent({
+                            delay: 500, loop: true,
+                            callback: () => this.refreshAll()
+                        });
                     }
                     buildOffer(list, o, y, H) {
                         const g = this.add.graphics();
-                        rr(g, 18, y, DW - 36, H, 24, 0x151f34, 1);
-                        rrs(g, 18, y, DW - 36, H, 24, o.color, 2, 0.6);
+                        const progG = this.add.graphics();
                         list.add(g);
+                        list.add(progG);
                         list.add(this.add.image(86, y + 80, o.icon).setDisplaySize(66, 66));
-                        list.add(this.add.text(154, y + 42, o.title, t(25, TXT.light)).setOrigin(0, 0.5));
-                        list.add(this.add.text(154, y + 66, o.desc, { ...t(15, TXT.dim), wordWrap: { width: 300 } }).setOrigin(0, 0));
-                        list.add(this.add.text(154, y + 132, o.reward, { fontFamily: 'Bangers', fontSize: '34px', color: '#ffd76a' }).setOrigin(0, 0.5));
+                        list.add(this.add.text(154, y + 36, o.title, t(25, TXT.light)).setOrigin(0, 0.5));
+                        list.add(this.add.text(154, y + 60, o.desc, { ...t(14, TXT.dim), wordWrap: { width: 300 } }).setOrigin(0, 0));
+                        list.add(this.add.text(154, y + 144, o.reward, { fontFamily: 'Bangers', fontSize: '30px', color: '#ffd76a' }).setOrigin(0, 0.5));
 
                         const b = new Btn(this, DW - 152, y + 62, {
                             w: 244, h: 76, label: o.cta, color: o.color, shadow: o.shadow, fontSize: 24, radius: 20,
-                            onClick: () => { o.claim(() => this.refreshAll()); },
+                            onClick: () => {
+                                const now = Date.now();
+                                if (S.rewardCooldownUntil && now < S.rewardCooldownUntil) {
+                                    const leftSec = Math.ceil((S.rewardCooldownUntil - now) / 1000);
+                                    toast(this, `Cooldown active! Wait ${clock(leftSec)}`, C.gold);
+                                    return;
+                                }
+
+                                // Use Adsgram Block ID int-41524 for FREE+ Rewards
+                                this.playAd(o.title, (ok) => {
+                                    if (!ok) return;
+                                    S.rewardAdProgress[o.id] = (S.rewardAdProgress[o.id] || 0) + 1;
+                                    
+                                    // Check if 4 ads reached for this reward
+                                    if (S.rewardAdProgress[o.id] >= 4) {
+                                        S.rewardAdProgress[o.id] = 4;
+                                        o.rewardGrant();
+                                    } else {
+                                        toast(this, `Ad ${S.rewardAdProgress[o.id]}/4 watched!`, C.gold);
+                                    }
+
+                                    // Check if all 16 ads watched total across all offers
+                                    const totalWatched = S.rewardAdProgress.reduce((a, b) => a + b, 0);
+                                    if (totalWatched >= 16) {
+                                        // Trigger 4 Hours Cooldown (4 * 3600 * 1000)
+                                        S.rewardCooldownUntil = Date.now() + 4 * 60 * 60 * 1000;
+                                        S.rewardAdProgress = [0, 0, 0, 0];
+                                        toast(this, '16 Ads completed! 4 Hours cooldown started.', C.purple);
+                                    }
+                                    save();
+                                    this.refreshAll();
+                                }, ADSGRAM_BLOCK_ID_REWARDS);
+                            },
                         });
                         list.add(b);
+
+                        const redraw = () => {
+                            const now = Date.now();
+                            const isRewardCooling = S.rewardCooldownUntil && now < S.rewardCooldownUntil;
+                            const progress = S.rewardAdProgress[o.id] || 0;
+
+                            // Draw progress bars (4 bars)
+                            progG.clear();
+                            for (let k = 0; k < 4; k++) {
+                                rr(progG, 154 + k * 34, y + 110, 28, 10, 5, k < progress ? C.gold : 0x2a3550, 1);
+                            }
+
+                            if (isRewardCooling) {
+                                const leftSec = Math.ceil((S.rewardCooldownUntil - now) / 1000);
+                                b.setLabel(clock(leftSec)).setColorTheme(C.greyDk).setEnabled(false);
+                            } else {
+                                const adCd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
+                                if (adCd > 0) {
+                                    b.setLabel(`WAIT ${adCd}s`).setColorTheme(C.greyDk).setEnabled(false);
+                                } else if (progress >= 4) {
+                                    b.setLabel('DONE (4/4)').setColorTheme(C.greyDk).setEnabled(false);
+                                } else {
+                                    b.setLabel(`${o.cta} (${progress}/4)`).setColorTheme(o.color).setEnabled(true);
+                                }
+                            }
+                        };
+                        this.redraws.push(redraw);
                     }
-                    refreshAll() { this.refreshWallet(); }
+                    refreshAll() { this.redraws.forEach(r => r()); this.refreshWallet(); }
                 }
 
                 /* ==== src/scenes/CashPanel.ts ===================================== */
@@ -1721,6 +1940,7 @@
                     constructor() {
                         super('CashPanel');
                         this.redraws = [];
+                        this.activeEditModal = null;
                     }
                     init() {
                         this.headerColor = C.green;
@@ -1755,6 +1975,11 @@
                         y = this.buildSubmit(y);
                         attachScroll(this, this.list, 0, vy, DW, vh, y + 40);
                         this.refreshAll();
+
+                        this.time.addEvent({
+                            delay: 500, loop: true,
+                            callback: () => this.refreshAll()
+                        });
                     }
                     buildBalanceCard(y) {
                         const H = 160;
@@ -1786,7 +2011,9 @@
                                 rr(this.progFg, 40, y + 104, (DW - 80) * ratio, 10, 5, C.green, 1);
                             }
                             
-                            if (S.cash >= this.amount) {
+                            if (!isPayoutAvailable(this.method.id)) {
+                                this.progTxt.setText(`${this.method.name} withdrawal is currently NOT AVAILABLE (Locked by Admin)`);
+                            } else if (S.cash >= this.amount) {
                                 this.progTxt.setText(`Ready to withdraw ${comma(this.amount)} GOLD minimum`);
                             } else {
                                 this.progTxt.setText(`${comma(this.amount - S.cash)} GOLD more to reach the ${comma(this.amount)} GOLD minimum`);
@@ -1807,10 +2034,22 @@
                                         toast(this, '+75 GOLD!', C.gold);
                                         this.refreshAll();
                                     }
-                                });
+                                }, ADSGRAM_BLOCK_ID_REWARDS);
                             }
                         });
                         this.list.add(b);
+
+                        const redraw = () => {
+                            const now = Date.now();
+                            const cd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
+                            if (cd > 0) {
+                                b.setLabel(`WAIT ${cd}s  \u2192  +75 GOLD`).setColorTheme(C.greyDk).setEnabled(false);
+                            } else {
+                                b.setLabel('\ud83d\udcfa WATCH AD  \u2192  +75 GOLD').setColorTheme(0x9c6bff).setEnabled(true);
+                            }
+                        };
+                        this.redraws.push(redraw);
+
                         return y + 80;
                     }
                     buildMethods(y) {
@@ -1823,7 +2062,8 @@
                             
                             const short = this.add.text(x + w / 2, top + 34, p.short, { fontFamily: FONT, fontSize: '18px', color: '#ffffff' }).setOrigin(0.5);
                             const name = this.add.text(x + w / 2, top + 66, p.name, t(15, TXT.dim)).setOrigin(0.5);
-                            this.list.add([short, name]);
+                            const lockBadge = this.add.text(x + w / 2, top + 14, '\ud83d\udd12 LOCK', t(11, '#ff6b6b')).setOrigin(0.5).setVisible(false);
+                            this.list.add([short, name, lockBadge]);
                             
                             const zone = this.add.zone(x + w / 2, top + H / 2, w, H).setInteractive({ useHandCursor: true });
                             this.list.add(zone);
@@ -1835,18 +2075,31 @@
                                 save();
                                 this.updateAmounts();
                                 this.refreshAll();
+
+                                if (!isPayoutAvailable(p.id)) {
+                                    toast(this, `${p.name} is currently Not Available`, C.red);
+                                }
                             });
                             
                             const redraw = () => {
+                                const avail = isPayoutAvailable(p.id);
                                 const sel = this.method.id === p.id;
                                 g.clear();
-                                rr(g, x, top, w, H, 16, sel ? 0x16283f : 0x0c121e, 1);
-                                if (sel) {
+                                rr(g, x, top, w, H, 16, sel ? (avail ? 0x16283f : 0x2a141a) : 0x0c121e, 1);
+                                lockBadge.setVisible(!avail);
+
+                                if (!avail) {
+                                    rrs(g, x, top, w, H, 16, 0xff4d4d, 2, sel ? 1 : 0.4);
+                                    rr(g, x + w/2 - 24, top + 22, 48, 26, 8, 0x4a1820, 1);
+                                    name.setText('LOCKED').setStyle({ color: '#ff8b8b' });
+                                } else if (sel) {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 1);
                                     rrs(g, x, top, w, H, 16, C.green, 2, 1);
+                                    name.setText(p.name).setStyle({ color: TXT.dim });
                                 } else {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 0.4);
                                     rrs(g, x, top, w, H, 16, C.stroke, 2, 0.5);
+                                    name.setText(p.name).setStyle({ color: TXT.dim });
                                 }
                             };
                             this.redraws.push(redraw);
@@ -1893,13 +2146,13 @@
                                 
                                 const a = this.amounts[i];
                                 const sel = this.amountIdx === i;
-                                const locked = S.cash < a;
+                                const locked = S.cash < a || !isPayoutAvailable(this.method.id);
                                 
                                 g.clear();
                                 rr(g, x, top, w, H, 14, sel ? 0x0d281e : 0x0c121e, 1);
                                 rrs(g, x, top, w, H, 14, sel ? C.green : (locked ? 0x232e46 : C.stroke), 2, 1);
                                 
-                                amtTxt.setText(comma(a) + ' GOLD').setColor(sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff'));
+                                amtTxt.setText(comma(a) + ' GOLD').setStyle({ color: sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff') });
                                 lockTxt.setVisible(locked);
                             };
                             this.redraws.push(redraw);
@@ -1939,14 +2192,17 @@
                         
                         const btn = new Btn(this, DW - 90, y + H/2, {
                             w: 120, h: 50, label: 'EDIT', color: C.blue, fontSize: 18, radius: 14,
-                            onClick: () => { sfx('click'); }
+                            onClick: () => { 
+                                sfx('click');
+                                this.showEditDetailsModal(this.method);
+                            }
                         });
                         this.list.add(btn);
                         
                         const redraw = () => {
                             hint.setText(this.method.hint);
                             val.setText(S.account[this.method.id] || this.method.placeholder);
-                            val.setColor(S.account[this.method.id] ? '#ffffff' : '#66759a');
+                            val.setStyle({ color: S.account[this.method.id] ? '#ffffff' : '#66759a' });
                         };
                         this.redraws.push(redraw);
                         return y + H + 16;
@@ -1985,7 +2241,14 @@
                         this.submitBtn = new Btn(this, DW / 2, y + 40, {
                             w: DW - 36, h: 80, label: '', color: C.greyDk, shadow: 0x161d2c, fontSize: 26, radius: 20,
                             onClick: () => {
-                                if (S.cash < this.amount) return;
+                                if (!isPayoutAvailable(this.method.id)) {
+                                    toast(this, `${this.method.name} withdrawal is NOT AVAILABLE!`, C.red);
+                                    return;
+                                }
+                                if (S.cash < this.amount) {
+                                    toast(this, 'Insufficient GOLD balance!', C.red);
+                                    return;
+                                }
                                 sfx('confirm');
                                 toast(this, 'Withdrawal Request Submitted!', C.green);
                             },
@@ -1993,14 +2256,189 @@
                         this.list.add(this.submitBtn);
                         
                         const redraw = () => {
-                            const can = S.cash >= this.amount;
-                            this.submitBtn.setLabel('WITHDRAW ' + comma(this.amount) + ' GOLD');
-                            this.submitBtn.setColorTheme(can ? C.green : 0x232e46);
-                            this.submitBtn.setEnabled(can);
+                            const avail = isPayoutAvailable(this.method.id);
+                            const can = avail && S.cash >= this.amount;
+                            
+                            if (!avail) {
+                                this.submitBtn.setLabel('\ud83d\udd12 NOT AVAILABLE').setColorTheme(0x3a151b).setEnabled(false);
+                            } else {
+                                this.submitBtn.setLabel('WITHDRAW ' + comma(this.amount) + ' GOLD').setColorTheme(can ? C.green : 0x232e46).setEnabled(can);
+                            }
                         };
                         this.redraws.push(redraw);
                         return y + 100;
                     }
+
+                    showEditDetailsModal(method) {
+                        if (this.activeEditModal) return;
+                        this.data.set('modal', true);
+
+                        const layer = this.add.container(0, 0).setDepth(8000);
+                        this.activeEditModal = layer;
+
+                        const shade = this.add.rectangle(DW / 2, DH / 2, DW, DH, 0x040812, 0.88).setInteractive();
+                        layer.add(shade);
+
+                        const mw = 640, mh = method.keypadType === 'numeric' ? 700 : 620;
+                        const my = DH / 2;
+                        const panel = this.add.container(DW / 2, my);
+                        layer.add(panel);
+
+                        const g = this.add.graphics();
+                        rr(g, -mw / 2, -mh / 2, mw, mh, 28, 0x0f172a, 1);
+                        rrs(g, -mw / 2, -mh / 2, mw, mh, 28, method.headerColor, 3, 0.9);
+                        
+                        rr(g, -mw / 2, -mh / 2, mw, 70, 28, method.headerColor, 1);
+                        g.fillStyle(method.headerColor, 1);
+                        g.fillRect(-mw / 2, -mh / 2 + 40, mw, 30);
+                        panel.add(g);
+
+                        const headerTitle = this.add.text(0, -mh / 2 + 35, `${method.name.toUpperCase()} DETAILS`, {
+                            fontFamily: FONT, fontSize: '28px', color: '#ffffff'
+                        }).setOrigin(0.5);
+                        panel.add(headerTitle);
+
+                        const hintTxt = this.add.text(0, -mh / 2 + 96, method.hint, t(16, TXT.dim)).setOrigin(0.5);
+                        panel.add(hintTxt);
+
+                        let currentVal = S.account[method.id] || '';
+                        
+                        const inputBg = this.add.graphics();
+                        panel.add(inputBg);
+
+                        const valTxt = this.add.text(0, -mh / 2 + 150, currentVal || method.placeholder, t(24, currentVal ? '#ffffff' : '#4b5563')).setOrigin(0.5);
+                        panel.add(valTxt);
+
+                        const updateInputDisplay = () => {
+                            valTxt.setText(currentVal || method.placeholder);
+                            valTxt.setStyle({ color: currentVal ? '#60a5fa' : '#4b5563' });
+
+                            inputBg.clear();
+                            rr(inputBg, -mw / 2 + 30, -mh / 2 + 120, mw - 60, 60, 14, 0x080e1a, 1);
+                            rrs(inputBg, -mw / 2 + 30, -mh / 2 + 120, mw - 60, 60, 14, currentVal ? method.headerColor : C.stroke, 2, 1);
+                        };
+                        updateInputDisplay();
+
+                        const keyListener = (e) => {
+                            if (!this.activeEditModal) return;
+                            if (e.key === 'Backspace') {
+                                currentVal = currentVal.slice(0, -1);
+                                sfx('click');
+                                updateInputDisplay();
+                            } else if (e.key === 'Enter') {
+                                saveAction();
+                            } else if (e.key.length === 1 && currentVal.length < 34) {
+                                currentVal += e.key;
+                                sfx('click');
+                                updateInputDisplay();
+                            }
+                        };
+                        window.addEventListener('keydown', keyListener);
+
+                        let keypadStartY = -mh / 2 + 200;
+
+                        if (method.keypadType === 'numeric') {
+                            const keys = [
+                                ['1', '2', '3'],
+                                ['4', '5', '6'],
+                                ['7', '8', '9'],
+                                ['CLR', '0', '\u232b']
+                            ];
+                            const kw = 175, kh = 62, gapX = 14, gapY = 12;
+                            keys.forEach((row, ri) => {
+                                row.forEach((k, ci) => {
+                                    const kx = -((kw * 3 + gapX * 2) / 2) + ci * (kw + gapX) + kw / 2;
+                                    const ky = keypadStartY + ri * (kh + gapY) + kh / 2;
+                                    const btn = new Btn(this, kx, ky, {
+                                        w: kw, h: kh, label: k, color: k === 'CLR' || k === '\u232b' ? 0x22304d : 0x16233d,
+                                        fontSize: 22, radius: 14,
+                                        onClick: () => {
+                                            if (k === 'CLR') currentVal = '';
+                                            else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
+                                            else if (currentVal.length < 24) currentVal += k;
+                                            updateInputDisplay();
+                                        }
+                                    });
+                                    panel.add(btn);
+                                });
+                            });
+                            keypadStartY += 4 * (kh + gapY) + 10;
+                        } else {
+                            const syms = ['@', '.', '_', '-', 'CLR', '\u232b'];
+                            const sw = 84, sh = 56, sGap = 10;
+                            syms.forEach((k, ci) => {
+                                const kx = -((sw * 6 + sGap * 5) / 2) + ci * (sw + sGap) + sw / 2;
+                                const btn = new Btn(this, kx, keypadStartY + sh / 2, {
+                                    w: sw, h: sh, label: k, color: k === 'CLR' || k === '\u232b' ? 0x22304d : 0x1c2b47,
+                                    fontSize: 20, radius: 12,
+                                    onClick: () => {
+                                        if (k === 'CLR') currentVal = '';
+                                        else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
+                                        else if (currentVal.length < 34) currentVal += k;
+                                        updateInputDisplay();
+                                    }
+                                });
+                                panel.add(btn);
+                            });
+
+                            keypadStartY += sh + 14;
+                            if (method.presets && method.presets.length > 0) {
+                                const pw = Math.floor((mw - 80 - (method.presets.length - 1) * 12) / method.presets.length);
+                                method.presets.forEach((p, pi) => {
+                                    const px = -((pw * method.presets.length + 12 * (method.presets.length - 1)) / 2) + pi * (pw + 12) + pw / 2;
+                                    const pbtn = new Btn(this, px, keypadStartY + 28, {
+                                        w: pw, h: 54, label: p, color: 0x1d3557, fontSize: 16, radius: 14,
+                                        onClick: () => {
+                                            if (!currentVal.includes('@') && p.startsWith('@')) {
+                                                currentVal += p;
+                                            } else if (!currentVal.includes(p)) {
+                                                currentVal += (currentVal.length > 0 && !currentVal.endsWith('@') && !p.startsWith('@') ? '@' : '') + p;
+                                            }
+                                            updateInputDisplay();
+                                        }
+                                    });
+                                    panel.add(pbtn);
+                                });
+                                keypadStartY += 60;
+                            }
+                        }
+
+                        const noteTxt = this.add.text(0, keypadStartY + 10, 'You can also type with your keyboard', t(14, TXT.dim)).setOrigin(0.5);
+                        panel.add(noteTxt);
+
+                        const saveAction = () => {
+                            if (!currentVal.trim()) {
+                                toast(this, 'Please enter valid details', C.red);
+                                return;
+                            }
+                            S.account[method.id] = currentVal.trim();
+                            save();
+                            sfx('confirm');
+                            toast(this, `${method.name} details saved!`, C.green);
+                            closeModal();
+                        };
+
+                        const closeModal = () => {
+                            window.removeEventListener('keydown', keyListener);
+                            this.data.set('modal', false);
+                            this.activeEditModal = null;
+                            layer.destroy();
+                            this.refreshAll();
+                        };
+
+                        const saveBtn = new Btn(this, 0, mh / 2 - 76, {
+                            w: mw - 60, h: 68, label: 'SAVE DETAILS', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 20,
+                            onClick: saveAction
+                        });
+                        panel.add(saveBtn);
+
+                        const cancelTxt = this.add.text(0, mh / 2 - 24, 'Cancel', t(16, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
+                        cancelTxt.on('pointerdown', () => { sfx('click'); closeModal(); });
+                        panel.add(cancelTxt);
+
+                        shade.on('pointerdown', () => closeModal());
+                    }
+
                     refreshAll() {
                         this.redraws.forEach((r) => r());
                     }
