@@ -46,7 +46,7 @@
         }
         function fallbackCopyText(text) {
             const textArea = document.createElement("textarea");
-            textArea.value = text;
+            textArea.value = text || '';
             textArea.style.position = "fixed";
             textArea.style.left = "-9999px";
             textArea.style.top = "-9999px";
@@ -75,11 +75,9 @@
             measurementId: "G-P1QJYNH7W5"
         };
 
-        // Separate Adsgram Block IDs for Miners & FREE+ Rewards
         const ADSGRAM_BLOCK_ID_MINERS = "int-41522";
         const ADSGRAM_BLOCK_ID_REWARDS = "int-41524";
 
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -87,18 +85,13 @@
         const auth = firebase.auth();
         let currentUser = null;
 
-        // Helper to generate local unique user ID fallback
         function generateLocalUid() {
             return 'ST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
-        // Telegram Bot Share Links
         const TELEGRAM_SHARE_BASE = "https://t.me/TYCOON_PLAY_BOT/playtoearn";
         const TELEGRAM_BOT_URL = "https://t.me/TYCOON_PLAY_BOT";
 
-        // =========================================================================
-        // 🎵 CUSTOM SOUND FILES
-        // =========================================================================
         const CUSTOM_SOUNDS = {
             click: 'click.wav',
             hit: 'hit.ogg',
@@ -115,7 +108,6 @@
                 var Phaser = window.Phaser;
                 var Howl = window.Howl, Howler = window.Howler;
 
-                /* ==== src/assets.ts =============================================== */
                 const keyMap = {
                     'bg_mine': 'bg_mine.png',
                     'cash': 'cash.png',
@@ -147,9 +139,9 @@
                     return p.replace(/^\//, '');
                 }
 
-                /* ==== src/format.ts =============================================== */
                 const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td'];
                 function fmt(n) {
+                    if (n === null || n === undefined || isNaN(n)) return '0';
                     if (!isFinite(n)) return '\u221e';
                     if (n < 0) return '-' + fmt(-n);
                     if (n < 1000) {
@@ -162,6 +154,7 @@
                     return s + SUF[i];
                 }
                 function comma(n) {
+                    if (n === null || n === undefined || isNaN(n)) return '0';
                     return Math.floor(Math.max(0, n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 }
                 function goldFull(n) {
@@ -179,32 +172,30 @@
                     return pad2(m) + ':' + pad2(sc);
                 }
 
-                /* ==== src/data.ts ================================================= */
                 const ADMIN_CONFIG_KEY = 'stone_tycoon_admin_config_v1';
                 const DEFAULT_ADMIN_CONFIG = {
                     enabled: true,
-                    rockHpMultiplier: 1,
+                    rockHpMultiplier: 3.5,        // 🪨 Rocks are 3.5x harder to break
                     coinRewardMultiplier: 1,
                     cashRewardMultiplier: 1,
                     tapDamageMultiplier: 1,
                     minerDpsMultiplier: 1,
-                    minerCostMultiplier: 1,
+                    minerCostMultiplier: 5.0,      // 💰 Miner upgrade cost is 5x higher!
+                    offlineHourCap: 1,            // ⏱️ Max 1 Hour Offline Limit
+                    offlineEarningsMult: 0.05,    // 📉 Very low offline earnings
                     adCashReward: 75,
                     adGemReward: 12,
                     boostSeconds: 60,
                     minWithdraw: 11000,
                     bossTime: 30,
-                    // Dynamic Referral Rewards Config
                     referralGoldReward: 600,
                     referralCoinsReward: 340000,
                     referralGemsReward: 1004,
-                    // Dynamic Withdrawal Ad Config
                     montageZoneId: "11520403",
                     withdrawAdGold: 15,
                     withdrawAdGems: 50,
                     withdrawAdLimit: 30,
                     withdrawCooldownHours: 3,
-                    // Dynamic Adsgram SDK Config
                     adsgramMiners: "int-41522",
                     adsgramRewards: "int-41524",
                     rewardsCooldownHours: 4,
@@ -231,12 +222,14 @@
                 }
                 function applyAdminConfig(cfg) {
                     const clean = { ...DEFAULT_ADMIN_CONFIG, ...(cfg || {}) };
-                    clean.rockHpMultiplier = num(clean.rockHpMultiplier, 1, 0.05);
+                    clean.rockHpMultiplier = num(clean.rockHpMultiplier, 3.5, 0.05);
                     clean.coinRewardMultiplier = num(clean.coinRewardMultiplier, 1, 0);
                     clean.cashRewardMultiplier = num(clean.cashRewardMultiplier, 1, 0);
                     clean.tapDamageMultiplier = num(clean.tapDamageMultiplier, 1, 0.05);
                     clean.minerDpsMultiplier = num(clean.minerDpsMultiplier, 1, 0.05);
-                    clean.minerCostMultiplier = num(clean.minerCostMultiplier, 1, 0);
+                    clean.minerCostMultiplier = num(clean.minerCostMultiplier, 5.0, 0.1);
+                    clean.offlineHourCap = num(clean.offlineHourCap, 1, 0.1);
+                    clean.offlineEarningsMult = num(clean.offlineEarningsMult, 0.05, 0.001);
                     clean.adCashReward = num(clean.adCashReward, 75, 0);
                     clean.adGemReward = num(clean.adGemReward, 12, 0);
                     clean.boostSeconds = num(clean.boostSeconds, 60, 1);
@@ -279,12 +272,12 @@
                 function getBossTime() { return Math.floor(adminConfig().bossTime); }
 
                 const MINERS = [
-                    { id: 0, name: 'PICKY', title: 'Rookie Miner', key: 'miner1', baseDps: 1.4, baseCost: 60, adsRequired: 0, gemCost: 0, tint: 0x4ea8ff, swing: 900 },
-                    { id: 1, name: 'BRUNO', title: 'Veteran Digger', key: 'miner2', baseDps: 6, baseCost: 520, adsRequired: 3, gemCost: 25, tint: 0xffa43d, swing: 1000 },
-                    { id: 2, name: 'GRIMM', title: 'Forge Dwarf', key: 'miner3', baseDps: 27, baseCost: 4400, adsRequired: 4, gemCost: 60, tint: 0xff5d5d, swing: 1150 },
-                    { id: 3, name: 'DRIL-9', title: 'Mining Droid', key: 'miner4', baseDps: 120, baseCost: 36000, adsRequired: 5, gemCost: 140, tint: 0x3ddc97, swing: 700 },
-                    { id: 4, name: 'NOVA', title: 'Plasma Cutter', key: 'miner5', baseDps: 540, baseCost: 290000, adsRequired: 7, gemCost: 320, tint: 0xc46bff, swing: 820 },
-                    { id: 5, name: 'MIDAS', title: 'The Gold King', key: 'miner6', baseDps: 2400, baseCost: 2500000, adsRequired: 8, gemCost: 750, tint: 0xffd23d, swing: 1000 },
+                    { id: 0, name: 'PICKY', title: 'Rookie Miner', key: 'miner1', baseDps: 1.4, baseCost: 150, adsRequired: 0, gemCost: 0, tint: 0x4ea8ff, swing: 900 },
+                    { id: 1, name: 'BRUNO', title: 'Veteran Digger', key: 'miner2', baseDps: 6, baseCost: 1200, adsRequired: 3, gemCost: 25, tint: 0xffa43d, swing: 1000 },
+                    { id: 2, name: 'GRIMM', title: 'Forge Dwarf', key: 'miner3', baseDps: 27, baseCost: 12000, adsRequired: 4, gemCost: 60, tint: 0xff5d5d, swing: 1150 },
+                    { id: 3, name: 'DRIL-9', title: 'Mining Droid', key: 'miner4', baseDps: 120, baseCost: 98000, adsRequired: 5, gemCost: 140, tint: 0x3ddc97, swing: 700 },
+                    { id: 4, name: 'NOVA', title: 'Plasma Cutter', key: 'miner5', baseDps: 540, baseCost: 850000, adsRequired: 7, gemCost: 320, tint: 0xc46bff, swing: 820 },
+                    { id: 5, name: 'MIDAS', title: 'The Gold King', key: 'miner6', baseDps: 2400, baseCost: 7500000, adsRequired: 8, gemCost: 750, tint: 0xffd23d, swing: 1000 },
                 ];
                 const TIERS = [
                     { name: 'GRANITE', key: 'rock_stone', color: 0x9aa3b0, glow: 0xc8d2e0, css: '#c8d2e0' },
@@ -297,9 +290,11 @@
                 function tierFor(level) { return TIERS[Math.floor((level - 1) / 5) % TIERS.length]; }
                 function zoneName(level) { return 'DEPTH ' + (Math.floor((level - 1) / 10) + 1); }
                 function isBoss(level) { return level % 10 === 0; }
+                
+                // Harder Rock HP Formula (High difficulty)
                 function rockMaxHp(level) {
-                    const base = 10 * Math.pow(1.152, level - 1) + level * 5;
-                    return Math.max(8, Math.floor((isBoss(level) ? base * 6.5 : base) * adminConfig().rockHpMultiplier));
+                    const base = 25 * Math.pow(1.22, level - 1) + level * 15;
+                    return Math.max(20, Math.floor((isBoss(level) ? base * 8 : base) * adminConfig().rockHpMultiplier));
                 }
                 function coinReward(level) {
                     const base = 14 * Math.pow(1.146, level - 1) + level * 3;
@@ -312,8 +307,10 @@
                 function tapCost(lv) { return Math.floor(30 * Math.pow(1.3, lv - 1)); }
                 function goldCost(lv) { return Math.floor(320 * Math.pow(1.42, lv)); }
                 function luckCost(lv) { return Math.floor(850 * Math.pow(1.48, lv)); }
+                
+                // Higher Miner Upgrade Cost Formula
                 function minerCost(i, level) {
-                    return Math.floor(MINERS[i].baseCost * Math.pow(1.185, Math.max(0, level)) * adminConfig().minerCostMultiplier);
+                    return Math.floor(MINERS[i].baseCost * Math.pow(1.35, Math.max(0, level)) * adminConfig().minerCostMultiplier);
                 }
                 function minerDps(i, level) {
                     if (level <= 0) return 0;
@@ -337,7 +334,6 @@
                     { app: 'DIAMOND DIGGER PRO', tag: 'Dig deep \u00b7 Get rich \u00b7 Cash out daily', sprite: 'rock_diamond', c1: 0x00a6e0, c2: 0x2b3df0, cta: 'GET NOW', rating: '4.8 \u2605  \u00b7  22M+ installs' },
                 ];
 
-                /* ==== src/save.ts ================================================= */
                 const KEY = 'stone_tycoon_save_v2';
                 function fresh() {
                     return {
@@ -355,7 +351,6 @@
                         rewardCooldownUntil: 0,
                         withdrawAdCount: 0,
                         withdrawAdCooldownUntil: 0,
-                        // Referral fields
                         referredBy: null,
                         referralCount: 0,
                         referralGoldEarned: 0,
@@ -411,19 +406,22 @@
 
                 const S = load();
 
+                let lastCloudSaveTime = 0;
                 function save() {
                     S.lastSeen = Date.now();
                     try { 
                         localStorage.setItem(KEY, JSON.stringify(S)); 
                     } catch {}
 
-                    if (currentUser && db) {
+                    // Throttle Firestore write to prevent game freezing/lag
+                    const now = Date.now();
+                    if (currentUser && db && (now - lastCloudSaveTime > 30000)) {
+                        lastCloudSaveTime = now;
                         db.collection('users').doc(currentUser.uid).set(S, { merge: true })
                             .catch(err => console.error("Firebase Firestore Save Error:", err));
                     }
                 }
 
-                // Process Incoming Referral Link
                 function checkReferralCode() {
                     let refCode = null;
                     try {
@@ -451,7 +449,6 @@
                     }
                 }
 
-                // Authenticate & Sync with Firebase
                 auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
                 auth.onAuthStateChanged(user => {
                     if (user) {
@@ -473,13 +470,9 @@
                             checkReferralCode();
                         });
 
-                        // -------------------------------------------------------------
-                        // 🛠️ REAL-TIME ADMIN CONFIG LISTENER (MATCHES config/admin_config)
-                        // -------------------------------------------------------------
                         db.collection('config').doc('admin_config').onSnapshot(doc => {
                             if (doc.exists) {
                                 applyAdminConfig(doc.data());
-                                console.log("Real-time Admin Config Synced:", doc.data());
                             }
                         }, err => console.log("Admin config listener:", err));
                     } else {
@@ -487,7 +480,6 @@
                     }
                 });
 
-                /* ==== src/audio.ts ================================================ */
                 const pool = {};
                 let ready = false, muted = false;
                 function initAudio() {
@@ -521,7 +513,6 @@
                     if (ready && typeof Howler !== 'undefined') Howler.mute(m);
                 }
 
-                /* ==== src/ui.ts =================================================== */
                 const FONT = 'Russo One';
                 const FONT_D = 'Bangers';
                 const C = {
@@ -533,10 +524,10 @@
                 };
                 const TXT = { light: '#eaf1ff', dim: '#8ea1c2', gold: '#ffd76a', green: '#7bf0ae', red: '#ff8b8b', dark: '#0b1020' };
 
-                function hex(c) { return '#' + c.toString(16).padStart(6, '0'); }
+                function hex(c) { return '#' + (c || 0).toString(16).padStart(6, '0'); }
 
                 function t(size, color = TXT.light, family = FONT) { 
-                    const colString = typeof color === 'number' ? hex(color) : color;
+                    const colString = typeof color === 'number' ? hex(color) : (color || TXT.light);
                     const sizeInt = Math.round(Number(size) || 16);
                     return { fontFamily: family, fontSize: `${sizeInt}px`, color: colString }; 
                 }
@@ -689,7 +680,7 @@
                 function toast(scene, msg, color = C.gold) {
                     const cam = scene.cameras.main, cx = cam.width / 2, y = cam.height * 0.30;
                     const cont = scene.add.container(cx, y).setDepth(9000);
-                    const txt = scene.add.text(0, 0, msg, t(24, TXT.light)).setOrigin(0.5);
+                    const txt = scene.add.text(0, 0, msg || ' ', t(24, TXT.light)).setOrigin(0.5);
                     const w = Math.max(260, txt.width + 60);
                     const g = scene.add.graphics();
                     rr(g, -w / 2, -30, w, 60, 18, 0x0b1223, 0.96);
@@ -729,7 +720,6 @@
                     scene.events.once('shutdown', () => shape.destroy());
                 }
 
-                /* ==== src/scenes/Game.ts ========================================== */
                 const DW = 720, DH = 1280;
                 function tapDamage() { return 0; }
                 function totalDps() {
@@ -767,7 +757,7 @@
                     }
                     buildBackground() {
                         const bg = this.add.image(DW / 2, DH / 2, 'bg_mine');
-                        const sc = Math.max(DW / bg.width, DH / bg.height);
+                        const sc = Math.max(DW / (bg.width || 720), DH / (bg.height || 1280));
                         bg.setScale(sc).setTint(0x9fb0d4).setDepth(-100);
                         const shade = this.add.graphics().setDepth(-99);
                         shade.fillStyle(0x060a14, 0.45); shade.fillRect(0, 0, DW, DH);
@@ -1063,28 +1053,28 @@
                         this.tweens.add({ targets: cont, scaleX: 1, scaleY: 1, alpha: 1, duration: 240, ease: 'Back.easeOut' });
                         this.tweens.add({ targets: cont, y: y - 60, alpha: 0, delay: 900, duration: 400, ease: 'Quad.easeIn', onComplete: () => cont.destroy() });
                     }
+                    
+                    // Strictly 1-Hour Cap Offline Mining System (Low Earnings)
                     offlineEarnings() {
                         const away = (Date.now() - S.lastSeen) / 1000;
-                        if (away < 90) return;
+                        if (away < 60) return; // Must be offline for at least 1 min
+                        
+                        const capHourSec = (adminConfig().offlineHourCap || 1) * 3600; // Strict 1 Hour Cap
+                        const capped = Math.min(away, capHourSec);
+                        
                         const dps = totalDps() / (boostActive() ? 2 : 1);
                         if (dps <= 0) return;
-                        const capped = Math.min(away, 4 * 3600);
-                        const dmgTotal = dps * capped * 0.5;
-                        const rocks = Math.floor(dmgTotal / Math.max(1, rockMaxHp(S.level)));
-                        if (rocks < 1) return;
-                        
-                        let coins = Math.floor(coinReward(S.level) * goldMult() * rocks * 0.7);
-                        if (S.coins >= 7000) {
-                            coins = Math.max(1, Math.floor(coins * 0.05));
-                        }
 
-                        if (coins < 1) return;
+                        const mult = adminConfig().offlineEarningsMult || 0.05; // Very low offline rate
+                        const coins = Math.max(1, Math.floor(dps * capped * 0.08 * mult));
+                        const cash = Math.max(0.1, (dps * capped * 0.02 * mult));
+
                         this.time.delayedCall(600, () => {
-                            S.coins += coins; S.totalCoins += coins; save();
-                            this.refreshHud(); this.showOfflinePopup(capped, coins);
+                            S.coins += coins; S.totalCoins += coins; S.cash += cash; save();
+                            this.refreshHud(); this.showOfflinePopup(capped, coins, cash);
                         });
                     }
-                    showOfflinePopup(sec, coins) {
+                    showOfflinePopup(sec, coins, cash) {
                         const layer = this.add.container(0, 0).setDepth(3000);
                         const shade = this.add.rectangle(DW / 2, DH / 2, DW, DH, 0x03060e, 0.8).setInteractive();
                         layer.add(shade);
@@ -1094,11 +1084,11 @@
                         layer.add(g);
                         layer.add(this.add.text(DW / 2, DH / 2 - 140, 'WELCOME BACK!', { fontFamily: FONT_D, fontSize: '46px', color: '#ffd76a' }).setOrigin(0.5));
                         const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
-                        layer.add(this.add.text(DW / 2, DH / 2 - 88, `Your miners worked for ${h > 0 ? h + 'h ' : ''}${m}m`, t(21, TXT.dim)).setOrigin(0.5));
-                        layer.add(this.add.image(DW / 2 - 90, DH / 2 - 4, 'coin').setDisplaySize(78, 78));
-                        layer.add(this.add.text(DW / 2 + 20, DH / 2 - 4, '+' + fmt(coins), t(46, TXT.gold)).setOrigin(0.5));
+                        layer.add(this.add.text(DW / 2, DH / 2 - 88, `Miners worked for ${h > 0 ? h + 'h ' : ''}${m}m (Max 1 Hour)`, t(18, TXT.dim)).setOrigin(0.5));
+                        layer.add(this.add.image(DW / 2 - 90, DH / 2 - 4, 'coin').setDisplaySize(60, 60));
+                        layer.add(this.add.text(DW / 2 + 20, DH / 2 - 4, '+' + fmt(coins) + ' COINS \n+' + goldFull(cash), t(24, TXT.gold)).setOrigin(0.5));
                         const b = new Btn(this, DW / 2, DH / 2 + 110, {
-                            w: 480, h: 84, label: 'COLLECT', color: C.green, shadow: C.greenDk, fontSize: 30, radius: 22,
+                            w: 480, h: 84, label: 'COLLECT & RESUME', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 22,
                             onClick: () => { sfx('coin'); layer.destroy(); },
                         });
                         layer.add(b); layer.setAlpha(0);
@@ -1119,7 +1109,6 @@
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                // DO NOT RESET COINS, GEMS OR GOLD!
                                 S.level = 1; S.hp = rockMaxHp(1); S.maxHp = S.hp;
                                 S.tapLv = 1; S.goldLv = 0; S.luckLv = 0;
                                 S.minerLevel = [1, 0, 0, 0, 0, 0]; S.unlocked = [true, false, false, false, false, false];
@@ -1149,7 +1138,6 @@
                     update(_time, delta) {
                         const dt = delta / 1000;
                         
-                        // 26-Hour Reset Check
                         const HOURS_26_MS = 26 * 60 * 60 * 1000;
                         if (!this.isResetting && Date.now() - S.runStartTime >= HOURS_26_MS) {
                             this.isResetting = true;
@@ -1157,7 +1145,6 @@
                             return;
                         }
 
-                        // Dynamic Miner Reset Timer (Hours set by Admin)
                         const resetHours = adminConfig().minerResetHours || 10;
                         const MINER_RESET_MS = resetHours * 60 * 60 * 1000;
                         if (!S.minerResetTime) S.minerResetTime = Date.now();
@@ -1226,7 +1213,7 @@
                         }
 
                         this.saveAcc += dt;
-                        if (this.saveAcc > 6) { this.saveAcc = 0; save(); }
+                        if (this.saveAcc > 10) { this.saveAcc = 0; save(); }
                     }
                     doSwing(i, period) {
                         const sp = this.minerSprites[i]; if (!sp) return;
@@ -1266,7 +1253,6 @@
                     }
                 }
 
-                /* ==== src/scenes/Panel.ts (ADSGRAM INTEGRATION) ======== */
                 class Panel extends Phaser.Scene {
                     constructor() {
                         super(...arguments);
@@ -1411,7 +1397,6 @@
                     }
                 }
 
-                /* ==== src/scenes/Boot.ts ========================================== */
                 class Boot extends Phaser.Scene {
                     constructor() {
                         super('Boot');
@@ -1480,16 +1465,15 @@
                             this.scene.start('Title');
                         }
                     }
+                    
+                    // Creates Procedural Textures to prevent `Cannot read properties of null (reading 'cut')`
                     makeTextures() {
-                        try { this.buildProceduralTextures(); } catch (e) {}
-                    }
-                    buildProceduralTextures() {
                         const createTex = (key, w, h, draw) => {
                             if (!this.textures.exists(key)) {
                                 const cv = this.textures.createCanvas(key, w, h);
                                 if (cv) {
-                                    const ctx = cv.getContext();
-                                    draw(ctx, w, h);
+                                    const ctx = cv.getContext('2d');
+                                    if (ctx) draw(ctx, w, h);
                                     cv.refresh();
                                 }
                             }
@@ -1511,6 +1495,16 @@
                             ctx.closePath(); ctx.fill();
                         });
 
+                        createTex('particle', 10, 10, (ctx, w, h) => {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.beginPath(); ctx.arc(5, 5, 5, 0, Math.PI * 2); ctx.fill();
+                        });
+
+                        createTex('debris', 16, 16, (ctx, w, h) => {
+                            ctx.fillStyle = '#8f9bab';
+                            ctx.fillRect(2, 2, 12, 12);
+                        });
+
                         createTex('vgrad', 8, 256, (ctx, w, h) => {
                             const grd = ctx.createLinearGradient(0, 0, 0, h);
                             grd.addColorStop(0, 'rgba(0,0,0,0)');
@@ -1520,7 +1514,6 @@
                     }
                 }
 
-                /* ==== src/scenes/Title.ts ========================================= */
                 class Title extends Phaser.Scene {
                     constructor() { super('Title'); }
                     create() {
@@ -1639,7 +1632,6 @@
                     }
                 }
 
-                /* ==== src/scenes/AdScene.ts ======================================= */
                 const AD_SECONDS = 5;
                 class AdScene extends Phaser.Scene {
                     constructor() {
@@ -1711,7 +1703,6 @@
                     }
                 }
 
-                /* ==== src/scenes/MinersPanel.ts =================================== */
                 const ROW_H = 178, GAP = 14;
                 class MinersPanel extends Panel {
                     constructor() {
@@ -1730,10 +1721,11 @@
                         MINERS.forEach((_, i) => this.buildRow(i, i * (ROW_H + GAP)));
                         attachScroll(this, this.list, 0, vy, DW, vh, MINERS.length * (ROW_H + GAP) + 20);
 
-                        this.time.addEvent({
+                        this.timeEvent = this.time.addEvent({
                             delay: 500, loop: true,
                             callback: () => this.refreshAll()
                         });
+                        this.events.once('shutdown', () => { if (this.timeEvent) this.timeEvent.remove(); });
                     }
                     buildRow(i, y) {
                         const m = MINERS[i];
@@ -1822,7 +1814,6 @@
                             S.coins -= m.baseCost; this.doUnlock(i); return;
                         }
                         
-                        // Dynamic Block ID from Admin Panel Config
                         const minerBlockId = adminConfig().adsgramMiners || ADSGRAM_BLOCK_ID_MINERS;
 
                         this.playAd(`Unlock ${m.name}`, (ok) => {
@@ -1845,7 +1836,6 @@
                     }
                 }
 
-                /* ==== src/scenes/UpgradePanel.ts ================================== */
                 class UpgradePanel extends Panel {
                     constructor() { super('UpgradePanel'); this.rows = []; }
                     init() {
@@ -1915,7 +1905,6 @@
                     refreshAll() { this.rows.forEach((r) => r()); this.refreshWallet(); }
                 }
 
-                /* ==== src/scenes/RewardsPanel.ts ================================== */
                 class RewardsPanel extends Panel {
                     constructor() { super('RewardsPanel'); this.redraws = []; }
                     init() {
@@ -1984,10 +1973,11 @@
 
                         attachScroll(this, list, 0, vy, DW, vh, offers.length * (H + GAP) + 130);
 
-                        this.time.addEvent({
+                        this.timeEvent = this.time.addEvent({
                             delay: 500, loop: true,
                             callback: () => this.refreshAll()
                         });
+                        this.events.once('shutdown', () => { if (this.timeEvent) this.timeEvent.remove(); });
                     }
                     buildOffer(list, o, y, H) {
                         const g = this.add.graphics();
@@ -2009,7 +1999,6 @@
                                     return;
                                 }
 
-                                // Dynamic Block ID from Admin Panel
                                 const rewardBlockId = adminConfig().adsgramRewards || ADSGRAM_BLOCK_ID_REWARDS;
 
                                 this.playAd(o.title, (ok) => {
@@ -2066,7 +2055,6 @@
                     refreshAll() { this.redraws.forEach(r => r()); this.refreshWallet(); }
                 }
 
-                /* ==== src/scenes/CashPanel.ts ===================================== */
                 class CashPanel extends Panel {
                     constructor() {
                         super('CashPanel');
@@ -2107,10 +2095,11 @@
                         attachScroll(this, this.list, 0, vy, DW, vh, y + 40);
                         this.refreshAll();
 
-                        this.time.addEvent({
+                        this.timeEvent = this.time.addEvent({
                             delay: 500, loop: true,
                             callback: () => this.refreshAll()
                         });
+                        this.events.once('shutdown', () => { if (this.timeEvent) this.timeEvent.remove(); });
                     }
                     buildBalanceCard(y) {
                         const H = 160;
@@ -2143,7 +2132,7 @@
                             }
                             
                             if (!isPayoutAvailable(this.method.id)) {
-                                this.progTxt.setText(`${this.method.name} withdrawal is currently NOT AVAILABLE (Locked by Admin)`);
+                                this.progTxt.setText(`${this.method.name} withdrawal is currently NOT AVAILABLE`);
                             } else if (S.cash >= this.amount) {
                                 this.progTxt.setText(`Ready to withdraw ${comma(this.amount)} GOLD minimum`);
                             } else {
@@ -2154,7 +2143,6 @@
                         return y + H + 12;
                     }
 
-                    // Dynamic Withdrawal Ad Button Connected to Live Admin Config
                     buildAdButton(y) {
                         const b = new Btn(this, DW / 2, y + 36, {
                             w: DW - 36, h: 68, label: ' ', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
@@ -2449,7 +2437,6 @@
                         return y + 100;
                     }
 
-                    /* ---- EDIT DETAILS DIALOG MODAL (WITH DIRECT HTML INPUT FOR MOBILE KEYBOARD) ---- */
                     showEditDetailsModal(method) {
                         if (this.activeEditModal) return;
                         this.data.set('modal', true);
@@ -2465,7 +2452,6 @@
                         const panel = this.add.container(DW / 2, my);
                         layer.add(panel);
 
-                        // Modal Background Graphics
                         const g = this.add.graphics();
                         rr(g, -mw / 2, -mh / 2, mw, mh, 28, 0x0f172a, 1);
                         rrs(g, -mw / 2, -mh / 2, mw, mh, 28, method.headerColor, 3, 0.9);
@@ -2501,9 +2487,6 @@
                         };
                         updateInputDisplay();
 
-                        // -------------------------------------------------------------
-                        // REAL OVERLAY HTML INPUT ELEMENT FOR RELIABLE SOFT KEYBOARD FOCUS
-                        // -------------------------------------------------------------
                         const canvasBounds = this.sys.game.canvas.getBoundingClientRect();
                         const scaleX = canvasBounds.width / DW;
                         const scaleY = canvasBounds.height / DH;
@@ -2536,7 +2519,6 @@
 
                         document.body.appendChild(htmlInput);
 
-                        // Auto Focus Input Box to pop up mobile keyboard
                         setTimeout(() => {
                             try { htmlInput.focus(); } catch(e) {}
                         }, 100);
@@ -2645,14 +2627,12 @@
                             closeModal();
                         };
 
-                        // SAVE DETAILS BUTTON
                         const saveBtn = new Btn(this, 0, mh / 2 - 70, {
                             w: mw - 60, h: 64, label: 'SAVE DETAILS', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 20,
                             onClick: saveAction
                         });
                         panel.add(saveBtn);
 
-                        // CANCEL BUTTON
                         const cancelTxt = this.add.text(0, mh / 2 - 20, 'Cancel', t(18, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
                         cancelTxt.on('pointerup', () => { sfx('click'); closeModal(); });
                         panel.add(cancelTxt);
@@ -2663,7 +2643,6 @@
                     }
                 }
 
-                /* ==== src/scenes/SettingsPanel.ts (DYNAMIC REFERRAL REWARDS CONNECTED) ==== */
                 class SettingsPanel extends Panel {
                     constructor() { super('SettingsPanel'); }
                     init() {
@@ -2677,7 +2656,6 @@
                         const list = this.add.container(0, vy).setDepth(2);
                         let y = 10;
 
-                        // Sound Button
                         const soundBtn = new Btn(this, DW / 2, y + 40, {
                             w: DW - 40, h: 80, label: S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON',
                             color: S.muted ? C.greyDk : C.blue, shadow: S.muted ? 0x11182a : C.blueDk, fontSize: 24, radius: 22,
@@ -2690,7 +2668,6 @@
                         list.add(soundBtn);
                         y += 100;
 
-                        // User UI ID Display Card
                         const uidG = this.add.graphics();
                         rr(uidG, 20, y, DW - 40, 110, 22, 0x101728, 1);
                         rrs(uidG, 20, y, DW - 40, 110, 22, C.stroke, 2, 0.8);
@@ -2712,9 +2689,6 @@
                         list.add(copyBtn);
                         y += 130;
 
-                        // =========================================================
-                        // 🚀 REFERRAL / INVITE FRIENDS SYSTEM CARD (DYNAMIC ADMIN REWARDS)
-                        // =========================================================
                         const refCardH = 370;
                         const refG = this.add.graphics();
                         rr(refG, 20, y, DW - 40, refCardH, 24, 0x0f1c2e, 1);
@@ -2724,7 +2698,6 @@
                         const titleText = this.add.text(DW / 2, y + 32, '\ud83c\udf81 INVITE FRIENDS & EARN', { fontFamily: FONT_D, fontSize: '32px', color: '#ffd76a' }).setOrigin(0.5);
                         list.add(titleText);
 
-                        // Dynamic Referral Rewards read from Live Admin Config
                         const refGold = adminConfig().referralGoldReward || 600;
                         const refCoins = adminConfig().referralCoinsReward || 340000;
                         const refGems = adminConfig().referralGemsReward || 1004;
@@ -2734,7 +2707,6 @@
                         }).setOrigin(0.5);
                         list.add(rewardSub);
 
-                        // Stats Summary Box inside Card
                         const statBoxG = this.add.graphics();
                         rr(statBoxG, 40, y + 110, DW - 80, 100, 18, 0x0a111e, 0.95);
                         rrs(statBoxG, 40, y + 110, DW - 80, 100, 18, C.stroke, 2, 0.7);
@@ -2744,11 +2716,9 @@
                         const earnedTxt = this.add.text(DW / 2, y + 180, `TOTAL REWARD: ${comma(S.referralGoldEarned || 0)} GOLD · ${fmt(S.referralCoinsEarned || 0)} COINS · ${comma(S.referralGemsEarned || 0)} GEMS`, t(14, TXT.gold)).setOrigin(0.5);
                         list.add([invitedTxt, earnedTxt]);
 
-                        // Telegram Share Link
                         const shareUrl = `${TELEGRAM_SHARE_BASE}?startapp=REF_${displayUid}`;
                         const shareMsgText = `ℝ𝕖𝕒𝕔𝕙 𝟙𝟙,𝟘𝟘𝟘 𝔾𝕠𝕝𝕕 & 𝕀𝕟𝕤𝕥𝕒𝕟𝕥 ℂ𝕒𝕤𝕙𝕠𝕦𝕥!\n🚀 𝕊𝕥𝕒𝕣𝕥 𝕪𝕠𝕦𝕣 𝕞𝕚𝕟𝕚𝕟𝕘 ${TELEGRAM_BOT_URL}?startapp=REF_${displayUid}`;
 
-                        // Share / Invite Button
                         const inviteBtn = new Btn(this, DW / 2 - 130, y + 250, {
                             w: 230, h: 70, label: '\ud83d\udce4 SHARE LINK', color: C.green, shadow: C.greenDk, fontSize: 20, radius: 18,
                             onClick: () => {
@@ -2768,7 +2738,6 @@
                         });
                         list.add(inviteBtn);
 
-                        // Copy Link Button
                         const copyLinkBtn = new Btn(this, DW / 2 + 130, y + 250, {
                             w: 230, h: 70, label: '\ud83d\udccb COPY LINK', color: C.purple, shadow: C.purpleDk, fontSize: 20, radius: 18,
                             onClick: () => {
@@ -2779,7 +2748,6 @@
                         });
                         list.add(copyLinkBtn);
 
-                        // Sync / Claim Referral Rewards Button (Dynamic Calculation from Live Admin Config)
                         const claimRefBtn = new Btn(this, DW / 2, y + 325, {
                             w: DW - 80, h: 60, label: '🔄 SYNC & CLAIM REFERRAL REWARDS', color: C.blue, shadow: C.blueDk, fontSize: 18, radius: 16,
                             onClick: () => {
@@ -2798,7 +2766,6 @@
                                             batch.update(doc.ref, { claimed: true });
                                         });
 
-                                        // Read dynamic live amounts set by admin
                                         const curRefGold = adminConfig().referralGoldReward || 600;
                                         const curRefCoins = adminConfig().referralCoinsReward || 340000;
                                         const curRefGems = adminConfig().referralGemsReward || 1004;
@@ -2839,7 +2806,6 @@
                     }
                 }
 
-                /* ==== src/main.ts ================================================= */
                 setMuted(S.muted);
                 applyAdminConfig(adminConfig());
 
