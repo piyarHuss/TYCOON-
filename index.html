@@ -65,6 +65,10 @@
             return 'ST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
+        // Telegram Bot Share Links
+        const TELEGRAM_SHARE_BASE = "https://t.me/TYCOON_PLAY_BOT/playtoearn";
+        const TELEGRAM_BOT_URL = "https://t.me/TYCOON_PLAY_BOT";
+
         // =========================================================================
         // 🎵 CUSTOM SOUND FILES
         // =========================================================================
@@ -291,7 +295,14 @@
                         rewardAdProgress: [0, 0, 0, 0],
                         rewardCooldownUntil: 0,
                         withdrawAdCount: 0,
-                        withdrawAdCooldownUntil: 0
+                        withdrawAdCooldownUntil: 0,
+                        // Referral fields
+                        referredBy: null,
+                        referralCount: 0,
+                        referralGoldEarned: 0,
+                        referralCoinsEarned: 0,
+                        referralGemsEarned: 0,
+                        claimedReferrals: 0
                     };
                 }
 
@@ -320,6 +331,12 @@
                     s.rewardCooldownUntil = p.rewardCooldownUntil || 0;
                     s.withdrawAdCount = Number(p.withdrawAdCount) || 0;
                     s.withdrawAdCooldownUntil = p.withdrawAdCooldownUntil || 0;
+                    s.referredBy = p.referredBy || null;
+                    s.referralCount = Number(p.referralCount) || 0;
+                    s.referralGoldEarned = Number(p.referralGoldEarned) || 0;
+                    s.referralCoinsEarned = Number(p.referralCoinsEarned) || 0;
+                    s.referralGemsEarned = Number(p.referralGemsEarned) || 0;
+                    s.claimedReferrals = Number(p.claimedReferrals) || 0;
                     return s;
                 }
 
@@ -347,6 +364,34 @@
                     }
                 }
 
+                // Process Incoming Referral Link
+                function checkReferralCode() {
+                    let refCode = null;
+                    try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        refCode = urlParams.get('ref') || urlParams.get('startapp') || urlParams.get('start');
+                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param) {
+                            refCode = window.Telegram.WebApp.initDataUnsafe.start_param;
+                        }
+                    } catch (e) {}
+
+                    if (refCode && refCode.startsWith('REF_')) {
+                        const referrerUid = refCode.replace('REF_', '').trim();
+                        if (referrerUid && referrerUid !== S.uid && !S.referredBy) {
+                            S.referredBy = referrerUid;
+                            save();
+                            if (db) {
+                                db.collection('referrals').add({
+                                    referrer: referrerUid,
+                                    referred: S.uid,
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                    claimed: false
+                                }).catch(err => console.error("Referral Record Error:", err));
+                            }
+                        }
+                    }
+                }
+
                 // Authenticate & Sync with Firebase
                 auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
                 auth.onAuthStateChanged(user => {
@@ -363,13 +408,19 @@
                             } else {
                                 save();
                             }
-                        }).catch(err => console.error("Firestore Load Error:", err));
+                            checkReferralCode();
+                        }).catch(err => {
+                            console.error("Firestore Load Error:", err);
+                            checkReferralCode();
+                        });
 
                         db.collection('admin').doc('config').onSnapshot(doc => {
                             if (doc.exists) {
                                 applyAdminConfig(doc.data());
                             }
                         }, err => console.log("Admin config listener:", err));
+                    } else {
+                        checkReferralCode();
                     }
                 });
 
@@ -455,10 +506,10 @@
                         const fs = o.fontSize ?? Math.round(h * 0.36);
                         const hasSub = !!o.sub;
                         const labelY = hasSub ? -h * 0.13 : 0;
-                        this.label = scene.add.text(0, labelY, o.label, t(fs, o.textColor ?? TXT.light)).setOrigin(0.5).setShadow(0, 2, '#00000066', 2);
+                        this.label = scene.add.text(0, labelY, o.label || ' ', t(fs, o.textColor ?? TXT.light)).setOrigin(0.5).setShadow(0, 2, '#00000066', 2);
                         this.face.add(this.label);
                         if (hasSub) {
-                            this.subText = scene.add.text(0, h * 0.24, o.sub, t(o.subSize ?? Math.round(h * 0.21), o.subColor ?? TXT.dim)).setOrigin(0.5);
+                            this.subText = scene.add.text(0, h * 0.24, o.sub || ' ', t(o.subSize ?? Math.round(h * 0.21), o.subColor ?? TXT.dim)).setOrigin(0.5);
                             this.face.add(this.subText);
                         }
                         if (o.icon) {
@@ -522,8 +573,8 @@
                         this.redraw(false);
                         return this;
                     }
-                    setLabel(s) { this.label.setText(s); this.layoutIcon(); return this; }
-                    setSub(s) { if (this.subText) this.subText.setText(s); return this; }
+                    setLabel(s) { this.label.setText(s || ' '); this.layoutIcon(); return this; }
+                    setSub(s) { if (this.subText) this.subText.setText(s || ' '); return this; }
                     setColorTheme(color) { this.o.color = color; this.redraw(false); return this; }
                 }
 
@@ -708,8 +759,7 @@
                         if (boss) this.rock.setTint(0xffb0b0); else this.rock.clearTint();
                         this.hpBar.setColor(boss ? C.red : tier.color);
                         this.hpBar.set(S.hp / S.maxHp, instant);
-                        this.tierTxt.setText(tier.name + (S.lucky ? '  \u2726 LUCKY' : ''));
-                        this.tierTxt.setStyle({ color: S.lucky ? '#ffe066' : tier.css });
+                        this.tierTxt.setText(tier.name + (S.lucky ? '  \u2726 LUCKY' : '')).setColor(S.lucky ? '#ffe066' : tier.css);
                         this.levelTxt.setText('LEVEL ' + S.level);
                         this.zoneTxt.setText(zoneName(S.level));
                         this.drawCracks();
@@ -747,13 +797,13 @@
                             const s = 120 / Math.max(sp.width || 120, sp.height || 120);
                             sp.setScale(s); sp.setOrigin(0.5, 0.62);
                             this.minerSprites.push(sp);
-                            const lv = this.add.text(x, 806, '', t(15, TXT.gold)).setOrigin(0.5).setDepth(12);
+                            const lv = this.add.text(x, 806, ' ', t(15, TXT.gold)).setOrigin(0.5).setDepth(12);
                             this.minerLvTxt.push(lv);
                             const lock = this.add.container(x, this.MINER_Y - 6).setDepth(11);
                             const lg = this.add.graphics();
                             rr(lg, -slotW / 2 + 6, -52, slotW - 12, 118, 14, 0x05080f, 0.72);
                             const licon = this.add.text(0, -18, '\ud83d\udd12', { fontFamily: 'system-ui, sans-serif', fontSize: '34px', color: '#ffffff' }).setOrigin(0.5);
-                            const ltxt = this.add.text(0, 26, '', t(14, '#9fb0d0')).setOrigin(0.5);
+                            const ltxt = this.add.text(0, 26, ' ', t(14, '#9fb0d0')).setOrigin(0.5);
                             lock.add([lg, licon, ltxt]); lock.setData('txt', ltxt);
                             this.minerLocks.push(lock);
                             const hit = this.add.zone(x, 750, slotW, 140).setInteractive({ useHandCursor: true });
@@ -769,14 +819,14 @@
                             sp.setVisible(true);
                             if (hired) {
                                 sp.clearTint().setAlpha(1); lock.setVisible(false);
-                                lv.setText('Lv ' + S.minerLevel[i]).setStyle({ color: TXT.gold });
+                                lv.setText('Lv ' + S.minerLevel[i]).setColor(TXT.gold);
                             } else if (unlocked) {
                                 sp.setTint(0x50607f).setAlpha(0.7); lock.setVisible(false);
-                                lv.setText('HIRE').setStyle({ color: '#7bf0ae' });
+                                lv.setText('HIRE').setColor('#7bf0ae');
                             } else {
                                 sp.setTint(0x0a0f1a).setAlpha(0.85); lock.setVisible(true);
                                 lock.getData('txt').setText(`${S.adProgress[i]}/${MINERS[i].adsRequired} AD`);
-                                lv.setText('LOCKED').setStyle({ color: '#6d7c99' });
+                                lv.setText('LOCKED').setColor('#6d7c99');
                             }
                         }
                     }
@@ -809,15 +859,15 @@
                         this.hpBar = new Bar(this, 90, 616, 540, 42, C.gold, 0x080d18); this.hpBar.gfx.setDepth(30);
                         const frame = this.add.graphics().setDepth(31);
                         rrs(frame, 90, 616, 540, 42, 21, 0x3d4d70, 3, 1);
-                        this.hpTxt = this.add.text(DW / 2, 637, '', t(21, TXT.light)).setOrigin(0.5).setDepth(32).setShadow(0, 2, '#000000cc', 3);
-                        this.dpsTxt = this.add.text(DW / 2, 676, '', t(18, TXT.dim)).setOrigin(0.5).setDepth(32);
+                        this.hpTxt = this.add.text(DW / 2, 637, ' ', t(21, TXT.light)).setOrigin(0.5).setDepth(32).setShadow(0, 2, '#000000cc', 3);
+                        this.dpsTxt = this.add.text(DW / 2, 676, ' ', t(18, TXT.dim)).setOrigin(0.5).setDepth(32);
 
                         this.comboRing = this.add.graphics().setDepth(33);
-                        this.comboTxt = this.add.text(628, 480, '', { fontFamily: FONT_D, fontSize: '40px', color: '#ffd76a' }).setOrigin(0.5).setDepth(34).setStroke('#3a1f02', 6).setVisible(false);
+                        this.comboTxt = this.add.text(628, 480, ' ', { fontFamily: FONT_D, fontSize: '40px', color: '#ffd76a' }).setOrigin(0.5).setDepth(34).setStroke('#3a1f02', 6).setVisible(false);
 
                         this.boostBg = this.add.graphics().setDepth(33).setVisible(false);
                         rr(this.boostBg, 18, 250, 150, 46, 14, 0x2a1140, 0.94); rrs(this.boostBg, 18, 250, 150, 46, 14, C.purple, 2, 1);
-                        this.boostTxt = this.add.text(93, 273, '', t(18, '#e2b6ff')).setOrigin(0.5).setDepth(34).setVisible(false);
+                        this.boostTxt = this.add.text(93, 273, ' ', t(18, '#e2b6ff')).setOrigin(0.5).setDepth(34).setVisible(false);
                     }
                     pill(x, y, w, h, fill, stroke) {
                         const g = this.add.graphics();
@@ -1001,12 +1051,13 @@
                         layer.add(g);
                         
                         layer.add(this.add.text(DW / 2, DH / 2 - 100, 'TIME EXPIRED!', { fontFamily: FONT_D, fontSize: '50px', color: '#ff5a5a' }).setOrigin(0.5));
-                        layer.add(this.add.text(DW / 2, DH / 2 - 20, '26 Hours have passed.\nMiners and Upgrades have been reset.\nYour GOLD and GEMS are safe.', { fontFamily: 'system-ui, sans-serif', fontSize: '22px', color: TXT.light, align: 'center', lineSpacing: 8 }).setOrigin(0.5));
+                        layer.add(this.add.text(DW / 2, DH / 2 - 20, '26 Hours have passed.\nMiners and Upgrades reset.\nYour COINS, GEMS & GOLD are safe!', { fontFamily: 'system-ui, sans-serif', fontSize: '22px', color: TXT.light, align: 'center', lineSpacing: 8 }).setOrigin(0.5));
                         
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                S.coins = 0; S.level = 1; S.hp = rockMaxHp(1); S.maxHp = S.hp;
+                                // DO NOT RESET COINS, GEMS OR GOLD!
+                                S.level = 1; S.hp = rockMaxHp(1); S.maxHp = S.hp;
                                 S.tapLv = 1; S.goldLv = 0; S.luckLv = 0;
                                 S.minerLevel = [1, 0, 0, 0, 0, 0]; S.unlocked = [true, false, false, false, false, false];
                                 S.adProgress = [0, 0, 0, 0, 0, 0];
@@ -1083,8 +1134,7 @@
                             S.bossTime -= dt;
                             const r = Phaser.Math.Clamp(S.bossTime / getBossTime(), 0, 1);
                             this.bossBar.set(r, true); this.bossBar.tick(delta);
-                            this.bossTimerTxt.setText(clock(S.bossTime));
-                            this.bossTimerTxt.setStyle({ color: S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff' });
+                            this.bossTimerTxt.setText(clock(S.bossTime)).setColor(S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff');
                             if (S.bossTime <= 0) this.bossFail();
                         }
 
@@ -1582,7 +1632,7 @@
                         this.skipBtnG.clear();
                         rr(this.skipBtnG, -150, -32, 300, 64, 18, 0x000000, canSkip ? 0.55 : 0.32);
                         rrs(this.skipBtnG, -150, -32, 300, 64, 18, 0xffffff, 2, canSkip ? 0.7 : 0.2);
-                        this.skipTxt.setText(canSkip ? 'SKIP AD  \u25b6' : 'SKIP IN ' + Math.max(1, Math.ceil(this.left - (AD_SECONDS - 3)))).setStyle({ color: canSkip ? '#ffffff' : '#ffffff77' });
+                        this.skipTxt.setText(canSkip ? 'SKIP AD  \u25b6' : 'SKIP IN ' + Math.max(1, Math.ceil(this.left - (AD_SECONDS - 3)))).setColor(canSkip ? '#ffffff' : '#ffffff77');
                         if (this.left <= 0) this.finish(true);
                     }
                     finish(ok) {
@@ -1622,11 +1672,11 @@
                     buildRow(i, y) {
                         const m = MINERS[i];
                         const g = this.add.graphics();
-                        const nameTxt = this.add.text(0, 0, '', t(26, TXT.light));
-                        const titleTxt = this.add.text(0, 0, '', t(16, TXT.dim));
-                        const dpsTxt = this.add.text(0, 0, '', t(18, TXT.gold));
-                        const lvTxt = this.add.text(0, 0, '', t(15, '#9fb4d8'));
-                        const progTxt = this.add.text(0, 0, '', t(15, '#b9c8e4'));
+                        const nameTxt = this.add.text(0, 0, ' ', t(26, TXT.light));
+                        const titleTxt = this.add.text(0, 0, ' ', t(16, TXT.dim));
+                        const dpsTxt = this.add.text(0, 0, ' ', t(18, TXT.gold));
+                        const lvTxt = this.add.text(0, 0, ' ', t(15, '#9fb4d8'));
+                        const progTxt = this.add.text(0, 0, ' ', t(15, '#b9c8e4'));
                         const progG = this.add.graphics();
                         const portrait = this.add.image(96, y + ROW_H / 2, m.key);
                         portrait.setScale(126 / Math.max(portrait.width || 120, portrait.height || 120));
@@ -1639,11 +1689,11 @@
                         progTxt.setPosition(178, y + 124).setOrigin(0, 0.5);
 
                         const mainBtn = new Btn(this, DW - 152, y + ROW_H - 52, {
-                            w: 250, h: 78, label: '', sub: '', color: C.green, shadow: C.greenDk, fontSize: 24, subSize: 15, radius: 20,
+                            w: 250, h: 78, label: ' ', sub: ' ', color: C.green, shadow: C.greenDk, fontSize: 24, subSize: 15, radius: 20,
                             onClick: () => this.onAction(i),
                         });
                         const gemBtn = new Btn(this, 372, y + ROW_H - 52, {
-                            w: 168, h: 66, label: '', color: C.purple, shadow: C.purpleDk, fontSize: 20, radius: 18,
+                            w: 168, h: 66, label: ' ', color: C.purple, shadow: C.purpleDk, fontSize: 20, radius: 18,
                             onClick: () => this.buyWithGems(i),
                         });
                         this.list.add([g, progG, portrait, badge, nameTxt, titleTxt, dpsTxt, lvTxt, progTxt, mainBtn, gemBtn]);
@@ -1657,13 +1707,13 @@
                             rr(g, 18, y, 8, ROW_H, 4, m.tint, un ? 0.95 : 0.3);
 
                             portrait.setAlpha(un ? 1 : 0.32); portrait.setTint(un ? 0xffffff : 0x2a3550);
-                            nameTxt.setText(m.name).setStyle({ color: un ? TXT.light : '#66759a' });
+                            nameTxt.setText(m.name).setColor(un ? TXT.light : '#66759a');
                             titleTxt.setText(m.title);
-                            lvTxt.setText(un ? 'Lv ' + lv : 'LOCKED').setStyle({ color: un ? '#9fb4d8' : '#ff9a6a' });
+                            lvTxt.setText(un ? 'Lv ' + lv : 'LOCKED').setColor(un ? '#9fb4d8' : '#ff9a6a');
 
                             if (un) {
                                 dpsTxt.setText('\u26a1 ' + fmt(minerDps(i, lv)) + ' DPS   \u2192 ' + fmt(minerDps(i, lv + 1)));
-                                progTxt.setText(''); progG.clear();
+                                progTxt.setText(' '); progG.clear();
                                 mainBtn.setVisible(true).setLabel('UPGRADE').setSub(fmt(cost) + ' coins').setColorTheme(C.green).setEnabled(S.coins >= cost);
                                 gemBtn.setVisible(false);
                             } else {
@@ -1766,13 +1816,13 @@
                         const g = this.add.graphics();
                         const icon = this.add.image(88, y + 78, d.icon).setDisplaySize(74, 74);
                         const name = this.add.text(154, y + 46, d.name, t(26, TXT.light)).setOrigin(0, 0.5);
-                        const lv = this.add.text(DW - 40, y + 46, '', t(19, TXT.gold)).setOrigin(1, 0.5);
+                        const lv = this.add.text(DW - 40, y + 46, ' ', t(19, TXT.gold)).setOrigin(1, 0.5);
                         const desc = this.add.text(154, y + 78, d.desc(), { ...t(16, TXT.dim), wordWrap: { width: DW - 210 } }).setOrigin(0, 0);
-                        const cur = this.add.text(40, y + 138, '', t(19, '#8ef0ff')).setOrigin(0, 0.5);
-                        const nxt = this.add.text(40, y + 168, '', t(17, '#7bf0ae')).setOrigin(0, 0.5);
+                        const cur = this.add.text(40, y + 138, ' ', t(19, '#8ef0ff')).setOrigin(0, 0.5);
+                        const nxt = this.add.text(40, y + 168, ' ', t(17, '#7bf0ae')).setOrigin(0, 0.5);
 
                         const buy = new Btn(this, DW - 158, y + 156, {
-                            w: 250, h: 82, label: 'UPGRADE', sub: '', color: d.color, shadow: d.shadow, fontSize: 25, subSize: 16, radius: 20,
+                            w: 250, h: 82, label: 'UPGRADE', sub: ' ', color: d.color, shadow: d.shadow, fontSize: 25, subSize: 16, radius: 20,
                             onClick: () => {
                                 const c = d.cost();
                                 if (S.coins < c) { toast(this, 'Not enough coins', C.red); return; }
@@ -1852,7 +1902,7 @@
                         const statG = this.add.graphics();
                         rr(statG, 20, statY, DW - 40, 84, 20, 0x0f172a, 0.95);
                         rrs(statG, 20, statY, DW - 40, 84, 20, C.stroke, 2, 0.6);
-                        const statTxt = this.add.text(DW / 2, statY + 26, '', t(20, TXT.gold)).setOrigin(0.5);
+                        const statTxt = this.add.text(DW / 2, statY + 26, ' ', t(20, TXT.gold)).setOrigin(0.5);
                         const statSub = this.add.text(DW / 2, statY + 56, '16 Ads watched = 4 Hours Cooldown', t(14, TXT.dim)).setOrigin(0.5);
                         list.add([statG, statTxt, statSub]);
                         
@@ -2009,7 +2059,7 @@
                         this.progFg = this.add.graphics();
                         this.list.add([this.progBg, this.progFg]);
 
-                        this.progTxt = this.add.text(40, y + 130, '', t(14, '#8fe4b8')).setOrigin(0, 0.5);
+                        this.progTxt = this.add.text(40, y + 130, ' ', t(14, '#8fe4b8')).setOrigin(0, 0.5);
                         this.list.add(this.progTxt);
                         
                         const redraw = () => {
@@ -2037,7 +2087,7 @@
                     // Montage Rewarded Ad Button Integration (+15 GOLD, +50 GEMS, 30 Ads limit, 3h cooldown)
                     buildAdButton(y) {
                         const b = new Btn(this, DW / 2, y + 36, {
-                            w: DW - 36, h: 68, label: '', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
+                            w: DW - 36, h: 68, label: ' ', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
                             onClick: () => {
                                 const now = Date.now();
                                 if (S.withdrawAdCooldownUntil && now < S.withdrawAdCooldownUntil) {
@@ -2143,15 +2193,15 @@
                                 if (!avail) {
                                     rrs(g, x, top, w, H, 16, 0xff4d4d, 2, sel ? 1 : 0.4);
                                     rr(g, x + w/2 - 24, top + 22, 48, 26, 8, 0x4a1820, 1);
-                                    name.setText('LOCKED').setStyle({ color: '#ff8b8b' });
+                                    name.setText('LOCKED').setColor('#ff8b8b');
                                 } else if (sel) {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 1);
                                     rrs(g, x, top, w, H, 16, C.green, 2, 1);
-                                    name.setText(p.name).setStyle({ color: TXT.dim });
+                                    name.setText(p.name).setColor(TXT.dim);
                                 } else {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 0.4);
                                     rrs(g, x, top, w, H, 16, C.stroke, 2, 0.5);
-                                    name.setText(p.name).setStyle({ color: TXT.dim });
+                                    name.setText(p.name).setColor(TXT.dim);
                                 }
                             };
                             this.redraws.push(redraw);
@@ -2171,7 +2221,7 @@
                         for (let i = 0; i < 5; i++) {
                             const x = startX + i * (w + gap);
                             const g = this.add.graphics();
-                            const amtTxt = this.add.text(x + w/2, top + 26, '', t(20, '#ffffff')).setOrigin(0.5);
+                            const amtTxt = this.add.text(x + w/2, top + 26, ' ', t(20, '#ffffff')).setOrigin(0.5);
                             const lockTxt = this.add.text(x + w/2, top + 52, '\ud83d\udd12', {fontFamily: 'system-ui, sans-serif', fontSize: '14px', color: '#ffffff'}).setOrigin(0.5);
                             containerAmt.add([g, amtTxt, lockTxt]);
                             
@@ -2204,7 +2254,7 @@
                                 rr(g, x, top, w, H, 14, sel ? 0x0d281e : 0x0c121e, 1);
                                 rrs(g, x, top, w, H, 14, sel ? C.green : (locked ? 0x232e46 : C.stroke), 2, 1);
                                 
-                                amtTxt.setText(comma(a) + ' GOLD').setStyle({ color: sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff') });
+                                amtTxt.setText(comma(a) + ' GOLD').setColor(sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff'));
                                 lockTxt.setVisible(locked);
                             };
                             this.redraws.push(redraw);
@@ -2238,8 +2288,8 @@
                         rrs(g, 18, y, DW - 36, H, 16, C.stroke, 2, 0.7);
                         this.list.add(g);
                         
-                        const hint = this.add.text(36, y + 26, '', t(14, TXT.dim)).setOrigin(0, 0.5);
-                        const val = this.add.text(36, y + 60, '', t(20, '#ffffff')).setOrigin(0, 0.5);
+                        const hint = this.add.text(36, y + 26, ' ', t(14, TXT.dim)).setOrigin(0, 0.5);
+                        const val = this.add.text(36, y + 60, ' ', t(20, '#ffffff')).setOrigin(0, 0.5);
                         this.list.add([hint, val]);
                         
                         const btn = new Btn(this, DW - 90, y + H/2, {
@@ -2254,7 +2304,7 @@
                         const redraw = () => {
                             hint.setText(this.method.hint);
                             val.setText(S.account[this.method.id] || this.method.placeholder);
-                            val.setStyle({ color: S.account[this.method.id] ? '#ffffff' : '#66759a' });
+                            val.setColor(S.account[this.method.id] ? '#ffffff' : '#66759a');
                         };
                         this.redraws.push(redraw);
                         return y + H + 16;
@@ -2270,7 +2320,7 @@
                         this.list.add(this.add.text(DW - 36, y + 24, 'FREE', t(15, TXT.green)).setOrigin(1, 0.5));
                         
                         this.list.add(this.add.text(36, y + 54, 'Estimated arrival', t(15, TXT.dim)).setOrigin(0, 0.5));
-                        const eta = this.add.text(DW - 36, y + 54, '', t(15, '#8ef0ff')).setOrigin(1, 0.5);
+                        const eta = this.add.text(DW - 36, y + 54, ' ', t(15, '#8ef0ff')).setOrigin(1, 0.5);
                         this.list.add(eta);
                         
                         const line = this.add.graphics();
@@ -2279,7 +2329,7 @@
                         this.list.add(line);
                         
                         this.list.add(this.add.text(36, y + 94, 'YOU RECEIVE', t(16, '#ffffff')).setOrigin(0, 0.5));
-                        const rec = this.add.text(DW - 36, y + 94, '', t(22, '#7bf0ae')).setOrigin(1, 0.5);
+                        const rec = this.add.text(DW - 36, y + 94, ' ', t(22, '#7bf0ae')).setOrigin(1, 0.5);
                         this.list.add(rec);
                         
                         const redraw = () => {
@@ -2291,7 +2341,7 @@
                     }
                     buildSubmit(y) {
                         this.submitBtn = new Btn(this, DW / 2, y + 40, {
-                            w: DW - 36, h: 80, label: '', color: C.greyDk, shadow: 0x161d2c, fontSize: 26, radius: 20,
+                            w: DW - 36, h: 80, label: ' ', color: C.greyDk, shadow: 0x161d2c, fontSize: 26, radius: 20,
                             onClick: () => {
                                 if (!isPayoutAvailable(this.method.id)) {
                                     toast(this, `${this.method.name} withdrawal is NOT AVAILABLE!`, C.red);
@@ -2321,7 +2371,7 @@
                         return y + 100;
                     }
 
-                    /* ---- EDIT DETAILS DIALOG MODAL (PRESERVED ORIGINAL LOOK + MOBILE KEYBOARD FOCUS) ---- */
+                    /* ---- EDIT DETAILS DIALOG MODAL (ONLY CLOSES ON CANCEL OR SAVE) ---- */
                     showEditDetailsModal(method) {
                         if (this.activeEditModal) return;
                         this.data.set('modal', true);
@@ -2332,15 +2382,12 @@
                         const shade = this.add.rectangle(DW / 2, DH / 2, DW, DH, 0x040812, 0.88).setInteractive();
                         layer.add(shade);
 
-                        let allowShadeClose = false;
-                        this.time.delayedCall(300, () => { allowShadeClose = true; });
-
                         const mw = 640, mh = method.keypadType === 'numeric' ? 700 : 620;
                         const my = DH / 2;
                         const panel = this.add.container(DW / 2, my);
                         layer.add(panel);
 
-                        // Original Modal Background Graphics
+                        // Modal Background Graphics
                         const g = this.add.graphics();
                         rr(g, -mw / 2, -mh / 2, mw, mh, 28, 0x0f172a, 1);
                         rrs(g, -mw / 2, -mh / 2, mw, mh, 28, method.headerColor, 3, 0.9);
@@ -2360,7 +2407,6 @@
 
                         let currentVal = S.account[method.id] || '';
 
-                        // Original Canvas Input Box Graphics
                         const inputBg = this.add.graphics();
                         panel.add(inputBg);
 
@@ -2369,7 +2415,7 @@
 
                         const updateInputDisplay = () => {
                             valTxt.setText(currentVal || method.placeholder);
-                            valTxt.setStyle({ color: currentVal ? '#60a5fa' : '#4b5563' });
+                            valTxt.setColor(currentVal ? '#60a5fa' : '#4b5563');
 
                             inputBg.clear();
                             rr(inputBg, -mw / 2 + 30, -mh / 2 + 120, mw - 60, 60, 14, 0x080e1a, 1);
@@ -2377,32 +2423,45 @@
                         };
                         updateInputDisplay();
 
-                        // INVISIBLE HTML INPUT FOR POPPING UP OS VIRTUAL KEYBOARD SEAMLESSLY
+                        // REAL HTML INPUT ELEMENT FOR SOFT KEYBOARD FOCUS ON MOBILE
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = method.keypadType === 'numeric' ? 'tel' : 'text';
                         hiddenInput.value = currentVal;
+                        hiddenInput.placeholder = method.placeholder;
                         hiddenInput.style.position = 'fixed';
-                        hiddenInput.style.left = '-9999px';
-                        hiddenInput.style.top = '-9999px';
-                        hiddenInput.style.opacity = '0';
+                        hiddenInput.style.left = '50%';
+                        hiddenInput.style.top = '22%';
+                        hiddenInput.style.transform = 'translate(-50%, -50%)';
+                        hiddenInput.style.width = '300px';
+                        hiddenInput.style.height = '48px';
+                        hiddenInput.style.zIndex = '999999';
+                        hiddenInput.style.opacity = '0.01';
+                        hiddenInput.style.fontSize = '18px';
                         document.body.appendChild(hiddenInput);
 
-                        // Auto-focus to open soft keyboard
-                        this.time.delayedCall(150, () => {
-                            if (hiddenInput) hiddenInput.focus();
-                        });
+                        const focusInput = () => {
+                            try {
+                                hiddenInput.focus();
+                                hiddenInput.click();
+                            } catch(e) {}
+                        };
+
+                        // Auto-focus directly
+                        focusInput();
 
                         hiddenInput.addEventListener('input', (e) => {
                             currentVal = e.target.value;
                             updateInputDisplay();
                         });
 
-                        // Tap Input Box to Focus Keyboard again
+                        hiddenInput.addEventListener('keyup', (e) => {
+                            currentVal = e.target.value;
+                            updateInputDisplay();
+                        });
+
                         const touchArea = this.add.zone(0, -mh / 2 + 150, mw - 60, 60).setInteractive({ useHandCursor: true });
                         panel.add(touchArea);
-                        touchArea.on('pointerdown', () => {
-                            if (hiddenInput) hiddenInput.focus();
-                        });
+                        touchArea.on('pointerdown', () => focusInput());
 
                         let keypadStartY = -mh / 2 + 220;
 
@@ -2498,20 +2557,19 @@
                             closeModal();
                         };
 
-                        // SAVE DETAILS BUTTON (SAVES AND CLOSES MODAL PROPERLY)
+                        // SAVE DETAILS BUTTON
                         const saveBtn = new Btn(this, 0, mh / 2 - 70, {
                             w: mw - 60, h: 64, label: 'SAVE DETAILS', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 20,
                             onClick: saveAction
                         });
                         panel.add(saveBtn);
 
-                        const cancelTxt = this.add.text(0, mh / 2 - 20, 'Cancel', t(16, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
+                        // CANCEL BUTTON (ONLY THIS CLOSES MODAL WITHOUT SAVING)
+                        const cancelTxt = this.add.text(0, mh / 2 - 20, 'Cancel', t(18, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
                         cancelTxt.on('pointerup', () => { sfx('click'); closeModal(); });
                         panel.add(cancelTxt);
 
-                        shade.on('pointerup', () => {
-                            if (allowShadeClose) closeModal();
-                        });
+                        // DO NOT CLOSE MODAL ON SHADE CLICK (as requested!)
                     }
 
                     refreshAll() {
@@ -2519,21 +2577,23 @@
                     }
                 }
 
-                /* ==== src/scenes/SettingsPanel.ts (USER UI ID DISPLAY ADDED) ==== */
+                /* ==== src/scenes/SettingsPanel.ts (REFERRAL SYSTEM INTEGRATED) ==== */
                 class SettingsPanel extends Panel {
                     constructor() { super('SettingsPanel'); }
                     init() {
-                        this.headerColor = C.grey; this.titleText = 'SETTINGS';
-                        this.subtitleText = 'Audio \u00b7 user profile'; this.sheetTop = 320;
+                        this.headerColor = C.grey; this.titleText = 'SETTINGS & REFERRAL';
+                        this.subtitleText = 'Audio \u00b7 user profile \u00b7 invite friends'; this.sheetTop = 150;
                         this.showWallet = false; this.closing = false;
                     }
                     create() {
                         this.buildChrome();
-                        const c = this.add.container(0, this.contentTop).setDepth(2);
-                        
+                        const vy = this.contentTop, vh = DH - vy - 16;
+                        const list = this.add.container(0, vy).setDepth(2);
+                        let y = 10;
+
                         // Sound Button
-                        const soundBtn = new Btn(this, DW / 2, 44, {
-                            w: DW - 80, h: 80, label: S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON',
+                        const soundBtn = new Btn(this, DW / 2, y + 40, {
+                            w: DW - 40, h: 80, label: S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON',
                             color: S.muted ? C.greyDk : C.blue, shadow: S.muted ? 0x11182a : C.blueDk, fontSize: 24, radius: 22,
                             onClick: () => {
                                 S.muted = !S.muted; setMuted(S.muted); save();
@@ -2541,23 +2601,21 @@
                                 soundBtn.setColorTheme(S.muted ? C.greyDk : C.blue);
                             },
                         });
-                        c.add(soundBtn);
+                        list.add(soundBtn);
+                        y += 100;
 
                         // User UI ID Display Card
-                        const uidCardY = 170;
                         const uidG = this.add.graphics();
-                        rr(uidG, 40, uidCardY, DW - 80, 110, 22, 0x101728, 1);
-                        rrs(uidG, 40, uidCardY, DW - 80, 110, 22, C.stroke, 2, 0.8);
-                        c.add(uidG);
+                        rr(uidG, 20, y, DW - 40, 110, 22, 0x101728, 1);
+                        rrs(uidG, 20, y, DW - 40, 110, 22, C.stroke, 2, 0.8);
+                        list.add(uidG);
 
-                        c.add(this.add.text(64, uidCardY + 28, 'USER UI ID', t(15, TXT.dim)).setOrigin(0, 0.5));
-                        
+                        list.add(this.add.text(44, y + 28, 'YOUR USER UI ID', t(15, TXT.dim)));
                         const displayUid = S.uid || (currentUser ? currentUser.uid : generateLocalUid());
-                        const uidTxt = this.add.text(64, uidCardY + 68, displayUid, t(20, '#7bf0ae')).setOrigin(0, 0.5);
-                        c.add(uidTxt);
+                        const uidTxt = this.add.text(44, y + 68, displayUid, t(20, '#7bf0ae'));
+                        list.add(uidTxt);
 
-                        // Copy ID Button
-                        const copyBtn = new Btn(this, DW - 120, uidCardY + 55, {
+                        const copyBtn = new Btn(this, DW - 100, y + 55, {
                             w: 110, h: 54, label: 'COPY', color: C.purple, shadow: C.purpleDk, fontSize: 18, radius: 16,
                             onClick: () => {
                                 try {
@@ -2569,7 +2627,127 @@
                                 }
                             }
                         });
-                        c.add(copyBtn);
+                        list.add(copyBtn);
+                        y += 130;
+
+                        // =========================================================
+                        // 🚀 REFERRAL / INVITE FRIENDS SYSTEM CARD
+                        // =========================================================
+                        const refCardH = 370;
+                        const refG = this.add.graphics();
+                        rr(refG, 20, y, DW - 40, refCardH, 24, 0x0f1c2e, 1);
+                        rrs(refG, 20, y, DW - 40, refCardH, 24, C.gold, 2, 0.9);
+                        list.add(refG);
+
+                        const titleText = this.add.text(DW / 2, y + 32, '\ud83c\udf81 INVITE FRIENDS & EARN', { fontFamily: FONT_D, fontSize: '32px', color: '#ffd76a' }).setOrigin(0.5);
+                        list.add(titleText);
+
+                        const rewardSub = this.add.text(DW / 2, y + 68, 'Per Invited Friend Reward:\n+600 GOLD  \u00b7  +340,000 COINS  \u00b7  +1,004 \ud83d\udc8e GEMS', {
+                            fontFamily: FONT, fontSize: '18px', color: '#7bf0ae', align: 'center', lineSpacing: 4
+                        }).setOrigin(0.5);
+                        list.add(rewardSub);
+
+                        // Stats Summary Box inside Card
+                        const statBoxG = this.add.graphics();
+                        rr(statBoxG, 40, y + 110, DW - 80, 100, 18, 0x0a111e, 0.95);
+                        rrs(statBoxG, 40, y + 110, DW - 80, 100, 18, C.stroke, 2, 0.7);
+                        list.add(statBoxG);
+
+                        const invitedTxt = this.add.text(DW / 2, y + 135, `INVITED FRIENDS: ${S.referralCount || 0}`, t(20, '#ffffff')).setOrigin(0.5);
+                        const earnedTxt = this.add.text(DW / 2, y + 180, `TOTAL REWARD: ${comma(S.referralGoldEarned || 0)} GOLD · ${fmt(S.referralCoinsEarned || 0)} COINS · ${comma(S.referralGemsEarned || 0)} GEMS`, t(14, TXT.gold)).setOrigin(0.5);
+                        list.add([invitedTxt, earnedTxt]);
+
+                        // Telegram Share Link
+                        const shareUrl = `${TELEGRAM_SHARE_BASE}?startapp=REF_${displayUid}`;
+                        const shareMsgText = `ℝ𝕖𝕒𝕔𝕙 𝟙𝟙,𝟘𝟘𝟘 𝔾𝕠𝕝𝕕 & 𝕀𝕟𝕤𝕥𝕒𝕟𝕥 ℂ𝕒𝕤𝕙𝕠𝕦𝕥!\n🚀 𝕊𝕥𝕒𝕣𝕥 𝕪𝕠𝕦𝕣 𝕞𝕚𝕟𝕚𝕟𝕘 ${TELEGRAM_BOT_URL}?startapp=REF_${displayUid}`;
+
+                        // Share / Invite Button
+                        const inviteBtn = new Btn(this, DW / 2 - 130, y + 250, {
+                            w: 230, h: 70, label: '\ud83d\udce4 SHARE LINK', color: C.green, shadow: C.greenDk, fontSize: 20, radius: 18,
+                            onClick: () => {
+                                sfx('confirm');
+                                const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareMsgText)}`;
+                                try {
+                                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+                                        window.Telegram.WebApp.openTelegramLink(tgUrl);
+                                    } else {
+                                        window.open(tgUrl, '_blank');
+                                    }
+                                } catch (e) {
+                                    window.open(tgUrl, '_blank');
+                                }
+                                toast(this, 'SHARE LINK OPENED!', C.green);
+                            }
+                        });
+                        list.add(inviteBtn);
+
+                        // Copy Link Button
+                        const copyLinkBtn = new Btn(this, DW / 2 + 130, y + 250, {
+                            w: 230, h: 70, label: '\ud83d\udccb COPY LINK', color: C.purple, shadow: C.purpleDk, fontSize: 20, radius: 18,
+                            onClick: () => {
+                                sfx('click');
+                                try {
+                                    navigator.clipboard.writeText(shareMsgText);
+                                    toast(this, 'INVITE LINK COPIED!', C.gold);
+                                } catch(e) {
+                                    toast(this, 'Link: ' + shareUrl, C.gold);
+                                }
+                            }
+                        });
+                        list.add(copyLinkBtn);
+
+                        // Sync / Claim Referral Rewards Button
+                        const claimRefBtn = new Btn(this, DW / 2, y + 325, {
+                            w: DW - 80, h: 60, label: '🔄 SYNC & CLAIM REFERRAL REWARDS', color: C.blue, shadow: C.blueDk, fontSize: 18, radius: 16,
+                            onClick: () => {
+                                sfx('click');
+                                if (db && currentUser) {
+                                    toast(this, 'Syncing referrals...', C.gold);
+                                    db.collection('referrals').where('referrer', '==', displayUid).where('claimed', '==', false).get().then(snapshot => {
+                                        if (snapshot.empty) {
+                                            toast(this, 'No new referrals found yet.', C.gold);
+                                            return;
+                                        }
+                                        let count = 0;
+                                        const batch = db.batch();
+                                        snapshot.forEach(doc => {
+                                            count++;
+                                            batch.update(doc.ref, { claimed: true });
+                                        });
+
+                                        const addGold = count * 600;
+                                        const addCoins = count * 340000;
+                                        const addGems = count * 1004;
+
+                                        S.cash += addGold;
+                                        S.coins += addCoins;
+                                        S.totalCoins += addCoins;
+                                        S.gems += addGems;
+
+                                        S.referralCount = (S.referralCount || 0) + count;
+                                        S.referralGoldEarned = (S.referralGoldEarned || 0) + addGold;
+                                        S.referralCoinsEarned = (S.referralCoinsEarned || 0) + addCoins;
+                                        S.referralGemsEarned = (S.referralGemsEarned || 0) + addGems;
+
+                                        batch.commit();
+                                        save();
+                                        sfx('coin', 1.3);
+
+                                        invitedTxt.setText(`INVITED FRIENDS: ${S.referralCount}`);
+                                        earnedTxt.setText(`TOTAL REWARD: ${comma(S.referralGoldEarned)} GOLD · ${fmt(S.referralCoinsEarned)} COINS · ${comma(S.referralGemsEarned)} GEMS`);
+                                        toast(this, `Claimed for ${count} friend(s): +${addGold} GOLD, +${fmt(addCoins)} COINS, +${addGems} GEMS!`, C.green);
+                                    }).catch(err => {
+                                        toast(this, 'Sync complete.', C.gold);
+                                    });
+                                } else {
+                                    toast(this, 'Invite friends to earn rewards!', C.gold);
+                                }
+                            }
+                        });
+                        list.add(claimRefBtn);
+
+                        y += refCardH + 30;
+                        attachScroll(this, list, 0, vy, DW, vh, y + 40);
                     }
                 }
 
