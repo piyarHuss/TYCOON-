@@ -194,6 +194,21 @@
                     boostSeconds: 60,
                     minWithdraw: 11000,
                     bossTime: 30,
+                    // Dynamic Referral Rewards Config
+                    referralGoldReward: 600,
+                    referralCoinsReward: 340000,
+                    referralGemsReward: 1004,
+                    // Dynamic Withdrawal Ad Config
+                    montageZoneId: "11520403",
+                    withdrawAdGold: 15,
+                    withdrawAdGems: 50,
+                    withdrawAdLimit: 30,
+                    withdrawCooldownHours: 3,
+                    // Dynamic Adsgram SDK Config
+                    adsgramMiners: "int-41522",
+                    adsgramRewards: "int-41524",
+                    rewardsCooldownHours: 4,
+                    minerResetHours: 10,
                     disabledPayouts: [],
                     payoutStatus: { paypal: true, upi: true, bank: true, crypto: true }
                 };
@@ -224,6 +239,19 @@
                     clean.boostSeconds = num(clean.boostSeconds, 60, 1);
                     clean.minWithdraw = num(clean.minWithdraw, 11000, 0);
                     clean.bossTime = num(clean.bossTime, 30, 5);
+
+                    clean.referralGoldReward = num(clean.referralGoldReward, 600, 0);
+                    clean.referralCoinsReward = num(clean.referralCoinsReward, 340000, 0);
+                    clean.referralGemsReward = num(clean.referralGemsReward, 1004, 0);
+
+                    clean.withdrawAdGold = num(clean.withdrawAdGold, 15, 0);
+                    clean.withdrawAdGems = num(clean.withdrawAdGems, 50, 0);
+                    clean.withdrawAdLimit = num(clean.withdrawAdLimit, 30, 1);
+                    clean.withdrawCooldownHours = num(clean.withdrawCooldownHours, 3, 0.1);
+
+                    clean.rewardsCooldownHours = num(clean.rewardsCooldownHours, 4, 0.1);
+                    clean.minerResetHours = num(clean.minerResetHours, 10, 0.1);
+
                     try { localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(clean)); } catch {}
                 }
 
@@ -441,6 +469,7 @@
                             checkReferralCode();
                         });
 
+                        // Dynamic Real-time Admin Config Listener
                         db.collection('admin').doc('config').onSnapshot(doc => {
                             if (doc.exists) {
                                 applyAdminConfig(doc.data());
@@ -1121,16 +1150,17 @@
                             return;
                         }
 
-                        // 10-Hour Miner Reset Logic
-                        const HOURS_10_MS = 10 * 60 * 60 * 1000;
+                        // Dynamic Miner Reset Timer (Hours set by Admin)
+                        const resetHours = adminConfig().minerResetHours || 10;
+                        const MINER_RESET_MS = resetHours * 60 * 60 * 1000;
                         if (!S.minerResetTime) S.minerResetTime = Date.now();
-                        if (Date.now() - S.minerResetTime >= HOURS_10_MS) {
+                        if (Date.now() - S.minerResetTime >= MINER_RESET_MS) {
                             S.minerResetTime = Date.now();
                             S.minerLevel = [1, 0, 0, 0, 0, 0];
                             S.unlocked = [true, false, false, false, false, false];
                             S.adProgress = [0, 0, 0, 0, 0, 0];
                             save();
-                            toast(this, 'Miners reset after 10 hours!', C.gold);
+                            toast(this, `Miners reset after ${resetHours} hours!`, C.gold);
                             this.refreshMiners();
                         }
 
@@ -1313,7 +1343,7 @@
                         }
                     }
 
-                    playAd(reason, cb, blockId = ADSGRAM_BLOCK_ID_MINERS) {
+                    playAd(reason, cb, blockId = null) {
                         const now = Date.now();
                         if (S.adCooldownUntil && now < S.adCooldownUntil) {
                             const left = Math.ceil((S.adCooldownUntil - now) / 1000);
@@ -1330,9 +1360,11 @@
                             cb(ok);
                         };
 
+                        const targetBlockId = blockId || adminConfig().adsgramMiners || ADSGRAM_BLOCK_ID_MINERS;
+
                         if (window.Adsgram) {
                             try {
-                                const AdController = window.Adsgram.init({ blockId: blockId });
+                                const AdController = window.Adsgram.init({ blockId: targetBlockId });
                                 AdController.show().then((result) => {
                                     onAdComplete(true);
                                 }).catch((err) => {
@@ -1681,7 +1713,7 @@
                     }
                     init() {
                         this.headerColor = C.blue; this.titleText = 'MINER CREW';
-                        this.subtitleText = 'Hire & upgrade \u00b7 resets every 10 hours';
+                        this.subtitleText = 'Hire & upgrade \u00b7 resets every ' + (adminConfig().minerResetHours || 10) + ' hours';
                         this.sheetTop = 130; this.closing = false; this.rowRefs = [];
                     }
                     create() {
@@ -1782,14 +1814,17 @@
                             if (S.coins < m.baseCost) { toast(this, 'Not enough coins', C.red); return; }
                             S.coins -= m.baseCost; this.doUnlock(i); return;
                         }
-                        // Use Adsgram Block ID int-41522 for Miners Unlock
+                        
+                        // Dynamic Block ID from Admin Panel Config
+                        const minerBlockId = adminConfig().adsgramMiners || ADSGRAM_BLOCK_ID_MINERS;
+
                         this.playAd(`Unlock ${m.name}`, (ok) => {
                             if (!ok) return;
                             S.adProgress[i] = Math.min(need, S.adProgress[i] + 1); save(); sfx('unlock', 1.2);
                             const left = need - S.adProgress[i];
                             toast(this, left > 0 ? `Ad complete! ${left} more for ${m.name}` : `${m.name} ready to unlock!`, C.gold);
                             this.refreshAll();
-                        }, ADSGRAM_BLOCK_ID_MINERS);
+                        }, minerBlockId);
                     }
                     buyWithGems(i) {
                         const m = MINERS[i];
@@ -1877,8 +1912,9 @@
                 class RewardsPanel extends Panel {
                     constructor() { super('RewardsPanel'); this.redraws = []; }
                     init() {
+                        const coolHours = adminConfig().rewardsCooldownHours || 4;
                         this.headerColor = C.purple; this.titleText = 'FREE REWARDS';
-                        this.subtitleText = 'Watch 4 ads per reward \u00b7 4h cooldown after 16 ads';
+                        this.subtitleText = 'Watch 4 ads per reward \u00b7 ' + coolHours + 'h cooldown after 16 ads';
                         this.sheetTop = 150; this.closing = false; this.redraws = [];
                     }
                     create() {
@@ -1930,7 +1966,8 @@
                         rr(statG, 20, statY, DW - 40, 84, 20, 0x0f172a, 0.95);
                         rrs(statG, 20, statY, DW - 40, 84, 20, C.stroke, 2, 0.6);
                         const statTxt = this.add.text(DW / 2, statY + 26, ' ', t(20, TXT.gold)).setOrigin(0.5);
-                        const statSub = this.add.text(DW / 2, statY + 56, '16 Ads watched = 4 Hours Cooldown', t(14, TXT.dim)).setOrigin(0.5);
+                        const coolHours = adminConfig().rewardsCooldownHours || 4;
+                        const statSub = this.add.text(DW / 2, statY + 56, `16 Ads watched = ${coolHours} Hours Cooldown`, t(14, TXT.dim)).setOrigin(0.5);
                         list.add([statG, statTxt, statSub]);
                         
                         this.redraws.push(() => {
@@ -1965,12 +2002,13 @@
                                     return;
                                 }
 
-                                // Use Adsgram Block ID int-41524 for FREE+ Rewards
+                                // Dynamic Block ID from Admin Panel
+                                const rewardBlockId = adminConfig().adsgramRewards || ADSGRAM_BLOCK_ID_REWARDS;
+
                                 this.playAd(o.title, (ok) => {
                                     if (!ok) return;
                                     S.rewardAdProgress[o.id] = (S.rewardAdProgress[o.id] || 0) + 1;
                                     
-                                    // Check if 4 ads reached for this reward
                                     if (S.rewardAdProgress[o.id] >= 4) {
                                         S.rewardAdProgress[o.id] = 4;
                                         o.rewardGrant();
@@ -1978,17 +2016,16 @@
                                         toast(this, `Ad ${S.rewardAdProgress[o.id]}/4 watched!`, C.gold);
                                     }
 
-                                    // Check if all 16 ads watched total across all offers
                                     const totalWatched = S.rewardAdProgress.reduce((a, b) => a + b, 0);
                                     if (totalWatched >= 16) {
-                                        // Trigger 4 Hours Cooldown (4 * 3600 * 1000)
-                                        S.rewardCooldownUntil = Date.now() + 4 * 60 * 60 * 1000;
+                                        const coolH = adminConfig().rewardsCooldownHours || 4;
+                                        S.rewardCooldownUntil = Date.now() + coolH * 60 * 60 * 1000;
                                         S.rewardAdProgress = [0, 0, 0, 0];
-                                        toast(this, '16 Ads completed! 4 Hours cooldown started.', C.purple);
+                                        toast(this, `16 Ads completed! ${coolH} Hours cooldown started.`, C.purple);
                                     }
                                     save();
                                     this.refreshAll();
-                                }, ADSGRAM_BLOCK_ID_REWARDS);
+                                }, rewardBlockId);
                             },
                         });
                         list.add(b);
@@ -1998,7 +2035,6 @@
                             const isRewardCooling = S.rewardCooldownUntil && now < S.rewardCooldownUntil;
                             const progress = S.rewardAdProgress[o.id] || 0;
 
-                            // Draw progress bars (4 bars)
                             progG.clear();
                             for (let k = 0; k < 4; k++) {
                                 rr(progG, 154 + k * 34, y + 110, 28, 10, 5, k < progress ? C.gold : 0x2a3550, 1);
@@ -2111,6 +2147,7 @@
                         return y + H + 12;
                     }
 
+                    // Dynamic Withdrawal Ad Button Connected to Live Admin Config
                     buildAdButton(y) {
                         const b = new Btn(this, DW / 2, y + 36, {
                             w: DW - 36, h: 68, label: ' ', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
@@ -2118,22 +2155,27 @@
                                 const now = Date.now();
                                 if (S.withdrawAdCooldownUntil && now < S.withdrawAdCooldownUntil) {
                                     const leftSec = Math.ceil((S.withdrawAdCooldownUntil - now) / 1000);
-                                    toast(this, `3h Cooldown Active! Wait ${clock(leftSec)}`, C.gold);
+                                    toast(this, `Cooldown Active! Wait ${clock(leftSec)}`, C.gold);
                                     return;
                                 }
 
+                                const adGold = adminConfig().withdrawAdGold || 15;
+                                const adGems = adminConfig().withdrawAdGems || 50;
+                                const adLimit = adminConfig().withdrawAdLimit || 30;
+                                const coolHours = adminConfig().withdrawCooldownHours || 3;
+
                                 const grantReward = () => {
-                                    S.cash += 15;
-                                    S.gems += 50;
+                                    S.cash += adGold;
+                                    S.gems += adGems;
                                     S.withdrawAdCount = (S.withdrawAdCount || 0) + 1;
                                     S.adCooldownUntil = Date.now() + 5000;
 
-                                    if (S.withdrawAdCount >= 30) {
-                                        S.withdrawAdCooldownUntil = Date.now() + 3 * 60 * 60 * 1000; // 3 Hours Cooldown
+                                    if (S.withdrawAdCount >= adLimit) {
+                                        S.withdrawAdCooldownUntil = Date.now() + coolHours * 60 * 60 * 1000;
                                         S.withdrawAdCount = 0;
-                                        toast(this, '30 Ads Completed! 3 Hours Cooldown Started.', C.purple);
+                                        toast(this, `${adLimit} Ads Completed! ${coolHours} Hours Cooldown Started.`, C.purple);
                                     } else {
-                                        toast(this, '+15 GOLD & +50 GEMS!', C.gold);
+                                        toast(this, `+${adGold} GOLD & +${adGems} GEMS!`, C.gold);
                                     }
                                     save();
                                     sfx('coin', 1.15);
@@ -2162,6 +2204,9 @@
                             const now = Date.now();
                             const isCooling = S.withdrawAdCooldownUntil && now < S.withdrawAdCooldownUntil;
                             const count = S.withdrawAdCount || 0;
+                            const adGold = adminConfig().withdrawAdGold || 15;
+                            const adGems = adminConfig().withdrawAdGems || 50;
+                            const adLimit = adminConfig().withdrawAdLimit || 30;
 
                             if (isCooling) {
                                 const leftSec = Math.ceil((S.withdrawAdCooldownUntil - now) / 1000);
@@ -2169,9 +2214,9 @@
                             } else {
                                 const cd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
                                 if (cd > 0) {
-                                    b.setLabel(`WAIT ${cd}s  \u2192  (${count}/30)`).setColorTheme(C.greyDk).setEnabled(false);
+                                    b.setLabel(`WAIT ${cd}s  \u2192  (${count}/${adLimit})`).setColorTheme(C.greyDk).setEnabled(false);
                                 } else {
-                                    b.setLabel(`\ud83d\udcfa WATCH AD (${count}/30) \u2192 +15 GOLD & +50 \ud83d\udc8e`).setColorTheme(0x9c6bff).setEnabled(true);
+                                    b.setLabel(`\ud83d\udcfa WATCH AD (${count}/${adLimit}) \u2192 +${adGold} GOLD & +${adGems} \ud83d\udc8e`).setColorTheme(0x9c6bff).setEnabled(true);
                                 }
                             }
                         };
@@ -2611,7 +2656,7 @@
                     }
                 }
 
-                /* ==== src/scenes/SettingsPanel.ts (REFERRAL SYSTEM INTEGRATED) ==== */
+                /* ==== src/scenes/SettingsPanel.ts (DYNAMIC REFERRAL REWARDS CONNECTED) ==== */
                 class SettingsPanel extends Panel {
                     constructor() { super('SettingsPanel'); }
                     init() {
@@ -2661,7 +2706,7 @@
                         y += 130;
 
                         // =========================================================
-                        // 🚀 REFERRAL / INVITE FRIENDS SYSTEM CARD
+                        // 🚀 REFERRAL / INVITE FRIENDS SYSTEM CARD (DYNAMIC ADMIN REWARDS)
                         // =========================================================
                         const refCardH = 370;
                         const refG = this.add.graphics();
@@ -2672,7 +2717,12 @@
                         const titleText = this.add.text(DW / 2, y + 32, '\ud83c\udf81 INVITE FRIENDS & EARN', { fontFamily: FONT_D, fontSize: '32px', color: '#ffd76a' }).setOrigin(0.5);
                         list.add(titleText);
 
-                        const rewardSub = this.add.text(DW / 2, y + 68, 'Per Invited Friend Reward:\n+600 GOLD  \u00b7  +340,000 COINS  \u00b7  +1,004 \ud83d\udc8e GEMS', {
+                        // Dynamic Referral Rewards read from Live Admin Config
+                        const refGold = adminConfig().referralGoldReward || 600;
+                        const refCoins = adminConfig().referralCoinsReward || 340000;
+                        const refGems = adminConfig().referralGemsReward || 1004;
+
+                        const rewardSub = this.add.text(DW / 2, y + 68, `Per Invited Friend Reward:\n+${comma(refGold)} GOLD  \u00b7  +${fmt(refCoins)} COINS  \u00b7  +${comma(refGems)} \ud83d\udc8e GEMS`, {
                             fontFamily: FONT, fontSize: '18px', color: '#7bf0ae', align: 'center', lineSpacing: 4
                         }).setOrigin(0.5);
                         list.add(rewardSub);
@@ -2722,7 +2772,7 @@
                         });
                         list.add(copyLinkBtn);
 
-                        // Sync / Claim Referral Rewards Button
+                        // Sync / Claim Referral Rewards Button (Dynamic Calculation from Live Admin Config)
                         const claimRefBtn = new Btn(this, DW / 2, y + 325, {
                             w: DW - 80, h: 60, label: '🔄 SYNC & CLAIM REFERRAL REWARDS', color: C.blue, shadow: C.blueDk, fontSize: 18, radius: 16,
                             onClick: () => {
@@ -2741,9 +2791,14 @@
                                             batch.update(doc.ref, { claimed: true });
                                         });
 
-                                        const addGold = count * 600;
-                                        const addCoins = count * 340000;
-                                        const addGems = count * 1004;
+                                        // Read dynamic live amounts set by admin
+                                        const curRefGold = adminConfig().referralGoldReward || 600;
+                                        const curRefCoins = adminConfig().referralCoinsReward || 340000;
+                                        const curRefGems = adminConfig().referralGemsReward || 1004;
+
+                                        const addGold = count * curRefGold;
+                                        const addCoins = count * curRefCoins;
+                                        const addGems = count * curRefGems;
 
                                         S.cash += addGold;
                                         S.coins += addCoins;
@@ -2761,7 +2816,7 @@
 
                                         invitedTxt.setText(`INVITED FRIENDS: ${S.referralCount}`);
                                         earnedTxt.setText(`TOTAL REWARD: ${comma(S.referralGoldEarned)} GOLD · ${fmt(S.referralCoinsEarned)} COINS · ${comma(S.referralGemsEarned)} GEMS`);
-                                        toast(this, `Claimed for ${count} friend(s): +${addGold} GOLD, +${fmt(addCoins)} COINS, +${addGems} GEMS!`, C.green);
+                                        toast(this, `Claimed for ${count} friend(s): +${comma(addGold)} GOLD, +${fmt(addCoins)} COINS, +${comma(addGems)} GEMS!`, C.green);
                                     }).catch(err => {
                                         toast(this, 'Sync complete.', C.gold);
                                     });
