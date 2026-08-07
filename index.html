@@ -212,14 +212,17 @@
                     disabledPayouts: [],
                     payoutStatus: { paypal: true, upi: true, bank: true, crypto: true }
                 };
+
+                let cachedAdminConfig = { ...DEFAULT_ADMIN_CONFIG };
+
                 function adminConfig() {
                     try {
                         const raw = localStorage.getItem(ADMIN_CONFIG_KEY);
-                        if (!raw) return { ...DEFAULT_ADMIN_CONFIG };
+                        if (!raw) return cachedAdminConfig;
                         const parsed = JSON.parse(raw);
                         return { ...DEFAULT_ADMIN_CONFIG, ...(parsed || {}) };
                     } catch {
-                        return { ...DEFAULT_ADMIN_CONFIG };
+                        return cachedAdminConfig;
                     }
                 }
                 function num(v, fallback, min = 0) {
@@ -227,7 +230,7 @@
                     return Number.isFinite(n) ? Math.max(min, n) : fallback;
                 }
                 function applyAdminConfig(cfg) {
-                    const clean = { ...(cfg || {}) };
+                    const clean = { ...DEFAULT_ADMIN_CONFIG, ...(cfg || {}) };
                     clean.rockHpMultiplier = num(clean.rockHpMultiplier, 1, 0.05);
                     clean.coinRewardMultiplier = num(clean.coinRewardMultiplier, 1, 0);
                     clean.cashRewardMultiplier = num(clean.cashRewardMultiplier, 1, 0);
@@ -252,6 +255,7 @@
                     clean.rewardsCooldownHours = num(clean.rewardsCooldownHours, 4, 0.1);
                     clean.minerResetHours = num(clean.minerResetHours, 10, 0.1);
 
+                    cachedAdminConfig = clean;
                     try { localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(clean)); } catch {}
                 }
 
@@ -469,10 +473,13 @@
                             checkReferralCode();
                         });
 
-                        // Dynamic Real-time Admin Config Listener
-                        db.collection('admin').doc('config').onSnapshot(doc => {
+                        // -------------------------------------------------------------
+                        // 🛠️ REAL-TIME ADMIN CONFIG LISTENER (MATCHES config/admin_config)
+                        // -------------------------------------------------------------
+                        db.collection('config').doc('admin_config').onSnapshot(doc => {
                             if (doc.exists) {
                                 applyAdminConfig(doc.data());
+                                console.log("Real-time Admin Config Synced:", doc.data());
                             }
                         }, err => console.log("Admin config listener:", err));
                     } else {
