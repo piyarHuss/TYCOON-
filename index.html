@@ -35,6 +35,33 @@
 
     <script>
         // =========================================================================
+        // 📋 UNIVERSAL CLIPBOARD COPY HELPER
+        // =========================================================================
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text).catch(() => fallbackCopyText(text));
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // =========================================================================
         // 🔥 FIREBASE & ADSGRAM CONFIGURATION
         // =========================================================================
         const firebaseConfig = {
@@ -1202,7 +1229,7 @@
                     }
                 }
 
-                /* ==== src/scenes/Panel.ts (ADSGRAM + 5s TIMER INTEGRATION) ======== */
+                /* ==== src/scenes/Panel.ts (ADSGRAM INTEGRATION) ======== */
                 class Panel extends Phaser.Scene {
                     constructor() {
                         super(...arguments);
@@ -1846,7 +1873,7 @@
                     refreshAll() { this.rows.forEach((r) => r()); this.refreshWallet(); }
                 }
 
-                /* ==== src/scenes/RewardsPanel.ts (4 ADS PER OFFER & 4 HOURS COOLDOWN) === */
+                /* ==== src/scenes/RewardsPanel.ts ================================== */
                 class RewardsPanel extends Panel {
                     constructor() { super('RewardsPanel'); this.redraws = []; }
                     init() {
@@ -2084,7 +2111,6 @@
                         return y + H + 12;
                     }
 
-                    // Montage Rewarded Ad Button Integration (+15 GOLD, +50 GEMS, 30 Ads limit, 3h cooldown)
                     buildAdButton(y) {
                         const b = new Btn(this, DW / 2, y + 36, {
                             w: DW - 36, h: 68, label: ' ', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
@@ -2371,7 +2397,7 @@
                         return y + 100;
                     }
 
-                    /* ---- EDIT DETAILS DIALOG MODAL (ONLY CLOSES ON CANCEL OR SAVE) ---- */
+                    /* ---- EDIT DETAILS DIALOG MODAL (WITH DIRECT HTML INPUT FOR MOBILE KEYBOARD) ---- */
                     showEditDetailsModal(method) {
                         if (this.activeEditModal) return;
                         this.data.set('modal', true);
@@ -2423,45 +2449,55 @@
                         };
                         updateInputDisplay();
 
-                        // REAL HTML INPUT ELEMENT FOR SOFT KEYBOARD FOCUS ON MOBILE
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = method.keypadType === 'numeric' ? 'tel' : 'text';
-                        hiddenInput.value = currentVal;
-                        hiddenInput.placeholder = method.placeholder;
-                        hiddenInput.style.position = 'fixed';
-                        hiddenInput.style.left = '50%';
-                        hiddenInput.style.top = '22%';
-                        hiddenInput.style.transform = 'translate(-50%, -50%)';
-                        hiddenInput.style.width = '300px';
-                        hiddenInput.style.height = '48px';
-                        hiddenInput.style.zIndex = '999999';
-                        hiddenInput.style.opacity = '0.01';
-                        hiddenInput.style.fontSize = '18px';
-                        document.body.appendChild(hiddenInput);
+                        // -------------------------------------------------------------
+                        // REAL OVERLAY HTML INPUT ELEMENT FOR RELIABLE SOFT KEYBOARD FOCUS
+                        // -------------------------------------------------------------
+                        const canvasBounds = this.sys.game.canvas.getBoundingClientRect();
+                        const scaleX = canvasBounds.width / DW;
+                        const scaleY = canvasBounds.height / DH;
 
-                        const focusInput = () => {
-                            try {
-                                hiddenInput.focus();
-                                hiddenInput.click();
-                            } catch(e) {}
-                        };
+                        const inputW = Math.round((mw - 80) * scaleX);
+                        const inputH = Math.round(58 * scaleY);
+                        const inputX = Math.round(canvasBounds.left + (DW / 2 - (mw - 80) / 2) * scaleX);
+                        const inputY = Math.round(canvasBounds.top + (my - mh / 2 + 120) * scaleY);
 
-                        // Auto-focus directly
-                        focusInput();
+                        const htmlInput = document.createElement('input');
+                        htmlInput.type = method.keypadType === 'numeric' ? 'tel' : 'text';
+                        htmlInput.value = currentVal;
+                        htmlInput.placeholder = method.placeholder;
+                        htmlInput.style.position = 'fixed';
+                        htmlInput.style.left = inputX + 'px';
+                        htmlInput.style.top = inputY + 'px';
+                        htmlInput.style.width = inputW + 'px';
+                        htmlInput.style.height = inputH + 'px';
+                        htmlInput.style.zIndex = '99999';
+                        htmlInput.style.backgroundColor = '#080e1a';
+                        htmlInput.style.color = '#60a5fa';
+                        htmlInput.style.border = '2px solid ' + (method.headerColor ? hex(method.headerColor) : '#33456b');
+                        htmlInput.style.borderRadius = '12px';
+                        htmlInput.style.padding = '0 12px';
+                        htmlInput.style.fontSize = Math.round(18 * scaleY) + 'px';
+                        htmlInput.style.textAlign = 'center';
+                        htmlInput.style.fontFamily = 'system-ui, sans-serif';
+                        htmlInput.style.outline = 'none';
+                        htmlInput.style.boxSizing = 'border-box';
 
-                        hiddenInput.addEventListener('input', (e) => {
+                        document.body.appendChild(htmlInput);
+
+                        // Auto Focus Input Box to pop up mobile keyboard
+                        setTimeout(() => {
+                            try { htmlInput.focus(); } catch(e) {}
+                        }, 100);
+
+                        htmlInput.addEventListener('input', (e) => {
                             currentVal = e.target.value;
                             updateInputDisplay();
                         });
 
-                        hiddenInput.addEventListener('keyup', (e) => {
+                        htmlInput.addEventListener('keyup', (e) => {
                             currentVal = e.target.value;
                             updateInputDisplay();
                         });
-
-                        const touchArea = this.add.zone(0, -mh / 2 + 150, mw - 60, 60).setInteractive({ useHandCursor: true });
-                        panel.add(touchArea);
-                        touchArea.on('pointerdown', () => focusInput());
 
                         let keypadStartY = -mh / 2 + 220;
 
@@ -2484,7 +2520,7 @@
                                             if (k === 'CLR') currentVal = '';
                                             else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
                                             else if (currentVal.length < 24) currentVal += k;
-                                            hiddenInput.value = currentVal;
+                                            htmlInput.value = currentVal;
                                             updateInputDisplay();
                                         }
                                     });
@@ -2504,7 +2540,7 @@
                                         if (k === 'CLR') currentVal = '';
                                         else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
                                         else if (currentVal.length < 34) currentVal += k;
-                                        hiddenInput.value = currentVal;
+                                        htmlInput.value = currentVal;
                                         updateInputDisplay();
                                     }
                                 });
@@ -2524,7 +2560,7 @@
                                             } else if (!currentVal.includes(p)) {
                                                 currentVal += (currentVal.length > 0 && !currentVal.endsWith('@') && !p.startsWith('@') ? '@' : '') + p;
                                             }
-                                            hiddenInput.value = currentVal;
+                                            htmlInput.value = currentVal;
                                             updateInputDisplay();
                                         }
                                     });
@@ -2535,8 +2571,8 @@
                         }
 
                         const closeModal = () => {
-                            if (hiddenInput && hiddenInput.parentNode) {
-                                hiddenInput.parentNode.removeChild(hiddenInput);
+                            if (htmlInput && htmlInput.parentNode) {
+                                htmlInput.parentNode.removeChild(htmlInput);
                             }
                             this.data.set('modal', false);
                             this.activeEditModal = null;
@@ -2564,12 +2600,10 @@
                         });
                         panel.add(saveBtn);
 
-                        // CANCEL BUTTON (ONLY THIS CLOSES MODAL WITHOUT SAVING)
+                        // CANCEL BUTTON
                         const cancelTxt = this.add.text(0, mh / 2 - 20, 'Cancel', t(18, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
                         cancelTxt.on('pointerup', () => { sfx('click'); closeModal(); });
                         panel.add(cancelTxt);
-
-                        // DO NOT CLOSE MODAL ON SHADE CLICK (as requested!)
                     }
 
                     refreshAll() {
@@ -2618,13 +2652,9 @@
                         const copyBtn = new Btn(this, DW - 100, y + 55, {
                             w: 110, h: 54, label: 'COPY', color: C.purple, shadow: C.purpleDk, fontSize: 18, radius: 16,
                             onClick: () => {
-                                try {
-                                    navigator.clipboard.writeText(displayUid);
-                                    toast(this, 'USER ID COPIED!', C.green);
-                                    sfx('confirm');
-                                } catch(e) {
-                                    toast(this, 'ID: ' + displayUid, C.gold);
-                                }
+                                copyToClipboard(displayUid);
+                                toast(this, 'USER ID COPIED!', C.green);
+                                sfx('confirm');
                             }
                         });
                         list.add(copyBtn);
@@ -2686,12 +2716,8 @@
                             w: 230, h: 70, label: '\ud83d\udccb COPY LINK', color: C.purple, shadow: C.purpleDk, fontSize: 20, radius: 18,
                             onClick: () => {
                                 sfx('click');
-                                try {
-                                    navigator.clipboard.writeText(shareMsgText);
-                                    toast(this, 'INVITE LINK COPIED!', C.gold);
-                                } catch(e) {
-                                    toast(this, 'Link: ' + shareUrl, C.gold);
-                                }
+                                copyToClipboard(shareMsgText);
+                                toast(this, 'INVITE LINK COPIED!', C.gold);
                             }
                         });
                         list.add(copyLinkBtn);
