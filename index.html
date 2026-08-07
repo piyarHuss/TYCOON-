@@ -17,6 +17,9 @@
     <!-- Adsgram SDK Integration -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
+    <!-- Montage Rewarded Interstitial SDK Integration -->
+    <script src='//libtl.com/sdk.js' data-zone='11520403' data-sdk='show_11520403'></script>
+
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
@@ -56,6 +59,11 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         let currentUser = null;
+
+        // Helper to generate local unique user ID fallback
+        function generateLocalUid() {
+            return 'ST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
 
         // =========================================================================
         // 🎵 CUSTOM SOUND FILES
@@ -207,7 +215,6 @@
                 function getBoostSeconds() { return Math.floor(adminConfig().boostSeconds); }
                 function getBossTime() { return Math.floor(adminConfig().bossTime); }
 
-                // Updated Miner Ads requirements: 0, 3, 4, 5, 7, 8
                 const MINERS = [
                     { id: 0, name: 'PICKY', title: 'Rookie Miner', key: 'miner1', baseDps: 1.4, baseCost: 60, adsRequired: 0, gemCost: 0, tint: 0x4ea8ff, swing: 900 },
                     { id: 1, name: 'BRUNO', title: 'Veteran Digger', key: 'miner2', baseDps: 6, baseCost: 520, adsRequired: 3, gemCost: 25, tint: 0xffa43d, swing: 1000 },
@@ -271,6 +278,7 @@
                 const KEY = 'stone_tycoon_save_v2';
                 function fresh() {
                     return {
+                        uid: generateLocalUid(),
                         coins: 0, gems: 0, cash: 0, level: 1,
                         hp: rockMaxHp(1), maxHp: rockMaxHp(1), lucky: false, bossTime: 0,
                         tapLv: 1, goldLv: 0, luckLv: 0,
@@ -279,9 +287,11 @@
                         bestLevel: 1, totalCoins: 0, boostUntil: 0, muted: false,
                         account: {}, lastMethod: 'upi', withdrawals: [], lastSeen: Date.now(), intro: false,
                         runStartTime: Date.now(), adCooldownUntil: 0,
-                        minerResetTime: Date.now(), // 10 Hours Reset Timer for Miners
-                        rewardAdProgress: [0, 0, 0, 0], // 4 Ads per offer in FREE+
-                        rewardCooldownUntil: 0 // 4 Hours Cooldown after 16 Ads
+                        minerResetTime: Date.now(),
+                        rewardAdProgress: [0, 0, 0, 0],
+                        rewardCooldownUntil: 0,
+                        withdrawAdCount: 0,
+                        withdrawAdCooldownUntil: 0
                     };
                 }
 
@@ -289,6 +299,7 @@
                     const base = fresh();
                     if (!p) return base;
                     const s = { ...base, ...p };
+                    s.uid = p.uid || base.uid;
                     s.minerLevel = MINERS.map((_, i) => (Array.isArray(p.minerLevel) ? Number(p.minerLevel[i]) || 0 : base.minerLevel[i]));
                     s.unlocked = MINERS.map((_, i) => (Array.isArray(p.unlocked) ? !!p.unlocked[i] : base.unlocked[i]));
                     s.adProgress = MINERS.map((_, i) => (Array.isArray(p.adProgress) ? Number(p.adProgress[i]) || 0 : 0));
@@ -307,6 +318,8 @@
                     s.minerResetTime = p.minerResetTime || Date.now();
                     s.rewardAdProgress = Array.isArray(p.rewardAdProgress) ? p.rewardAdProgress : [0, 0, 0, 0];
                     s.rewardCooldownUntil = p.rewardCooldownUntil || 0;
+                    s.withdrawAdCount = Number(p.withdrawAdCount) || 0;
+                    s.withdrawAdCooldownUntil = p.withdrawAdCooldownUntil || 0;
                     return s;
                 }
 
@@ -339,18 +352,19 @@
                 auth.onAuthStateChanged(user => {
                     if (user) {
                         currentUser = user;
+                        S.uid = user.uid;
                         db.collection('users').doc(user.uid).get().then(doc => {
                             if (doc.exists) {
                                 const cloudData = doc.data();
                                 const merged = applyDataToState(cloudData);
                                 Object.assign(S, merged);
+                                S.uid = user.uid;
                                 try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
                             } else {
                                 save();
                             }
                         }).catch(err => console.error("Firestore Load Error:", err));
 
-                        // Admin Config real-time listener
                         db.collection('admin').doc('config').onSnapshot(doc => {
                             if (doc.exists) {
                                 applyAdminConfig(doc.data());
@@ -465,7 +479,7 @@
                             if (!this.pressed) return;
                             this.pressed = false; this.face.setY(0); this.redraw(false);
                             if (!this.enabled) return;
-                            if (Math.abs(p.y - this.downY) > 45 || Math.abs(p.x - this.downX) > 45) return;
+                            if (Math.abs(p.y - this.downY) > 60 || Math.abs(p.x - this.downX) > 60) return;
                             if (o.sound !== false) sfx('click', 1 + (Math.random() * 0.1 - 0.05));
                             o.onClick();
                         });
@@ -586,7 +600,7 @@
                     scene.input.on('pointerup', () => dragging = false);
                     scene.input.on('pointerupoutside', () => dragging = false);
                     scene.input.on('pointermove', (p) => {
-                        if (!dragging || !p.isDown) return;
+                        if (!dragging || !p.isDown || blocked()) return;
                         const dy = p.y - last; last = p.y; vel = dy;
                         container.y = Phaser.Math.Clamp(container.y + dy, min, top);
                     });
@@ -595,7 +609,7 @@
                         container.y = Phaser.Math.Clamp(container.y - dy * 0.6, min, top);
                     });
                     scene.events.on('update', () => {
-                        if (dragging || Math.abs(vel) < 0.4) return;
+                        if (dragging || Math.abs(vel) < 0.4 || blocked()) return;
                         vel *= 0.9; container.y = Phaser.Math.Clamp(container.y + vel, min, top);
                     });
                     scene.events.once('shutdown', () => shape.destroy());
@@ -1222,7 +1236,6 @@
                         }
                     }
 
-                    // ADSGRAM INTEGRATION WITH DYNAMIC BLOCK ID & 5s COOLDOWN TIMER
                     playAd(reason, cb, blockId = ADSGRAM_BLOCK_ID_MINERS) {
                         const now = Date.now();
                         if (S.adCooldownUntil && now < S.adCooldownUntil) {
@@ -1234,13 +1247,12 @@
                         const onAdComplete = (ok) => {
                             if (ok) {
                                 S.adsWatched = (S.adsWatched || 0) + 1;
-                                S.adCooldownUntil = Date.now() + 5000; // 5 SECOND COOLDOWN
+                                S.adCooldownUntil = Date.now() + 5000;
                                 save();
                             }
                             cb(ok);
                         };
 
-                        // Try Adsgram SDK first
                         if (window.Adsgram) {
                             try {
                                 const AdController = window.Adsgram.init({ blockId: blockId });
@@ -1256,7 +1268,6 @@
                             }
                         }
 
-                        // Fallback to simulated ad
                         this.playAdSimulated(reason, onAdComplete);
                     }
 
@@ -2022,36 +2033,77 @@
                         this.redraws.push(redraw);
                         return y + H + 12;
                     }
+
+                    // Montage Rewarded Ad Button Integration (+15 GOLD, +50 GEMS, 30 Ads limit, 3h cooldown)
                     buildAdButton(y) {
-                        const b = new Btn(this, DW/2, y + 36, {
-                            w: DW - 36, h: 64, label: '\ud83d\udcfa WATCH AD  \u2192  +75 GOLD', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 24, radius: 18,
+                        const b = new Btn(this, DW / 2, y + 36, {
+                            w: DW - 36, h: 68, label: '', color: 0x9c6bff, shadow: 0x6134b0, fontSize: 22, radius: 18,
                             onClick: () => {
-                                this.playAd('Gold bonus +75', (ok) => {
-                                    if (ok) {
-                                        S.cash += 75;
-                                        save();
-                                        sfx('coin', 1.15);
-                                        toast(this, '+75 GOLD!', C.gold);
-                                        this.refreshAll();
+                                const now = Date.now();
+                                if (S.withdrawAdCooldownUntil && now < S.withdrawAdCooldownUntil) {
+                                    const leftSec = Math.ceil((S.withdrawAdCooldownUntil - now) / 1000);
+                                    toast(this, `3h Cooldown Active! Wait ${clock(leftSec)}`, C.gold);
+                                    return;
+                                }
+
+                                const grantReward = () => {
+                                    S.cash += 15;
+                                    S.gems += 50;
+                                    S.withdrawAdCount = (S.withdrawAdCount || 0) + 1;
+                                    S.adCooldownUntil = Date.now() + 5000;
+
+                                    if (S.withdrawAdCount >= 30) {
+                                        S.withdrawAdCooldownUntil = Date.now() + 3 * 60 * 60 * 1000; // 3 Hours Cooldown
+                                        S.withdrawAdCount = 0;
+                                        toast(this, '30 Ads Completed! 3 Hours Cooldown Started.', C.purple);
+                                    } else {
+                                        toast(this, '+15 GOLD & +50 GEMS!', C.gold);
                                     }
-                                }, ADSGRAM_BLOCK_ID_REWARDS);
+                                    save();
+                                    sfx('coin', 1.15);
+                                    this.refreshAll();
+                                };
+
+                                if (typeof window.show_11520403 === 'function') {
+                                    try {
+                                        window.show_11520403().then(() => {
+                                            grantReward();
+                                        }).catch((err) => {
+                                            console.log("Montage Ad failed/closed, triggering fallback simulation:", err);
+                                            this.playAdSimulated('Withdrawal Ad', (ok) => { if (ok) grantReward(); });
+                                        });
+                                    } catch (e) {
+                                        this.playAdSimulated('Withdrawal Ad', (ok) => { if (ok) grantReward(); });
+                                    }
+                                } else {
+                                    this.playAdSimulated('Withdrawal Ad', (ok) => { if (ok) grantReward(); });
+                                }
                             }
                         });
                         this.list.add(b);
 
                         const redraw = () => {
                             const now = Date.now();
-                            const cd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
-                            if (cd > 0) {
-                                b.setLabel(`WAIT ${cd}s  \u2192  +75 GOLD`).setColorTheme(C.greyDk).setEnabled(false);
+                            const isCooling = S.withdrawAdCooldownUntil && now < S.withdrawAdCooldownUntil;
+                            const count = S.withdrawAdCount || 0;
+
+                            if (isCooling) {
+                                const leftSec = Math.ceil((S.withdrawAdCooldownUntil - now) / 1000);
+                                b.setLabel(`COOLDOWN: ${clock(leftSec)}`).setColorTheme(C.greyDk).setEnabled(false);
                             } else {
-                                b.setLabel('\ud83d\udcfa WATCH AD  \u2192  +75 GOLD').setColorTheme(0x9c6bff).setEnabled(true);
+                                const cd = S.adCooldownUntil && now < S.adCooldownUntil ? Math.ceil((S.adCooldownUntil - now) / 1000) : 0;
+                                if (cd > 0) {
+                                    b.setLabel(`WAIT ${cd}s  \u2192  (${count}/30)`).setColorTheme(C.greyDk).setEnabled(false);
+                                } else {
+                                    b.setLabel(`\ud83d\udcfa WATCH AD (${count}/30) \u2192 +15 GOLD & +50 \ud83d\udc8e`).setColorTheme(0x9c6bff).setEnabled(true);
+                                }
                             }
                         };
                         this.redraws.push(redraw);
 
-                        return y + 80;
+                        return y + 84;
                     }
+
                     buildMethods(y) {
                         this.list.add(this.add.text(30, y + 16, 'PAYOUT METHOD', t(18, TXT.gold)).setOrigin(0, 0.5));
                         const top = y + 36, w = (DW - 36 - 3 * 12) / 4, H = 90;
@@ -2191,7 +2243,7 @@
                         this.list.add([hint, val]);
                         
                         const btn = new Btn(this, DW - 90, y + H/2, {
-                            w: 120, h: 50, label: 'EDIT', color: C.blue, fontSize: 18, radius: 14,
+                            w: 130, h: 56, label: 'EDIT', color: C.blue, fontSize: 20, radius: 14,
                             onClick: () => { 
                                 sfx('click');
                                 this.showEditDetailsModal(this.method);
@@ -2269,6 +2321,7 @@
                         return y + 100;
                     }
 
+                    /* ---- EDIT DETAILS DIALOG MODAL (PRESERVED ORIGINAL LOOK + MOBILE KEYBOARD FOCUS) ---- */
                     showEditDetailsModal(method) {
                         if (this.activeEditModal) return;
                         this.data.set('modal', true);
@@ -2279,11 +2332,15 @@
                         const shade = this.add.rectangle(DW / 2, DH / 2, DW, DH, 0x040812, 0.88).setInteractive();
                         layer.add(shade);
 
+                        let allowShadeClose = false;
+                        this.time.delayedCall(300, () => { allowShadeClose = true; });
+
                         const mw = 640, mh = method.keypadType === 'numeric' ? 700 : 620;
                         const my = DH / 2;
                         const panel = this.add.container(DW / 2, my);
                         layer.add(panel);
 
+                        // Original Modal Background Graphics
                         const g = this.add.graphics();
                         rr(g, -mw / 2, -mh / 2, mw, mh, 28, 0x0f172a, 1);
                         rrs(g, -mw / 2, -mh / 2, mw, mh, 28, method.headerColor, 3, 0.9);
@@ -2302,11 +2359,12 @@
                         panel.add(hintTxt);
 
                         let currentVal = S.account[method.id] || '';
-                        
+
+                        // Original Canvas Input Box Graphics
                         const inputBg = this.add.graphics();
                         panel.add(inputBg);
 
-                        const valTxt = this.add.text(0, -mh / 2 + 150, currentVal || method.placeholder, t(24, currentVal ? '#ffffff' : '#4b5563')).setOrigin(0.5);
+                        const valTxt = this.add.text(0, -mh / 2 + 150, currentVal || method.placeholder, t(22, currentVal ? '#ffffff' : '#4b5563')).setOrigin(0.5);
                         panel.add(valTxt);
 
                         const updateInputDisplay = () => {
@@ -2319,23 +2377,34 @@
                         };
                         updateInputDisplay();
 
-                        const keyListener = (e) => {
-                            if (!this.activeEditModal) return;
-                            if (e.key === 'Backspace') {
-                                currentVal = currentVal.slice(0, -1);
-                                sfx('click');
-                                updateInputDisplay();
-                            } else if (e.key === 'Enter') {
-                                saveAction();
-                            } else if (e.key.length === 1 && currentVal.length < 34) {
-                                currentVal += e.key;
-                                sfx('click');
-                                updateInputDisplay();
-                            }
-                        };
-                        window.addEventListener('keydown', keyListener);
+                        // INVISIBLE HTML INPUT FOR POPPING UP OS VIRTUAL KEYBOARD SEAMLESSLY
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = method.keypadType === 'numeric' ? 'tel' : 'text';
+                        hiddenInput.value = currentVal;
+                        hiddenInput.style.position = 'fixed';
+                        hiddenInput.style.left = '-9999px';
+                        hiddenInput.style.top = '-9999px';
+                        hiddenInput.style.opacity = '0';
+                        document.body.appendChild(hiddenInput);
 
-                        let keypadStartY = -mh / 2 + 200;
+                        // Auto-focus to open soft keyboard
+                        this.time.delayedCall(150, () => {
+                            if (hiddenInput) hiddenInput.focus();
+                        });
+
+                        hiddenInput.addEventListener('input', (e) => {
+                            currentVal = e.target.value;
+                            updateInputDisplay();
+                        });
+
+                        // Tap Input Box to Focus Keyboard again
+                        const touchArea = this.add.zone(0, -mh / 2 + 150, mw - 60, 60).setInteractive({ useHandCursor: true });
+                        panel.add(touchArea);
+                        touchArea.on('pointerdown', () => {
+                            if (hiddenInput) hiddenInput.focus();
+                        });
+
+                        let keypadStartY = -mh / 2 + 220;
 
                         if (method.keypadType === 'numeric') {
                             const keys = [
@@ -2344,7 +2413,7 @@
                                 ['7', '8', '9'],
                                 ['CLR', '0', '\u232b']
                             ];
-                            const kw = 175, kh = 62, gapX = 14, gapY = 12;
+                            const kw = 175, kh = 58, gapX = 14, gapY = 10;
                             keys.forEach((row, ri) => {
                                 row.forEach((k, ci) => {
                                     const kx = -((kw * 3 + gapX * 2) / 2) + ci * (kw + gapX) + kw / 2;
@@ -2356,6 +2425,7 @@
                                             if (k === 'CLR') currentVal = '';
                                             else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
                                             else if (currentVal.length < 24) currentVal += k;
+                                            hiddenInput.value = currentVal;
                                             updateInputDisplay();
                                         }
                                     });
@@ -2365,7 +2435,7 @@
                             keypadStartY += 4 * (kh + gapY) + 10;
                         } else {
                             const syms = ['@', '.', '_', '-', 'CLR', '\u232b'];
-                            const sw = 84, sh = 56, sGap = 10;
+                            const sw = 84, sh = 52, sGap = 10;
                             syms.forEach((k, ci) => {
                                 const kx = -((sw * 6 + sGap * 5) / 2) + ci * (sw + sGap) + sw / 2;
                                 const btn = new Btn(this, kx, keypadStartY + sh / 2, {
@@ -2375,6 +2445,7 @@
                                         if (k === 'CLR') currentVal = '';
                                         else if (k === '\u232b') currentVal = currentVal.slice(0, -1);
                                         else if (currentVal.length < 34) currentVal += k;
+                                        hiddenInput.value = currentVal;
                                         updateInputDisplay();
                                     }
                                 });
@@ -2386,57 +2457,61 @@
                                 const pw = Math.floor((mw - 80 - (method.presets.length - 1) * 12) / method.presets.length);
                                 method.presets.forEach((p, pi) => {
                                     const px = -((pw * method.presets.length + 12 * (method.presets.length - 1)) / 2) + pi * (pw + 12) + pw / 2;
-                                    const pbtn = new Btn(this, px, keypadStartY + 28, {
-                                        w: pw, h: 54, label: p, color: 0x1d3557, fontSize: 16, radius: 14,
+                                    const pbtn = new Btn(this, px, keypadStartY + 24, {
+                                        w: pw, h: 50, label: p, color: 0x1d3557, fontSize: 16, radius: 14,
                                         onClick: () => {
                                             if (!currentVal.includes('@') && p.startsWith('@')) {
                                                 currentVal += p;
                                             } else if (!currentVal.includes(p)) {
                                                 currentVal += (currentVal.length > 0 && !currentVal.endsWith('@') && !p.startsWith('@') ? '@' : '') + p;
                                             }
+                                            hiddenInput.value = currentVal;
                                             updateInputDisplay();
                                         }
                                     });
                                     panel.add(pbtn);
                                 });
-                                keypadStartY += 60;
+                                keypadStartY += 56;
                             }
                         }
 
-                        const noteTxt = this.add.text(0, keypadStartY + 10, 'You can also type with your keyboard', t(14, TXT.dim)).setOrigin(0.5);
-                        panel.add(noteTxt);
-
-                        const saveAction = () => {
-                            if (!currentVal.trim()) {
-                                toast(this, 'Please enter valid details', C.red);
-                                return;
-                            }
-                            S.account[method.id] = currentVal.trim();
-                            save();
-                            sfx('confirm');
-                            toast(this, `${method.name} details saved!`, C.green);
-                            closeModal();
-                        };
-
                         const closeModal = () => {
-                            window.removeEventListener('keydown', keyListener);
+                            if (hiddenInput && hiddenInput.parentNode) {
+                                hiddenInput.parentNode.removeChild(hiddenInput);
+                            }
                             this.data.set('modal', false);
                             this.activeEditModal = null;
                             layer.destroy();
                             this.refreshAll();
                         };
 
-                        const saveBtn = new Btn(this, 0, mh / 2 - 76, {
-                            w: mw - 60, h: 68, label: 'SAVE DETAILS', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 20,
+                        const saveAction = () => {
+                            const val = currentVal.trim();
+                            if (!val) {
+                                toast(this, 'Please enter valid details', C.red);
+                                return;
+                            }
+                            S.account[method.id] = val;
+                            save();
+                            sfx('confirm');
+                            toast(this, `${method.name} details saved!`, C.green);
+                            closeModal();
+                        };
+
+                        // SAVE DETAILS BUTTON (SAVES AND CLOSES MODAL PROPERLY)
+                        const saveBtn = new Btn(this, 0, mh / 2 - 70, {
+                            w: mw - 60, h: 64, label: 'SAVE DETAILS', color: C.green, shadow: C.greenDk, fontSize: 26, radius: 20,
                             onClick: saveAction
                         });
                         panel.add(saveBtn);
 
-                        const cancelTxt = this.add.text(0, mh / 2 - 24, 'Cancel', t(16, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
-                        cancelTxt.on('pointerdown', () => { sfx('click'); closeModal(); });
+                        const cancelTxt = this.add.text(0, mh / 2 - 20, 'Cancel', t(16, TXT.dim)).setOrigin(0.5).setInteractive({ useHandCursor: true });
+                        cancelTxt.on('pointerup', () => { sfx('click'); closeModal(); });
                         panel.add(cancelTxt);
 
-                        shade.on('pointerdown', () => closeModal());
+                        shade.on('pointerup', () => {
+                            if (allowShadeClose) closeModal();
+                        });
                     }
 
                     refreshAll() {
@@ -2444,20 +2519,22 @@
                     }
                 }
 
-                /* ==== src/scenes/SettingsPanel.ts ================================= */
+                /* ==== src/scenes/SettingsPanel.ts (USER UI ID DISPLAY ADDED) ==== */
                 class SettingsPanel extends Panel {
                     constructor() { super('SettingsPanel'); }
                     init() {
                         this.headerColor = C.grey; this.titleText = 'SETTINGS';
-                        this.subtitleText = 'Audio \u00b7 progress'; this.sheetTop = 320;
+                        this.subtitleText = 'Audio \u00b7 user profile'; this.sheetTop = 320;
                         this.showWallet = false; this.closing = false;
                     }
                     create() {
                         this.buildChrome();
                         const c = this.add.container(0, this.contentTop).setDepth(2);
+                        
+                        // Sound Button
                         const soundBtn = new Btn(this, DW / 2, 44, {
-                            w: DW - 80, h: 88, label: S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON',
-                            color: S.muted ? C.greyDk : C.blue, shadow: S.muted ? 0x11182a : C.blueDk, fontSize: 26, radius: 22,
+                            w: DW - 80, h: 80, label: S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON',
+                            color: S.muted ? C.greyDk : C.blue, shadow: S.muted ? 0x11182a : C.blueDk, fontSize: 24, radius: 22,
                             onClick: () => {
                                 S.muted = !S.muted; setMuted(S.muted); save();
                                 soundBtn.setLabel(S.muted ? '\ud83d\udd07  SOUND: OFF' : '\ud83d\udd0a  SOUND: ON');
@@ -2465,6 +2542,34 @@
                             },
                         });
                         c.add(soundBtn);
+
+                        // User UI ID Display Card
+                        const uidCardY = 170;
+                        const uidG = this.add.graphics();
+                        rr(uidG, 40, uidCardY, DW - 80, 110, 22, 0x101728, 1);
+                        rrs(uidG, 40, uidCardY, DW - 80, 110, 22, C.stroke, 2, 0.8);
+                        c.add(uidG);
+
+                        c.add(this.add.text(64, uidCardY + 28, 'USER UI ID', t(15, TXT.dim)).setOrigin(0, 0.5));
+                        
+                        const displayUid = S.uid || (currentUser ? currentUser.uid : generateLocalUid());
+                        const uidTxt = this.add.text(64, uidCardY + 68, displayUid, t(20, '#7bf0ae')).setOrigin(0, 0.5);
+                        c.add(uidTxt);
+
+                        // Copy ID Button
+                        const copyBtn = new Btn(this, DW - 120, uidCardY + 55, {
+                            w: 110, h: 54, label: 'COPY', color: C.purple, shadow: C.purpleDk, fontSize: 18, radius: 16,
+                            onClick: () => {
+                                try {
+                                    navigator.clipboard.writeText(displayUid);
+                                    toast(this, 'USER ID COPIED!', C.green);
+                                    sfx('confirm');
+                                } catch(e) {
+                                    toast(this, 'ID: ' + displayUid, C.gold);
+                                }
+                            }
+                        });
+                        c.add(copyBtn);
                     }
                 }
 
