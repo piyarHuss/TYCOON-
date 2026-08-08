@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stone Tycoon — Custom Assets, Audio & Firebase Sync</title>
+    <title>Stone Tycoon — Custom Assets, Audio & Realtime Firebase Sync</title>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #05070d; overflow: hidden; font-family: system-ui, sans-serif; }
@@ -471,6 +471,10 @@
                     }
                 }
 
+                // REALTIME FIRESTORE LISTENERS (USER DOC & WITHDRAWALS LISTENER)
+                let unsubscribeUserDoc = null;
+                let unsubscribeWithdrawalsDoc = null;
+
                 if (auth) {
                     auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
                     auth.onAuthStateChanged(user => {
@@ -478,22 +482,67 @@
                             currentUser = user;
                             S.uid = user.uid;
                             if (db) {
-                                db.collection('users').doc(user.uid).get().then(doc => {
+                                // 1. Realtime Listener for User Document (Handles Live Cash Refunds / Balance Sync)
+                                if (unsubscribeUserDoc) unsubscribeUserDoc();
+                                unsubscribeUserDoc = db.collection('users').doc(user.uid).onSnapshot(doc => {
                                     if (doc.exists) {
                                         const cloudData = doc.data();
                                         const merged = applyDataToState(cloudData);
                                         Object.assign(S, merged);
                                         S.uid = user.uid;
                                         try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+
+                                        // Refresh active UI if open
+                                        if (window.phGameInstance) {
+                                            const gScene = window.phGameInstance.scene.getScene('Game');
+                                            if (gScene && gScene.refreshHud) gScene.refreshHud();
+                                            const cPanel = window.phGameInstance.scene.getScene('CashPanel');
+                                            if (cPanel && cPanel.refreshAll) cPanel.refreshAll();
+                                        }
                                     } else {
                                         save();
                                     }
                                     checkReferralCode();
-                                }).catch(err => {
-                                    console.error("Firestore Load Error:", err);
-                                    checkReferralCode();
-                                });
+                                }, err => console.error("Firestore User Snapshot Error:", err));
 
+                                // 2. Realtime Listener for Withdrawals Collection (Listens to Admin Rejections & Approval Status Live!)
+                                if (unsubscribeWithdrawalsDoc) unsubscribeWithdrawalsDoc();
+                                unsubscribeWithdrawalsDoc = db.collection('withdrawals')
+                                    .where('userUid', '==', user.uid)
+                                    .onSnapshot(snapshot => {
+                                        const liveWds = [];
+                                        snapshot.forEach(docSnap => {
+                                            const d = docSnap.data();
+                                            liveWds.push({
+                                                id: d.id || docSnap.id,
+                                                docId: docSnap.id,
+                                                amount: d.amount,
+                                                method: d.method,
+                                                methodName: d.methodName || (d.method ? d.method.toUpperCase() : 'UPI'),
+                                                account: d.account,
+                                                status: d.status || 'Pending',
+                                                date: d.date || 'Recent',
+                                                timestamp: d.timestamp || Date.now()
+                                            });
+                                        });
+
+                                        liveWds.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                                        if (liveWds.length > 0) {
+                                            S.withdrawals = liveWds;
+                                            try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+
+                                            // Update CashPanel live
+                                            if (window.phGameInstance) {
+                                                const cPanel = window.phGameInstance.scene.getScene('CashPanel');
+                                                if (cPanel && cPanel.scene.isActive()) {
+                                                    cPanel.refreshAll();
+                                                }
+                                            }
+                                        }
+                                    }, err => console.error("Withdrawals Listener Error:", err));
+
+                                // 3. Admin Config Listener
                                 db.collection('config').doc('admin_config').onSnapshot(doc => {
                                     if (doc.exists) {
                                         applyAdminConfig(doc.data());
@@ -1138,7 +1187,7 @@
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                // Instant In-Game Reset without page reload to prevent Cloud Sync Overwrite Loop
+                                // Instant In-Game Reset without page reload
                                 S.level = 1; 
                                 S.hp = rockMaxHp(1); 
                                 S.maxHp = S.hp;
@@ -1196,13 +1245,11 @@
                     update(_time, delta) {
                         const dt = delta / 1000;
                         
-                        // Safety Check: If Panel is not active but input remains locked, recover input!
                         if (this.panelOpen && !this.scene.isActive('MinersPanel') && !this.scene.isActive('UpgradePanel') && !this.scene.isActive('RewardsPanel') && !this.scene.isActive('CashPanel') && !this.scene.isActive('SettingsPanel') && !this.scene.isActive('AdScene')) {
                             this.panelOpen = false;
                             this.input.enabled = true;
                         }
 
-                        // HP Safety Sanity Check
                         S.maxHp = rockMaxHp(S.level);
                         S.hp = safeNum(S.hp, S.maxHp);
                         if (!isFinite(S.hp) || S.hp <= 0) {
@@ -1522,7 +1569,6 @@
                             this.fontsDone = true;
                         }
 
-                        // Safety Timeout for Font Loader
                         this.time.delayedCall(1600, () => { this.fontsDone = true; });
                     }
                     create() {
@@ -1551,7 +1597,6 @@
                         }
                     }
                     
-                    // Generate Textures using make.graphics() to guarantee valid textures across Canvas/WebGL engines
                     makeTextures() {
                         const makeTex = (key, width, height, drawFn) => {
                             if (!this.textures.exists(key)) {
@@ -1598,7 +1643,6 @@
                             }
                         });
 
-                        // Safety Fallbacks for missing assets
                         TIERS.forEach(t => {
                             makeTex(t.key, 120, 120, (g, w, h) => {
                                 g.fillStyle(t.color, 1);
@@ -2596,7 +2640,6 @@
                         this.historyContainer = this.add.container(0, y);
                         this.list.add(this.historyContainer);
 
-                        // Persistent Title & Empty Box
                         const title = this.add.text(30, 16, 'WITHDRAWAL HISTORY', t(18, TXT.gold)).setOrigin(0, 0.5);
                         this.historyContainer.add(title);
 
@@ -2606,7 +2649,6 @@
                         const emptyTxt = this.add.text(DW / 2, 71, 'No withdrawal records yet', t(16, TXT.dim)).setOrigin(0.5);
                         this.historyContainer.add([emptyBox, emptyTxt]);
 
-                        // Pre-create 15 Persistent History Rows to eliminate text destruction crashes
                         this.historyRows = [];
                         let rowY = 36;
                         for (let i = 0; i < 15; i++) {
@@ -3036,8 +3078,8 @@
                 setMuted(S.muted);
                 applyAdminConfig(adminConfig());
 
-                // Using Phaser.CANVAS renderer to completely eliminate WebGL context loss & glTexture null crash
-                const game = new Phaser.Game({
+                // Create and Store Phaser Game Global Instance
+                window.phGameInstance = new Phaser.Game({
                     type: Phaser.CANVAS,
                     parent: 'game',
                     backgroundColor: '#05070d',
