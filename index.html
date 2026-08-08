@@ -200,7 +200,7 @@
                     minerDpsMultiplier: 1,
                     minerCostMultiplier: 5.0,
                     offlineHourCap: 1,
-                    offlineEarningsMult: 0.05,
+                    offlineEarningsMult: 1.0,
                     adCashReward: 75,
                     adGemReward: 12,
                     boostSeconds: 60,
@@ -247,7 +247,7 @@
                     clean.minerDpsMultiplier = num(clean.minerDpsMultiplier, 1, 0.05);
                     clean.minerCostMultiplier = num(clean.minerCostMultiplier, 5.0, 0.1);
                     clean.offlineHourCap = num(clean.offlineHourCap, 1, 0.1);
-                    clean.offlineEarningsMult = num(clean.offlineEarningsMult, 0.05, 0.001);
+                    clean.offlineEarningsMult = num(clean.offlineEarningsMult, 1.0, 0.001);
                     clean.adCashReward = num(clean.adCashReward, 75, 0);
                     clean.adGemReward = num(clean.adGemReward, 12, 0);
                     clean.boostSeconds = num(clean.boostSeconds, 60, 1);
@@ -345,9 +345,6 @@
                     { id: 'bank', name: 'Bank', short: 'BNK', color: 0x5b6bd6, headerColor: 0x5a67d8, hint: 'Bank account number', placeholder: '0000 0000 0000', eta: '3 - 5 business days', presets: [], keypadType: 'numeric' },
                     { id: 'crypto', name: 'Crypto', short: 'USDT', color: 0xd98014, headerColor: 0xd97706, hint: 'USDT (TRC-20) wallet', placeholder: 'TX9f…wallet', eta: 'within 1 hour', presets: ['TRC20', 'BEP20', 'ERC20'], keypadType: 'crypto' },
                 ];
-                
-                const AMOUNTS_UPI = [11000, 21000, 40000, 60000, 100000];
-                const AMOUNTS_OTHER = [100000, 200000, 600000, 1000000];
                 
                 const FAKE_ADS = [
                     { app: 'COIN MASTER RUSH', tag: 'Spin \u00b7 Raid \u00b7 Build your empire', sprite: 'cash', c1: 0xff8a3d, c2: 0xd6215f, cta: 'INSTALL', rating: '4.7 \u2605  \u00b7  50M+ installs' },
@@ -471,7 +468,7 @@
                     }
                 }
 
-                // REALTIME FIRESTORE LISTENERS (USER DOC & WITHDRAWALS LISTENER)
+                // REALTIME FIRESTORE LISTENERS
                 let unsubscribeUserDoc = null;
                 let unsubscribeWithdrawalsDoc = null;
 
@@ -482,7 +479,7 @@
                             currentUser = user;
                             S.uid = user.uid;
                             if (db) {
-                                // 1. Realtime Listener for User Document (Handles Live Cash Refunds / Balance Sync)
+                                // 1. Realtime User Doc Listener
                                 if (unsubscribeUserDoc) unsubscribeUserDoc();
                                 unsubscribeUserDoc = db.collection('users').doc(user.uid).onSnapshot(doc => {
                                     if (doc.exists) {
@@ -492,7 +489,6 @@
                                         S.uid = user.uid;
                                         try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
 
-                                        // Refresh active UI if open
                                         if (window.phGameInstance) {
                                             const gScene = window.phGameInstance.scene.getScene('Game');
                                             if (gScene && gScene.refreshHud) gScene.refreshHud();
@@ -505,7 +501,7 @@
                                     checkReferralCode();
                                 }, err => console.error("Firestore User Snapshot Error:", err));
 
-                                // 2. Realtime Listener for Withdrawals Collection (Listens to Admin Rejections & Approval Status Live!)
+                                // 2. Realtime Withdrawals Listener
                                 if (unsubscribeWithdrawalsDoc) unsubscribeWithdrawalsDoc();
                                 unsubscribeWithdrawalsDoc = db.collection('withdrawals')
                                     .where('userUid', '==', user.uid)
@@ -532,7 +528,6 @@
                                             S.withdrawals = liveWds;
                                             try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
 
-                                            // Update CashPanel live
                                             if (window.phGameInstance) {
                                                 const cPanel = window.phGameInstance.scene.getScene('CashPanel');
                                                 if (cPanel && cPanel.scene.isActive()) {
@@ -546,6 +541,13 @@
                                 db.collection('config').doc('admin_config').onSnapshot(doc => {
                                     if (doc.exists) {
                                         applyAdminConfig(doc.data());
+                                        if (window.phGameInstance) {
+                                            const cPanel = window.phGameInstance.scene.getScene('CashPanel');
+                                            if (cPanel && cPanel.scene.isActive()) {
+                                                cPanel.updateAmounts();
+                                                cPanel.refreshAll();
+                                            }
+                                        }
                                     }
                                 }, err => console.log("Admin config listener:", err));
                             }
@@ -1133,6 +1135,7 @@
                         this.tweens.add({ targets: cont, y: y - 60, alpha: 0, delay: 900, duration: 400, ease: 'Quad.easeIn', onComplete: () => cont.destroy() });
                     }
                     
+                    // FIXED: Offline Mining Gold Formula (Max ~100 GOLD per 1 Hour)
                     offlineEarnings() {
                         const away = (Date.now() - safeNum(S.lastSeen, Date.now())) / 1000;
                         if (away < 60) return;
@@ -1143,9 +1146,12 @@
                         const dps = totalDps() / (boostActive() ? 2 : 1);
                         if (dps <= 0) return;
 
-                        const mult = adminConfig().offlineEarningsMult || 0.05;
-                        const coins = Math.max(1, Math.floor(dps * capped * 0.08 * mult));
-                        const cash = Math.max(0.1, (dps * capped * 0.02 * mult));
+                        const mult = adminConfig().offlineEarningsMult || 1.0;
+                        const coins = Math.max(1, Math.floor(dps * capped * 0.08));
+                        
+                        // 1 Hour (3600s) = ~100 GOLD Max
+                        const maxGoldPerHour = 100;
+                        const cash = Math.max(1, Math.floor((capped / 3600) * maxGoldPerHour * mult));
 
                         this.time.delayedCall(600, () => {
                             S.coins += coins; S.totalCoins += coins; S.cash += cash; save();
@@ -1187,7 +1193,6 @@
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                // Instant In-Game Reset without page reload
                                 S.level = 1; 
                                 S.hp = rockMaxHp(1); 
                                 S.maxHp = S.hp;
@@ -2226,8 +2231,15 @@
                         this.method = PAYOUTS.find((p) => p.id === S.lastMethod) ?? PAYOUTS[1];
                         this.updateAmounts();
                     }
+                    // FIXED: Dynamic Amounts based on Admin Panel Minimum Withdrawal
                     updateAmounts() {
-                        this.amounts = this.method.id === 'upi' ? AMOUNTS_UPI : AMOUNTS_OTHER;
+                        const minWd = adminConfig().minWithdraw || 11000;
+                        if (this.method.id === 'upi') {
+                            this.amounts = [minWd, Math.floor(minWd * 1.9), Math.floor(minWd * 3.6), Math.floor(minWd * 5.5), Math.floor(minWd * 9.0)];
+                        } else {
+                            const baseOther = Math.max(minWd, 100000);
+                            this.amounts = [baseOther, Math.floor(baseOther * 2), Math.floor(baseOther * 5), Math.floor(baseOther * 10)];
+                        }
                         let idx = 0;
                         for (let i = 0; i < this.amounts.length; i++) {
                             if (S.cash >= this.amounts[i]) idx = i;
@@ -2574,6 +2586,7 @@
                         this.submitBtn = new Btn(this, DW / 2, y + 40, {
                             w: DW - 36, h: 80, label: ' ', color: C.greyDk, shadow: 0x161d2c, fontSize: 26, radius: 20,
                             onClick: () => {
+                                const curMinLimit = adminConfig().minWithdraw || 11000;
                                 if (!isPayoutAvailable(this.method.id)) {
                                     toast(this, `${this.method.name} withdrawal is NOT AVAILABLE!`, C.red);
                                     return;
@@ -2583,12 +2596,15 @@
                                     this.showEditDetailsModal(this.method);
                                     return;
                                 }
+                                if (this.amount < curMinLimit) {
+                                    toast(this, `Minimum withdrawal limit is ${comma(curMinLimit)} GOLD!`, C.red);
+                                    return;
+                                }
                                 if (S.cash < this.amount) {
                                     toast(this, 'Insufficient GOLD balance!', C.red);
                                     return;
                                 }
 
-                                // Process Withdrawal
                                 S.cash -= this.amount;
                                 const record = {
                                     id: 'WD-' + Date.now().toString(36).toUpperCase(),
@@ -2605,7 +2621,6 @@
                                 S.withdrawals.unshift(record);
                                 save();
 
-                                // Save to Firebase Cloud Firestore
                                 if (db && currentUser) {
                                     db.collection('withdrawals').add({
                                         ...record,
@@ -2623,8 +2638,9 @@
                         this.list.add(this.submitBtn);
                         
                         const redraw = () => {
+                            const curMinLimit = adminConfig().minWithdraw || 11000;
                             const avail = isPayoutAvailable(this.method.id);
-                            const can = avail && S.cash >= this.amount;
+                            const can = avail && S.cash >= this.amount && this.amount >= curMinLimit;
                             
                             if (!avail) {
                                 this.submitBtn.setLabel('\ud83d\udd12 NOT AVAILABLE').setColorTheme(0x3a151b).setEnabled(false);
@@ -3078,7 +3094,7 @@
                 setMuted(S.muted);
                 applyAdminConfig(adminConfig());
 
-                // Create and Store Phaser Game Global Instance
+                // Phaser Global Instance
                 window.phGameInstance = new Phaser.Game({
                     type: Phaser.CANVAS,
                     parent: 'game',
