@@ -78,15 +78,33 @@
         const ADSGRAM_BLOCK_ID_MINERS = "int-41522";
         const ADSGRAM_BLOCK_ID_REWARDS = "int-41524";
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        try {
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+        } catch(e) { console.warn("Firebase Init Error:", e); }
+
+        const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
+        const auth = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth() : null;
         let currentUser = null;
 
         function generateLocalUid() {
             return 'ST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function safeNum(v, fallback = 0) {
+            const n = Number(v);
+            return (Number.isFinite(n) && !isNaN(n)) ? n : fallback;
+        }
+
+        function safeSetText(textObj, str, color) {
+            if (!textObj || !textObj.scene || !textObj.frame || !textObj.frame.data) return;
+            try {
+                if (str !== undefined && str !== null) textObj.setText(String(str));
+                if (color !== undefined && color !== null) textObj.setColor(color);
+            } catch (e) {
+                console.warn("Text update suppressed safely:", e);
+            }
         }
 
         const TELEGRAM_SHARE_BASE = "https://t.me/TYCOON_PLAY_BOT/playtoearn";
@@ -141,7 +159,7 @@
 
                 const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td'];
                 function fmt(n) {
-                    if (n === null || n === undefined || isNaN(n)) return '0';
+                    n = safeNum(n, 0);
                     if (!isFinite(n)) return '\u221e';
                     if (n < 0) return '-' + fmt(-n);
                     if (n < 1000) {
@@ -154,15 +172,15 @@
                     return s + SUF[i];
                 }
                 function comma(n) {
-                    if (n === null || n === undefined || isNaN(n)) return '0';
+                    n = safeNum(n, 0);
                     return Math.floor(Math.max(0, n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 }
                 function goldFull(n) {
                     return comma(n) + ' GOLD';
                 }
-                function pad2(n) { return n < 10 ? '0' + n : String(n); }
+                function pad2(n) { n = safeNum(n, 0); return n < 10 ? '0' + n : String(n); }
                 function clock(sec) {
-                    const s = Math.max(0, Math.ceil(sec));
+                    const s = Math.max(0, Math.ceil(safeNum(sec, 0)));
                     const h = Math.floor(s / 3600);
                     const m = Math.floor((s % 3600) / 60);
                     const sc = s % 60;
@@ -175,14 +193,14 @@
                 const ADMIN_CONFIG_KEY = 'stone_tycoon_admin_config_v1';
                 const DEFAULT_ADMIN_CONFIG = {
                     enabled: true,
-                    rockHpMultiplier: 3.5,        // 🪨 Rocks are 3.5x harder to break
+                    rockHpMultiplier: 3.5,
                     coinRewardMultiplier: 1,
                     cashRewardMultiplier: 1,
                     tapDamageMultiplier: 1,
                     minerDpsMultiplier: 1,
-                    minerCostMultiplier: 5.0,      // 💰 Miner upgrade cost is 5x higher!
-                    offlineHourCap: 1,            // ⏱️ Max 1 Hour Offline Limit
-                    offlineEarningsMult: 0.05,    // 📉 Very low offline earnings
+                    minerCostMultiplier: 5.0,
+                    offlineHourCap: 1,
+                    offlineEarningsMult: 0.05,
                     adCashReward: 75,
                     adGemReward: 12,
                     boostSeconds: 60,
@@ -217,8 +235,8 @@
                     }
                 }
                 function num(v, fallback, min = 0) {
-                    const n = Number(v);
-                    return Number.isFinite(n) ? Math.max(min, n) : fallback;
+                    const n = safeNum(v, fallback);
+                    return Math.max(min, n);
                 }
                 function applyAdminConfig(cfg) {
                     const clean = { ...DEFAULT_ADMIN_CONFIG, ...(cfg || {}) };
@@ -287,34 +305,38 @@
                     { name: 'DIAMOND', key: 'rock_diamond', color: 0x3fc6f0, glow: 0x9df2ff, css: '#9df2ff' },
                     { name: 'OBSIDIAN', key: 'rock_obsidian', color: 0xa03df0, glow: 0xf07dff, css: '#f07dff' },
                 ];
-                function tierFor(level) { return TIERS[Math.floor((level - 1) / 5) % TIERS.length]; }
-                function zoneName(level) { return 'DEPTH ' + (Math.floor((level - 1) / 10) + 1); }
-                function isBoss(level) { return level % 10 === 0; }
+                function tierFor(level) { return TIERS[Math.floor((safeNum(level, 1) - 1) / 5) % TIERS.length]; }
+                function zoneName(level) { return 'DEPTH ' + (Math.floor((safeNum(level, 1) - 1) / 10) + 1); }
+                function isBoss(level) { return safeNum(level, 1) % 10 === 0; }
                 
-                // Harder Rock HP Formula (High difficulty)
                 function rockMaxHp(level) {
+                    level = safeNum(level, 1);
                     const base = 25 * Math.pow(1.22, level - 1) + level * 15;
-                    return Math.max(20, Math.floor((isBoss(level) ? base * 8 : base) * adminConfig().rockHpMultiplier));
+                    const mult = adminConfig().rockHpMultiplier || 3.5;
+                    return Math.max(20, Math.floor((isBoss(level) ? base * 8 : base) * mult));
                 }
                 function coinReward(level) {
+                    level = safeNum(level, 1);
                     const base = 14 * Math.pow(1.146, level - 1) + level * 3;
-                    return Math.max(4, Math.floor((isBoss(level) ? base * 9 : base) * adminConfig().coinRewardMultiplier));
+                    return Math.max(4, Math.floor((isBoss(level) ? base * 9 : base) * (adminConfig().coinRewardMultiplier || 1)));
                 }
                 function cashReward(level) {
+                    level = safeNum(level, 1);
                     const base = 22 + level * 4.5 + Math.pow(1.08, level) * 3;
-                    return (isBoss(level) ? base * 5 : base) * adminConfig().cashRewardMultiplier;
+                    return (isBoss(level) ? base * 5 : base) * (adminConfig().cashRewardMultiplier || 1);
                 }
-                function tapCost(lv) { return Math.floor(30 * Math.pow(1.3, lv - 1)); }
-                function goldCost(lv) { return Math.floor(320 * Math.pow(1.42, lv)); }
-                function luckCost(lv) { return Math.floor(850 * Math.pow(1.48, lv)); }
+                function tapCost(lv) { return Math.floor(30 * Math.pow(1.3, safeNum(lv, 1) - 1)); }
+                function goldCost(lv) { return Math.floor(320 * Math.pow(1.42, safeNum(lv, 0))); }
+                function luckCost(lv) { return Math.floor(850 * Math.pow(1.48, safeNum(lv, 0))); }
                 
-                // Higher Miner Upgrade Cost Formula
                 function minerCost(i, level) {
-                    return Math.floor(MINERS[i].baseCost * Math.pow(1.35, Math.max(0, level)) * adminConfig().minerCostMultiplier);
+                    level = safeNum(level, 0);
+                    return Math.floor(MINERS[i].baseCost * Math.pow(1.35, Math.max(0, level)) * (adminConfig().minerCostMultiplier || 5.0));
                 }
                 function minerDps(i, level) {
+                    level = safeNum(level, 0);
                     if (level <= 0) return 0;
-                    return MINERS[i].baseDps * level * (1 + 0.022 * level) * adminConfig().minerDpsMultiplier;
+                    return MINERS[i].baseDps * level * (1 + 0.022 * level) * (adminConfig().minerDpsMultiplier || 1);
                 }
                 
                 const PAYOUTS = [
@@ -365,32 +387,33 @@
                     if (!p) return base;
                     const s = { ...base, ...p };
                     s.uid = p.uid || base.uid;
-                    s.minerLevel = MINERS.map((_, i) => (Array.isArray(p.minerLevel) ? Number(p.minerLevel[i]) || 0 : base.minerLevel[i]));
+                    s.minerLevel = MINERS.map((_, i) => (Array.isArray(p.minerLevel) ? safeNum(p.minerLevel[i], 0) : base.minerLevel[i]));
                     s.unlocked = MINERS.map((_, i) => (Array.isArray(p.unlocked) ? !!p.unlocked[i] : base.unlocked[i]));
-                    s.adProgress = MINERS.map((_, i) => (Array.isArray(p.adProgress) ? Number(p.adProgress[i]) || 0 : 0));
+                    s.adProgress = MINERS.map((_, i) => (Array.isArray(p.adProgress) ? safeNum(p.adProgress[i], 0) : 0));
                     s.unlocked[0] = true;
                     if (s.minerLevel[0] < 1) s.minerLevel[0] = 1;
                     s.withdrawals = Array.isArray(p.withdrawals) ? p.withdrawals.slice(0, 30) : [];
                     s.account = typeof p.account === 'object' && p.account ? p.account : {};
-                    s.level = Math.max(1, Math.floor(s.level));
+                    s.level = Math.max(1, Math.floor(safeNum(s.level, 1)));
                     s.maxHp = rockMaxHp(s.level);
+                    s.hp = safeNum(s.hp, s.maxHp);
                     if (!isFinite(s.hp) || s.hp <= 0 || s.hp > s.maxHp) s.hp = s.maxHp;
-                    s.coins = Math.max(0, s.coins || 0);
-                    s.gems = Math.max(0, s.gems || 0);
-                    s.cash = Math.max(0, s.cash || 0);
-                    s.runStartTime = p.runStartTime || Date.now();
-                    s.adCooldownUntil = p.adCooldownUntil || 0;
-                    s.minerResetTime = p.minerResetTime || Date.now();
-                    s.rewardAdProgress = Array.isArray(p.rewardAdProgress) ? p.rewardAdProgress : [0, 0, 0, 0];
-                    s.rewardCooldownUntil = p.rewardCooldownUntil || 0;
-                    s.withdrawAdCount = Number(p.withdrawAdCount) || 0;
-                    s.withdrawAdCooldownUntil = p.withdrawAdCooldownUntil || 0;
+                    s.coins = Math.max(0, safeNum(s.coins, 0));
+                    s.gems = Math.max(0, safeNum(s.gems, 0));
+                    s.cash = Math.max(0, safeNum(s.cash, 0));
+                    s.runStartTime = safeNum(p.runStartTime, Date.now());
+                    s.adCooldownUntil = safeNum(p.adCooldownUntil, 0);
+                    s.minerResetTime = safeNum(p.minerResetTime, Date.now());
+                    s.rewardAdProgress = Array.isArray(p.rewardAdProgress) ? p.rewardAdProgress.map(v => safeNum(v, 0)) : [0, 0, 0, 0];
+                    s.rewardCooldownUntil = safeNum(p.rewardCooldownUntil, 0);
+                    s.withdrawAdCount = safeNum(p.withdrawAdCount, 0);
+                    s.withdrawAdCooldownUntil = safeNum(p.withdrawAdCooldownUntil, 0);
                     s.referredBy = p.referredBy || null;
-                    s.referralCount = Number(p.referralCount) || 0;
-                    s.referralGoldEarned = Number(p.referralGoldEarned) || 0;
-                    s.referralCoinsEarned = Number(p.referralCoinsEarned) || 0;
-                    s.referralGemsEarned = Number(p.referralGemsEarned) || 0;
-                    s.claimedReferrals = Number(p.claimedReferrals) || 0;
+                    s.referralCount = safeNum(p.referralCount, 0);
+                    s.referralGoldEarned = safeNum(p.referralGoldEarned, 0);
+                    s.referralCoinsEarned = safeNum(p.referralCoinsEarned, 0);
+                    s.referralGemsEarned = safeNum(p.referralGemsEarned, 0);
+                    s.claimedReferrals = safeNum(p.claimedReferrals, 0);
                     return s;
                 }
 
@@ -413,7 +436,6 @@
                         localStorage.setItem(KEY, JSON.stringify(S)); 
                     } catch {}
 
-                    // Throttle Firestore write to prevent game freezing/lag
                     const now = Date.now();
                     if (currentUser && db && (now - lastCloudSaveTime > 30000)) {
                         lastCloudSaveTime = now;
@@ -449,36 +471,40 @@
                     }
                 }
 
-                auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        currentUser = user;
-                        S.uid = user.uid;
-                        db.collection('users').doc(user.uid).get().then(doc => {
-                            if (doc.exists) {
-                                const cloudData = doc.data();
-                                const merged = applyDataToState(cloudData);
-                                Object.assign(S, merged);
-                                S.uid = user.uid;
-                                try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
-                            } else {
-                                save();
-                            }
-                            checkReferralCode();
-                        }).catch(err => {
-                            console.error("Firestore Load Error:", err);
-                            checkReferralCode();
-                        });
+                if (auth) {
+                    auth.signInAnonymously().catch(err => console.error("Firebase Auth Error:", err));
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            currentUser = user;
+                            S.uid = user.uid;
+                            if (db) {
+                                db.collection('users').doc(user.uid).get().then(doc => {
+                                    if (doc.exists) {
+                                        const cloudData = doc.data();
+                                        const merged = applyDataToState(cloudData);
+                                        Object.assign(S, merged);
+                                        S.uid = user.uid;
+                                        try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+                                    } else {
+                                        save();
+                                    }
+                                    checkReferralCode();
+                                }).catch(err => {
+                                    console.error("Firestore Load Error:", err);
+                                    checkReferralCode();
+                                });
 
-                        db.collection('config').doc('admin_config').onSnapshot(doc => {
-                            if (doc.exists) {
-                                applyAdminConfig(doc.data());
+                                db.collection('config').doc('admin_config').onSnapshot(doc => {
+                                    if (doc.exists) {
+                                        applyAdminConfig(doc.data());
+                                    }
+                                }, err => console.log("Admin config listener:", err));
                             }
-                        }, err => console.log("Admin config listener:", err));
-                    } else {
-                        checkReferralCode();
-                    }
-                });
+                        } else {
+                            checkReferralCode();
+                        }
+                    });
+                }
 
                 const pool = {};
                 let ready = false, muted = false;
@@ -586,7 +612,7 @@
                             if (!this.enabled) return;
                             if (Math.abs(p.y - this.downY) > 60 || Math.abs(p.x - this.downX) > 60) return;
                             if (o.sound !== false) sfx('click', 1 + (Math.random() * 0.1 - 0.05));
-                            o.onClick();
+                            if (typeof o.onClick === 'function') o.onClick();
                         });
                         this.on('pointerout', () => {
                             if (!this.pressed) return;
@@ -627,8 +653,8 @@
                         this.redraw(false);
                         return this;
                     }
-                    setLabel(s) { this.label.setText(s || ' '); this.layoutIcon(); return this; }
-                    setSub(s) { if (this.subText) this.subText.setText(s || ' '); return this; }
+                    setLabel(s) { safeSetText(this.label, s || ' '); this.layoutIcon(); return this; }
+                    setSub(s) { if (this.subText) safeSetText(this.subText, s || ' '); return this; }
                     setColorTheme(color) { this.o.color = color; this.redraw(false); return this; }
                 }
 
@@ -654,7 +680,7 @@
                     }
                     setColor(c) { this.color = c; }
                     set(r, instant = false) {
-                        this.ratio = Phaser.Math.Clamp(r, 0, 1);
+                        this.ratio = Phaser.Math.Clamp(safeNum(r, 0), 0, 1);
                         if (instant) this.shown = this.ratio;
                     }
                     get gfx() { return this.g; }
@@ -678,6 +704,7 @@
                 }
 
                 function toast(scene, msg, color = C.gold) {
+                    if (!scene || !scene.cameras || !scene.cameras.main) return;
                     const cam = scene.cameras.main, cx = cam.width / 2, y = cam.height * 0.30;
                     const cont = scene.add.container(cx, y).setDepth(9000);
                     const txt = scene.add.text(0, 0, msg || ' ', t(24, TXT.light)).setOrigin(0.5);
@@ -696,7 +723,7 @@
                     container.setMask(shape.createGeometryMask());
                     const top = container.y, min = top - Math.max(0, contentH - vh);
                     let dragging = false, last = 0, vel = 0;
-                    const blocked = () => scene.data.get('modal') === true;
+                    const blocked = () => scene.data && scene.data.get('modal') === true;
                     const inside = (p) => p.x >= vx && p.x <= vx + vw && p.y >= vy && p.y <= vy + vh;
                     scene.input.on('pointerdown', (p) => {
                         if (blocked() || !inside(p)) return;
@@ -727,9 +754,9 @@
                     for (let i = 0; i < MINERS.length; i++) if (S.unlocked[i]) d += minerDps(i, S.minerLevel[i]);
                     return d * (boostActive() ? 2 : 1);
                 }
-                function goldMult() { return 1 + S.goldLv * 0.14; }
-                function critChance() { return Math.min(0.6, 0.04 + S.luckLv * 0.022); }
-                function luckyChance() { return Math.min(0.4, 0.05 + S.luckLv * 0.018); }
+                function goldMult() { return 1 + safeNum(S.goldLv, 0) * 0.14; }
+                function critChance() { return Math.min(0.6, 0.04 + safeNum(S.luckLv, 0) * 0.022); }
+                function luckyChance() { return Math.min(0.4, 0.05 + safeNum(S.luckLv, 0) * 0.018); }
                 function boostActive() { return Date.now() < S.boostUntil; }
 
                 class Game extends Phaser.Scene {
@@ -762,7 +789,7 @@
                         const shade = this.add.graphics().setDepth(-99);
                         shade.fillStyle(0x060a14, 0.45); shade.fillRect(0, 0, DW, DH);
                         for (let i = 0; i < 3; i++) {
-                            const s = this.add.image(140 + i * 220, 150, 'glow').setDisplaySize(220, 520).setTint(0xffd98a).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD).setDepth(-98);
+                            const s = this.add.image(140 + i * 220, 150, 'glow').setDisplaySize(220, 520).setTint(0xffd98a).setAlpha(0.06).setDepth(-98);
                             this.tweens.add({ targets: s, alpha: 0.12, duration: 2600 + i * 700, yoyo: true, repeat: -1 });
                         }
                         const floorTop = 806; const fg = this.add.graphics().setDepth(-90);
@@ -772,7 +799,7 @@
                     }
                     buildRock() {
                         this.rockShadow = this.add.ellipse(DW / 2, this.ROCK_Y + 178, 300, 46, 0x000000, 0.4).setDepth(4);
-                        this.rockGlow = this.add.image(DW / 2, this.ROCK_Y, 'glow').setDisplaySize(620, 620).setAlpha(0.24).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
+                        this.rockGlow = this.add.image(DW / 2, this.ROCK_Y, 'glow').setDisplaySize(620, 620).setAlpha(0.24).setDepth(3);
                         this.rockPivot = this.add.container(DW / 2, this.ROCK_Y).setDepth(6);
                         this.rock = this.add.image(0, 0, 'rock_stone');
                         this.rock.setInteractive({ useHandCursor: true });
@@ -802,7 +829,7 @@
                         this.rockShadow.setSize(target * 0.85, 46); this.rockShadow.width = target * 0.85;
                         if (S.lucky) {
                             if (!this.luckyAura) {
-                                this.luckyAura = this.add.image(DW / 2, this.ROCK_Y, 'glow').setDisplaySize(560, 560).setTint(0xffe066).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD).setDepth(5);
+                                this.luckyAura = this.add.image(DW / 2, this.ROCK_Y, 'glow').setDisplaySize(560, 560).setTint(0xffe066).setAlpha(0).setDepth(5);
                                 this.tweens.add({ targets: this.luckyAura, alpha: 0.42, duration: 700, yoyo: true, repeat: -1 });
                             }
                             this.luckyAura.setVisible(true);
@@ -811,15 +838,18 @@
                         this.bossBanner.setVisible(boss); this.bossBar.gfx.setVisible(boss);
                         if (boss) this.rock.setTint(0xffb0b0); else this.rock.clearTint();
                         this.hpBar.setColor(boss ? C.red : tier.color);
+                        
+                        S.maxHp = rockMaxHp(S.level);
+                        S.hp = safeNum(S.hp, S.maxHp);
                         this.hpBar.set(S.hp / S.maxHp, instant);
-                        this.tierTxt.setText(tier.name + (S.lucky ? '  \u2726 LUCKY' : '')).setColor(S.lucky ? '#ffe066' : tier.css);
-                        this.levelTxt.setText('LEVEL ' + S.level);
-                        this.zoneTxt.setText(zoneName(S.level));
+                        safeSetText(this.tierTxt, tier.name + (S.lucky ? '  \u2726 LUCKY' : ''), S.lucky ? '#ffe066' : tier.css);
+                        safeSetText(this.levelTxt, 'LEVEL ' + S.level);
+                        safeSetText(this.zoneTxt, zoneName(S.level));
                         this.drawCracks();
                     }
                     drawCracks() {
                         this.cracks.clear();
-                        const dmg = 1 - S.hp / S.maxHp;
+                        const dmg = 1 - (S.hp / S.maxHp);
                         if (dmg < 0.14) return;
                         const n = Math.floor(dmg * 7); const r = (this.rock.displayWidth / 2) * 0.72;
                         const cx = this.rock.x, cy = 0;
@@ -872,14 +902,14 @@
                             sp.setVisible(true);
                             if (hired) {
                                 sp.clearTint().setAlpha(1); lock.setVisible(false);
-                                lv.setText('Lv ' + S.minerLevel[i]).setColor(TXT.gold);
+                                safeSetText(lv, 'Lv ' + S.minerLevel[i], TXT.gold);
                             } else if (unlocked) {
                                 sp.setTint(0x50607f).setAlpha(0.7); lock.setVisible(false);
-                                lv.setText('HIRE').setColor('#7bf0ae');
+                                safeSetText(lv, 'HIRE', '#7bf0ae');
                             } else {
                                 sp.setTint(0x0a0f1a).setAlpha(0.85); lock.setVisible(true);
-                                lock.getData('txt').setText(`${S.adProgress[i]}/${MINERS[i].adsRequired} AD`);
-                                lv.setText('LOCKED').setColor('#6d7c99');
+                                safeSetText(lock.getData('txt'), `${S.adProgress[i]}/${MINERS[i].adsRequired} AD`);
+                                safeSetText(lv, 'LOCKED', '#6d7c99');
                             }
                         }
                     }
@@ -964,7 +994,7 @@
                     buildFx() {
                         this.dust = this.add.particles(0, 0, 'particle', {
                             speed: { min: 60, max: 260 }, angle: { min: 0, max: 360 }, scale: { start: 0.14, end: 0 },
-                            alpha: { start: 0.9, end: 0 }, lifespan: { min: 260, max: 620 }, quantity: 4, blendMode: 'ADD', emitting: false,
+                            alpha: { start: 0.9, end: 0 }, lifespan: { min: 260, max: 620 }, quantity: 4, emitting: false,
                         }).setDepth(15);
                         this.shards = this.add.particles(0, 0, 'debris', {
                             speed: { min: 140, max: 520 }, angle: { min: 200, max: 340 }, gravityY: 900, scale: { start: 0.16, end: 0.05 },
@@ -972,7 +1002,7 @@
                         }).setDepth(16);
                         this.sparkle = this.add.particles(0, 0, 'spark', {
                             speed: { min: 80, max: 340 }, angle: { min: 0, max: 360 }, scale: { start: 1.5, end: 0 },
-                            alpha: { start: 1, end: 0 }, lifespan: { min: 380, max: 800 }, quantity: 8, blendMode: 'ADD', tint: [0xffe066, 0xfff5c2, 0xffb02a], emitting: false,
+                            alpha: { start: 1, end: 0 }, lifespan: { min: 380, max: 800 }, quantity: 8, tint: [0xffe066, 0xfff5c2, 0xffb02a], emitting: false,
                         }).setDepth(17);
                     }
                     onTap(x, y) {
@@ -1054,18 +1084,17 @@
                         this.tweens.add({ targets: cont, y: y - 60, alpha: 0, delay: 900, duration: 400, ease: 'Quad.easeIn', onComplete: () => cont.destroy() });
                     }
                     
-                    // Strictly 1-Hour Cap Offline Mining System (Low Earnings)
                     offlineEarnings() {
-                        const away = (Date.now() - S.lastSeen) / 1000;
-                        if (away < 60) return; // Must be offline for at least 1 min
+                        const away = (Date.now() - safeNum(S.lastSeen, Date.now())) / 1000;
+                        if (away < 60) return;
                         
-                        const capHourSec = (adminConfig().offlineHourCap || 1) * 3600; // Strict 1 Hour Cap
+                        const capHourSec = (adminConfig().offlineHourCap || 1) * 3600;
                         const capped = Math.min(away, capHourSec);
                         
                         const dps = totalDps() / (boostActive() ? 2 : 1);
                         if (dps <= 0) return;
 
-                        const mult = adminConfig().offlineEarningsMult || 0.05; // Very low offline rate
+                        const mult = adminConfig().offlineEarningsMult || 0.05;
                         const coins = Math.max(1, Math.floor(dps * capped * 0.08 * mult));
                         const cash = Math.max(0.1, (dps * capped * 0.02 * mult));
 
@@ -1123,23 +1152,48 @@
                     }
                     openPanel(key, data) {
                         if (this.panelOpen) return;
-                        this.panelOpen = true; this.input.enabled = false;
-                        this.scene.launch(key, data ?? {}); this.scene.bringToTop(key);
+                        this.panelOpen = true; 
+                        this.input.enabled = false;
+                        try {
+                            this.scene.launch(key, data ?? {}); 
+                            this.scene.bringToTop(key);
+                        } catch (err) {
+                            console.error("Error launching panel:", err);
+                            this.panelOpen = false;
+                            this.input.enabled = true;
+                        }
                     }
                     onPanelClosed() {
-                        this.panelOpen = false; this.input.enabled = true;
-                        this.refreshMiners(); this.refreshHud(); this.refreshRock();
+                        this.panelOpen = false; 
+                        this.input.enabled = true;
+                        this.refreshMiners(); 
+                        this.refreshHud(); 
+                        this.refreshRock();
                     }
                     refreshHud() {
-                        this.gemTxt.setText(fmt(S.gems));
-                        this.cashTxt.setText(goldFull(S.cash));
+                        safeSetText(this.gemTxt, fmt(S.gems));
+                        safeSetText(this.cashTxt, goldFull(S.cash));
                         this.cashBtn?.setSub(S.cash >= adminConfig().minWithdraw ? `${goldFull(S.cash)} \u00b7 ready` : `${goldFull(S.cash)} available`);
                     }
                     update(_time, delta) {
                         const dt = delta / 1000;
                         
+                        // Safety Check: If Panel is not active but input remains locked, recover input!
+                        if (this.panelOpen && !this.scene.isActive('MinersPanel') && !this.scene.isActive('UpgradePanel') && !this.scene.isActive('RewardsPanel') && !this.scene.isActive('CashPanel') && !this.scene.isActive('SettingsPanel') && !this.scene.isActive('AdScene')) {
+                            this.panelOpen = false;
+                            this.input.enabled = true;
+                        }
+
+                        // HP Safety Sanity Check
+                        S.maxHp = rockMaxHp(S.level);
+                        S.hp = safeNum(S.hp, S.maxHp);
+                        if (!isFinite(S.hp) || S.hp <= 0) {
+                            if (S.hp <= 0) this.breakRock();
+                            else S.hp = S.maxHp;
+                        }
+                        
                         const HOURS_26_MS = 26 * 60 * 60 * 1000;
-                        if (!this.isResetting && Date.now() - S.runStartTime >= HOURS_26_MS) {
+                        if (!this.isResetting && Date.now() - safeNum(S.runStartTime, Date.now()) >= HOURS_26_MS) {
                             this.isResetting = true;
                             this.showResetPopup();
                             return;
@@ -1163,11 +1217,11 @@
                             this.displayCoins += diff * Math.min(1, dt * 8);
                             if (Math.abs(S.coins - this.displayCoins) < 1) this.displayCoins = S.coins;
                         }
-                        this.coinTxt.setText(fmt(this.displayCoins));
+                        safeSetText(this.coinTxt, fmt(this.displayCoins));
                         this.hpBar.tick(delta);
-                        this.hpTxt.setText(fmt(Math.max(0, S.hp)) + ' / ' + fmt(S.maxHp));
+                        safeSetText(this.hpTxt, fmt(Math.max(0, S.hp)) + ' / ' + fmt(S.maxHp));
                         const dps = totalDps();
-                        this.dpsTxt.setText(`\u26a1 ${fmt(dps)} DPS    MINERS MINE ONLY` + (boostActive() ? '    \u00d72 BOOST' : ''));
+                        safeSetText(this.dpsTxt, `\u26a1 ${fmt(dps)} DPS    MINERS MINE ONLY` + (boostActive() ? '    \u00d72 BOOST' : ''));
 
                         if (!this.panelOpen) {
                             for (let i = 0; i < MINERS.length; i++) {
@@ -1185,7 +1239,7 @@
                             S.bossTime -= dt;
                             const r = Phaser.Math.Clamp(S.bossTime / getBossTime(), 0, 1);
                             this.bossBar.set(r, true); this.bossBar.tick(delta);
-                            this.bossTimerTxt.setText(clock(S.bossTime)).setColor(S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff');
+                            safeSetText(this.bossTimerTxt, clock(S.bossTime), S.bossTime < 8 ? '#ff5a5a' : '#eaf1ff');
                             if (S.bossTime <= 0) this.bossFail();
                         }
 
@@ -1196,7 +1250,8 @@
                             }
                         }
                         if (this.combo > 3) {
-                            this.comboTxt.setVisible(true).setText('x' + this.combo);
+                            this.comboTxt.setVisible(true);
+                            safeSetText(this.comboTxt, 'x' + this.combo);
                             const r = Phaser.Math.Clamp(this.comboTimer / 1500, 0, 1);
                             this.comboRing.clear();
                             this.comboRing.lineStyle(6, 0x3a2a08, 0.8); this.comboRing.strokeCircle(628, 480, 42);
@@ -1207,7 +1262,8 @@
 
                         if (boostActive()) {
                             this.boostBg.setVisible(true);
-                            this.boostTxt.setVisible(true).setText('\u26a1x2  ' + clock((S.boostUntil - Date.now()) / 1000));
+                            this.boostTxt.setVisible(true);
+                            safeSetText(this.boostTxt, '\u26a1x2  ' + clock((S.boostUntil - Date.now()) / 1000));
                         } else {
                             this.boostBg.setVisible(false); this.boostTxt.setVisible(false);
                         }
@@ -1224,7 +1280,7 @@
                         if (dmg <= 0) return;
 
                         const tier = tierFor(S.level);
-                        const p = this.add.image(sp.x, sp.y - 30, 'spark').setDisplaySize(20, 20).setTint(MINERS[i].tint).setBlendMode(Phaser.BlendModes.ADD).setDepth(18);
+                        const p = this.add.image(sp.x, sp.y - 30, 'spark').setDisplaySize(20, 20).setTint(MINERS[i].tint).setDepth(18);
                         this.tweens.add({
                             targets: p, x: DW / 2 + Phaser.Math.Between(-90, 90), y: this.ROCK_Y + Phaser.Math.Between(-40, 90),
                             scaleX: 0.4, scaleY: 0.4, alpha: 0.2, duration: 200, ease: 'Quad.easeIn',
@@ -1328,10 +1384,10 @@
                         this.head.add(this.cashTxtHud);
                     }
                     refreshWallet() {
-                        this.coinTxt?.setText(fmt(S.coins));
-                        this.gemTxt?.setText(fmt(S.gems));
-                        this.cashTxtHud?.setText(goldFull(S.cash));
-                        if (this.coinTxt) {
+                        safeSetText(this.coinTxt, fmt(S.coins));
+                        safeSetText(this.gemTxt, fmt(S.gems));
+                        safeSetText(this.cashTxtHud, goldFull(S.cash));
+                        if (this.coinTxt && this.coinTxt.frame) {
                             this.tweens.add({ targets: this.coinTxt, scaleX: 1.18, scaleY: 1.18, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
                         }
                     }
@@ -1389,11 +1445,16 @@
                     close() {
                         if (this.closing) return;
                         this.closing = true; save(); this.input.enabled = false;
-                        this.tweens.add({ targets: this.shade, fillAlpha: 0, duration: 220 });
-                        this.tweens.add({
-                            targets: [this.sheet, this.head], y: DH, duration: 260, ease: 'Cubic.easeIn',
-                            onComplete: () => { this.game.events.emit('panel-closed'); this.scene.stop(); },
-                        });
+                        try {
+                            this.tweens.add({ targets: this.shade, fillAlpha: 0, duration: 220 });
+                            this.tweens.add({
+                                targets: [this.sheet, this.head], y: DH, duration: 260, ease: 'Cubic.easeIn',
+                                onComplete: () => { this.game.events.emit('panel-closed'); this.scene.stop(); },
+                            });
+                        } catch(e) {
+                            this.game.events.emit('panel-closed'); 
+                            this.scene.stop();
+                        }
                     }
                 }
 
@@ -1416,6 +1477,9 @@
 
                         this.load.on('progress', (v) => { this.pct = v; });
                         this.load.on('complete', () => { this.filesDone = true; });
+                        this.load.on('loaderror', (file) => {
+                            console.warn("Load error on file:", file.key);
+                        });
 
                         const IMAGES = ['bg_mine', 'coin', 'gem', 'cash', 'gold', 'particle', 'debris', 'tools']
                             .concat(TIERS.map((tr) => tr.key))
@@ -1431,7 +1495,7 @@
                                     custom: { families: ['Russo One', 'Bangers'] },
                                     active: () => { this.fontsDone = true; },
                                     inactive: () => { this.fontsDone = true; },
-                                    timeout: 2000,
+                                    timeout: 1500,
                                 });
                             } catch (e) {
                                 this.fontsDone = true;
@@ -1439,6 +1503,9 @@
                         } else {
                             this.fontsDone = true;
                         }
+
+                        // Safety Timeout for Font Loader
+                        this.time.delayedCall(1600, () => { this.fontsDone = true; });
                     }
                     create() {
                         this.makeTextures();
@@ -1466,50 +1533,71 @@
                         }
                     }
                     
-                    // Creates Procedural Textures to prevent `Cannot read properties of null (reading 'cut')`
+                    // Generate Textures using make.graphics() to guarantee valid textures across Canvas/WebGL engines
                     makeTextures() {
-                        const createTex = (key, w, h, draw) => {
+                        const makeTex = (key, width, height, drawFn) => {
                             if (!this.textures.exists(key)) {
-                                const cv = this.textures.createCanvas(key, w, h);
-                                if (cv) {
-                                    const ctx = cv.getContext('2d');
-                                    if (ctx) draw(ctx, w, h);
-                                    cv.refresh();
-                                }
+                                try {
+                                    const g = this.make.graphics({ x: 0, y: 0, add: false });
+                                    drawFn(g, width, height);
+                                    g.generateTexture(key, width, height);
+                                    g.destroy();
+                                } catch(e) { console.warn("Failed generating texture:", key, e); }
                             }
                         };
 
-                        createTex('glow', 128, 128, (ctx, w, h) => {
-                            const grd = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/2);
-                            grd.addColorStop(0, 'rgba(255,255,255,1)');
-                            grd.addColorStop(0.35, 'rgba(255,255,255,0.55)');
-                            grd.addColorStop(1, 'rgba(255,255,255,0)');
-                            ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
+                        makeTex('glow', 128, 128, (g, w, h) => {
+                            for (let r = w / 2; r > 0; r -= 4) {
+                                const alpha = (1 - (r / (w / 2))) * 0.8;
+                                g.fillStyle(0xffffff, alpha);
+                                g.fillCircle(w / 2, h / 2, r);
+                            }
                         });
 
-                        createTex('spark', 12, 12, (ctx, w, h) => {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            ctx.moveTo(6, 0); ctx.lineTo(8, 4); ctx.lineTo(12, 6); ctx.lineTo(8, 8);
-                            ctx.lineTo(6, 12); ctx.lineTo(4, 8); ctx.lineTo(0, 6); ctx.lineTo(4, 4);
-                            ctx.closePath(); ctx.fill();
+                        makeTex('spark', 12, 12, (g) => {
+                            g.fillStyle(0xffffff, 1);
+                            g.beginPath();
+                            g.moveTo(6, 0); g.lineTo(8, 4); g.lineTo(12, 6); g.lineTo(8, 8);
+                            g.lineTo(6, 12); g.lineTo(4, 8); g.lineTo(0, 6); g.lineTo(4, 4);
+                            g.closePath(); g.fillPath();
                         });
 
-                        createTex('particle', 10, 10, (ctx, w, h) => {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath(); ctx.arc(5, 5, 5, 0, Math.PI * 2); ctx.fill();
+                        makeTex('particle', 10, 10, (g) => {
+                            g.fillStyle(0xffffff, 1);
+                            g.fillCircle(5, 5, 5);
                         });
 
-                        createTex('debris', 16, 16, (ctx, w, h) => {
-                            ctx.fillStyle = '#8f9bab';
-                            ctx.fillRect(2, 2, 12, 12);
+                        makeTex('debris', 16, 16, (g) => {
+                            g.fillStyle(0x8f9bab, 1);
+                            g.fillRect(2, 2, 12, 12);
                         });
 
-                        createTex('vgrad', 8, 256, (ctx, w, h) => {
-                            const grd = ctx.createLinearGradient(0, 0, 0, h);
-                            grd.addColorStop(0, 'rgba(0,0,0,0)');
-                            grd.addColorStop(1, 'rgba(0,0,0,1)');
-                            ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
+                        makeTex('vgrad', 8, 256, (g, w, h) => {
+                            for (let y = 0; y < h; y += 4) {
+                                const a = y / h;
+                                g.fillStyle(0x000000, a);
+                                g.fillRect(0, y, w, 4);
+                            }
+                        });
+
+                        // Safety Fallbacks for missing assets
+                        TIERS.forEach(t => {
+                            makeTex(t.key, 120, 120, (g, w, h) => {
+                                g.fillStyle(t.color, 1);
+                                g.fillCircle(w/2, h/2, w/2 - 4);
+                            });
+                        });
+                        MINERS.forEach(m => {
+                            makeTex(m.key, 80, 80, (g, w, h) => {
+                                g.fillStyle(m.tint, 1);
+                                g.fillRect(10, 10, w-20, h-20);
+                            });
+                        });
+                        ['coin', 'gem', 'cash', 'gold', 'tools', 'bg_mine'].forEach(k => {
+                            makeTex(k, 60, 60, (g, w, h) => {
+                                g.fillStyle(0xffd76a, 1);
+                                g.fillRect(5, 5, w-10, h-10);
+                            });
                         });
                     }
                 }
@@ -1765,18 +1853,18 @@
                             rr(g, 18, y, 8, ROW_H, 4, m.tint, un ? 0.95 : 0.3);
 
                             portrait.setAlpha(un ? 1 : 0.32); portrait.setTint(un ? 0xffffff : 0x2a3550);
-                            nameTxt.setText(m.name).setColor(un ? TXT.light : '#66759a');
-                            titleTxt.setText(m.title);
-                            lvTxt.setText(un ? 'Lv ' + lv : 'LOCKED').setColor(un ? '#9fb4d8' : '#ff9a6a');
+                            safeSetText(nameTxt, m.name, un ? TXT.light : '#66759a');
+                            safeSetText(titleTxt, m.title);
+                            safeSetText(lvTxt, un ? 'Lv ' + lv : 'LOCKED', un ? '#9fb4d8' : '#ff9a6a');
 
                             if (un) {
-                                dpsTxt.setText('\u26a1 ' + fmt(minerDps(i, lv)) + ' DPS   \u2192 ' + fmt(minerDps(i, lv + 1)));
-                                progTxt.setText(' '); progG.clear();
+                                safeSetText(dpsTxt, '\u26a1 ' + fmt(minerDps(i, lv)) + ' DPS   \u2192 ' + fmt(minerDps(i, lv + 1)));
+                                safeSetText(progTxt, ' '); progG.clear();
                                 mainBtn.setVisible(true).setLabel('UPGRADE').setSub(fmt(cost) + ' coins').setColorTheme(C.green).setEnabled(S.coins >= cost);
                                 gemBtn.setVisible(false);
                             } else {
-                                dpsTxt.setText('\u26a1 ' + fmt(m.baseDps) + ' DPS at Lv 1');
-                                progTxt.setText(`\ud83d\udcfa  Ads watched  ${got} / ${need}`);
+                                safeSetText(dpsTxt, '\u26a1 ' + fmt(m.baseDps) + ' DPS at Lv 1');
+                                safeSetText(progTxt, `\ud83d\udcfa  Ads watched  ${got} / ${need}`);
                                 progG.clear();
                                 for (let k = 0; k < need; k++) {
                                     rr(progG, 178 + k * 22, y + 146, 18, 10, 4, k < got ? C.gold : 0x2a3550, 1);
@@ -1897,7 +1985,9 @@
                             rr(g, 18, y, DW - 36, H, 24, 0x151f34, 1);
                             rrs(g, 18, y, DW - 36, H, 24, d.color, 2, 0.6);
                             rr(g, 18, y, 8, H, 4, d.color, 0.95);
-                            lv.setText('Lv ' + d.level()); cur.setText('NOW:  ' + d.effect()); nxt.setText('NEXT: ' + d.next());
+                            safeSetText(lv, 'Lv ' + d.level()); 
+                            safeSetText(cur, 'NOW:  ' + d.effect()); 
+                            safeSetText(nxt, 'NEXT: ' + d.next());
                             buy.setSub(fmt(c) + ' coins').setEnabled(S.coins >= c);
                         };
                         redraw(); this.rows.push(redraw);
@@ -1968,7 +2058,7 @@
                         
                         this.redraws.push(() => {
                             const totalRewardAds = S.rewardAdProgress.reduce((a, b) => a + b, 0);
-                            statTxt.setText(`\ud83d\udcfa REWARD ADS: ${totalRewardAds} / 16 WATCHED`);
+                            safeSetText(statTxt, `\ud83d\udcfa REWARD ADS: ${totalRewardAds} / 16 WATCHED`);
                         });
 
                         attachScroll(this, list, 0, vy, DW, vh, offers.length * (H + GAP) + 130);
@@ -2060,6 +2150,9 @@
                         super('CashPanel');
                         this.redraws = [];
                         this.activeEditModal = null;
+                        this.historyContainer = null;
+                        this.historyRows = [];
+                        this.htmlInput = null;
                     }
                     init() {
                         this.headerColor = C.green;
@@ -2092,14 +2185,25 @@
                         y = this.buildAccountBlock(y);
                         y = this.buildSummary(y);
                         y = this.buildSubmit(y);
-                        attachScroll(this, this.list, 0, vy, DW, vh, y + 40);
+                        y = this.buildHistory(y);
+                        
+                        attachScroll(this, this.list, 0, vy, DW, vh, y + 60);
                         this.refreshAll();
 
                         this.timeEvent = this.time.addEvent({
                             delay: 500, loop: true,
                             callback: () => this.refreshAll()
                         });
-                        this.events.once('shutdown', () => { if (this.timeEvent) this.timeEvent.remove(); });
+                        this.events.once('shutdown', () => { 
+                            if (this.timeEvent) this.timeEvent.remove(); 
+                            this.cleanupDOMInput();
+                        });
+                    }
+                    cleanupDOMInput() {
+                        if (this.htmlInput && this.htmlInput.parentNode) {
+                            this.htmlInput.parentNode.removeChild(this.htmlInput);
+                            this.htmlInput = null;
+                        }
                     }
                     buildBalanceCard(y) {
                         const H = 160;
@@ -2122,7 +2226,7 @@
                         this.list.add(this.progTxt);
                         
                         const redraw = () => {
-                            this.balTxt.setText(comma(S.cash) + ' GOLD');
+                            safeSetText(this.balTxt, comma(S.cash) + ' GOLD');
                             this.progBg.clear();
                             rr(this.progBg, 40, y + 104, DW - 80, 10, 5, 0x000000, 0.4);
                             this.progFg.clear();
@@ -2132,11 +2236,11 @@
                             }
                             
                             if (!isPayoutAvailable(this.method.id)) {
-                                this.progTxt.setText(`${this.method.name} withdrawal is currently NOT AVAILABLE`);
+                                safeSetText(this.progTxt, `${this.method.name} withdrawal is currently NOT AVAILABLE`);
                             } else if (S.cash >= this.amount) {
-                                this.progTxt.setText(`Ready to withdraw ${comma(this.amount)} GOLD minimum`);
+                                safeSetText(this.progTxt, `Ready to withdraw ${comma(this.amount)} GOLD minimum`);
                             } else {
-                                this.progTxt.setText(`${comma(this.amount - S.cash)} GOLD more to reach the ${comma(this.amount)} GOLD minimum`);
+                                safeSetText(this.progTxt, `${comma(this.amount - S.cash)} GOLD more to reach the ${comma(this.amount)} GOLD minimum`);
                             }
                         };
                         this.redraws.push(redraw);
@@ -2259,15 +2363,15 @@
                                 if (!avail) {
                                     rrs(g, x, top, w, H, 16, 0xff4d4d, 2, sel ? 1 : 0.4);
                                     rr(g, x + w/2 - 24, top + 22, 48, 26, 8, 0x4a1820, 1);
-                                    name.setText('LOCKED').setColor('#ff8b8b');
+                                    safeSetText(name, 'LOCKED', '#ff8b8b');
                                 } else if (sel) {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 1);
                                     rrs(g, x, top, w, H, 16, C.green, 2, 1);
-                                    name.setText(p.name).setColor(TXT.dim);
+                                    safeSetText(name, p.name, TXT.dim);
                                 } else {
                                     rr(g, x + w/2 - 24, top + 18, 48, 30, 8, p.color, 0.4);
                                     rrs(g, x, top, w, H, 16, C.stroke, 2, 0.5);
-                                    name.setText(p.name).setColor(TXT.dim);
+                                    safeSetText(name, p.name, TXT.dim);
                                 }
                             };
                             this.redraws.push(redraw);
@@ -2320,7 +2424,7 @@
                                 rr(g, x, top, w, H, 14, sel ? 0x0d281e : 0x0c121e, 1);
                                 rrs(g, x, top, w, H, 14, sel ? C.green : (locked ? 0x232e46 : C.stroke), 2, 1);
                                 
-                                amtTxt.setText(comma(a) + ' GOLD').setColor(sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff'));
+                                safeSetText(amtTxt, comma(a) + ' GOLD', sel ? '#7bf0ae' : (locked ? '#66759a' : '#ffffff'));
                                 lockTxt.setVisible(locked);
                             };
                             this.redraws.push(redraw);
@@ -2368,9 +2472,8 @@
                         this.list.add(btn);
                         
                         const redraw = () => {
-                            hint.setText(this.method.hint);
-                            val.setText(S.account[this.method.id] || this.method.placeholder);
-                            val.setColor(S.account[this.method.id] ? '#ffffff' : '#66759a');
+                            safeSetText(hint, this.method.hint);
+                            safeSetText(val, S.account[this.method.id] || this.method.placeholder, S.account[this.method.id] ? '#ffffff' : '#66759a');
                         };
                         this.redraws.push(redraw);
                         return y + H + 16;
@@ -2399,8 +2502,8 @@
                         this.list.add(rec);
                         
                         const redraw = () => {
-                            eta.setText(this.method.eta);
-                            rec.setText(comma(this.amount) + ' GOLD');
+                            safeSetText(eta, this.method.eta);
+                            safeSetText(rec, comma(this.amount) + ' GOLD');
                         };
                         this.redraws.push(redraw);
                         return y + H + 24;
@@ -2413,12 +2516,46 @@
                                     toast(this, `${this.method.name} withdrawal is NOT AVAILABLE!`, C.red);
                                     return;
                                 }
+                                if (!S.account[this.method.id]) {
+                                    toast(this, `Please enter your ${this.method.name} details!`, C.gold);
+                                    this.showEditDetailsModal(this.method);
+                                    return;
+                                }
                                 if (S.cash < this.amount) {
                                     toast(this, 'Insufficient GOLD balance!', C.red);
                                     return;
                                 }
+
+                                // Process Withdrawal
+                                S.cash -= this.amount;
+                                const record = {
+                                    id: 'WD-' + Date.now().toString(36).toUpperCase(),
+                                    amount: this.amount,
+                                    method: this.method.id,
+                                    methodName: this.method.name,
+                                    account: S.account[this.method.id],
+                                    status: 'Pending',
+                                    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                    timestamp: Date.now()
+                                };
+
+                                if (!Array.isArray(S.withdrawals)) S.withdrawals = [];
+                                S.withdrawals.unshift(record);
+                                save();
+
+                                // Save to Firebase Cloud Firestore
+                                if (db && currentUser) {
+                                    db.collection('withdrawals').add({
+                                        ...record,
+                                        uid: currentUser.uid,
+                                        userUid: S.uid,
+                                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                    }).catch(err => console.error("Firestore Withdrawal Request Error:", err));
+                                }
+
                                 sfx('confirm');
                                 toast(this, 'Withdrawal Request Submitted!', C.green);
+                                this.refreshAll();
                             },
                         });
                         this.list.add(this.submitBtn);
@@ -2435,6 +2572,75 @@
                         };
                         this.redraws.push(redraw);
                         return y + 100;
+                    }
+
+                    buildHistory(y) {
+                        this.historyContainer = this.add.container(0, y);
+                        this.list.add(this.historyContainer);
+
+                        // Persistent Title & Empty Box
+                        const title = this.add.text(30, 16, 'WITHDRAWAL HISTORY', t(18, TXT.gold)).setOrigin(0, 0.5);
+                        this.historyContainer.add(title);
+
+                        const emptyBox = this.add.graphics();
+                        rr(emptyBox, 18, 36, DW - 36, 70, 16, 0x0c121e, 1);
+                        rrs(emptyBox, 18, 36, DW - 36, 70, 16, C.stroke, 2, 0.4);
+                        const emptyTxt = this.add.text(DW / 2, 71, 'No withdrawal records yet', t(16, TXT.dim)).setOrigin(0.5);
+                        this.historyContainer.add([emptyBox, emptyTxt]);
+
+                        // Pre-create 15 Persistent History Rows to eliminate text destruction crashes
+                        this.historyRows = [];
+                        let rowY = 36;
+                        for (let i = 0; i < 15; i++) {
+                            const rowCont = this.add.container(0, rowY).setVisible(false);
+                            const hg = this.add.graphics();
+                            rr(hg, 18, 0, DW - 36, 84, 16, 0x0e1726, 1);
+                            rrs(hg, 18, 0, DW - 36, 84, 16, C.stroke, 2, 0.6);
+                            rowCont.add(hg);
+
+                            const mName = this.add.text(36, 24, ' ', t(16, TXT.light)).setOrigin(0, 0.5);
+                            const dateTxt = this.add.text(36, 58, ' ', t(13, TXT.dim)).setOrigin(0, 0.5);
+                            const amtTxt = this.add.text(DW - 36, 24, ' ', t(18, '#7bf0ae')).setOrigin(1, 0.5);
+                            const statusTxt = this.add.text(DW - 36, 58, ' ', t(14, '#ffd76a')).setOrigin(1, 0.5);
+
+                            rowCont.add([mName, dateTxt, amtTxt, statusTxt]);
+                            this.historyContainer.add(rowCont);
+                            this.historyRows.push({ container: rowCont, mName, dateTxt, amtTxt, statusTxt });
+                            rowY += 96;
+                        }
+
+                        const redraw = () => {
+                            const list = S.withdrawals || [];
+                            if (list.length === 0) {
+                                emptyBox.setVisible(true);
+                                emptyTxt.setVisible(true);
+                                this.historyRows.forEach(r => r.container.setVisible(false));
+                            } else {
+                                emptyBox.setVisible(false);
+                                emptyTxt.setVisible(false);
+                                this.historyRows.forEach((row, idx) => {
+                                    if (idx < list.length) {
+                                        const wd = list[idx];
+                                        row.container.setVisible(true);
+                                        safeSetText(row.mName, `${wd.methodName || wd.method.toUpperCase()} \u2022 ${wd.account || ''}`);
+                                        safeSetText(row.dateTxt, wd.date || 'Recent');
+                                        safeSetText(row.amtTxt, `${comma(wd.amount)} GOLD`);
+
+                                        let statusCol = '#ffd76a';
+                                        if (wd.status === 'Completed' || wd.status === 'Approved') statusCol = '#7bf0ae';
+                                        else if (wd.status === 'Rejected') statusCol = '#ff7b7b';
+
+                                        safeSetText(row.statusTxt, `\u25cf ${wd.status || 'Pending'}`, statusCol);
+                                    } else {
+                                        row.container.setVisible(false);
+                                    }
+                                });
+                            }
+                        };
+
+                        this.redraws.push(redraw);
+                        redraw();
+                        return y + Math.max(120, listCount(S.withdrawals) * 96 + 50);
                     }
 
                     showEditDetailsModal(method) {
@@ -2478,8 +2684,7 @@
                         panel.add(valTxt);
 
                         const updateInputDisplay = () => {
-                            valTxt.setText(currentVal || method.placeholder);
-                            valTxt.setColor(currentVal ? '#60a5fa' : '#4b5563');
+                            safeSetText(valTxt, currentVal || method.placeholder, currentVal ? '#60a5fa' : '#4b5563');
 
                             inputBg.clear();
                             rr(inputBg, -mw / 2 + 30, -mh / 2 + 120, mw - 60, 60, 14, 0x080e1a, 1);
@@ -2496,7 +2701,9 @@
                         const inputX = Math.round(canvasBounds.left + (DW / 2 - (mw - 80) / 2) * scaleX);
                         const inputY = Math.round(canvasBounds.top + (my - mh / 2 + 120) * scaleY);
 
+                        this.cleanupDOMInput();
                         const htmlInput = document.createElement('input');
+                        this.htmlInput = htmlInput;
                         htmlInput.type = method.keypadType === 'numeric' ? 'tel' : 'text';
                         htmlInput.value = currentVal;
                         htmlInput.placeholder = method.placeholder;
@@ -2605,9 +2812,7 @@
                         }
 
                         const closeModal = () => {
-                            if (htmlInput && htmlInput.parentNode) {
-                                htmlInput.parentNode.removeChild(htmlInput);
-                            }
+                            this.cleanupDOMInput();
                             this.data.set('modal', false);
                             this.activeEditModal = null;
                             layer.destroy();
@@ -2641,6 +2846,10 @@
                     refreshAll() {
                         this.redraws.forEach((r) => r());
                     }
+                }
+
+                function listCount(arr) {
+                    return Array.isArray(arr) ? arr.length : 0;
                 }
 
                 class SettingsPanel extends Panel {
@@ -2788,8 +2997,8 @@
                                         save();
                                         sfx('coin', 1.3);
 
-                                        invitedTxt.setText(`INVITED FRIENDS: ${S.referralCount}`);
-                                        earnedTxt.setText(`TOTAL REWARD: ${comma(S.referralGoldEarned)} GOLD · ${fmt(S.referralCoinsEarned)} COINS · ${comma(S.referralGemsEarned)} GEMS`);
+                                        safeSetText(invitedTxt, `INVITED FRIENDS: ${S.referralCount}`);
+                                        safeSetText(earnedTxt, `TOTAL REWARD: ${comma(S.referralGoldEarned)} GOLD · ${fmt(S.referralCoinsEarned)} COINS · ${comma(S.referralGemsEarned)} GEMS`);
                                         toast(this, `Claimed for ${count} friend(s): +${comma(addGold)} GOLD, +${fmt(addCoins)} COINS, +${comma(addGems)} GEMS!`, C.green);
                                     }).catch(err => {
                                         toast(this, 'Sync complete.', C.gold);
@@ -2809,13 +3018,14 @@
                 setMuted(S.muted);
                 applyAdminConfig(adminConfig());
 
+                // Using Phaser.CANVAS renderer to completely eliminate WebGL context loss & glTexture null crash
                 const game = new Phaser.Game({
-                    type: Phaser.AUTO,
+                    type: Phaser.CANVAS,
                     parent: 'game',
                     backgroundColor: '#05070d',
                     width: DW, height: DH,
                     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-                    render: { antialias: true, powerPreference: 'high-performance' },
+                    render: { antialias: true, roundPixels: true },
                     scene: [Boot, Title, Game, AdScene, MinersPanel, UpgradePanel, RewardsPanel, CashPanel, SettingsPanel],
                 });
 
