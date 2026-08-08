@@ -1138,14 +1138,32 @@
                         const b = new Btn(this, DW / 2, DH / 2 + 100, {
                             w: 400, h: 80, label: 'START NEW RUN', color: C.blue, shadow: C.blueDk, fontSize: 30, radius: 22,
                             onClick: () => {
-                                S.level = 1; S.hp = rockMaxHp(1); S.maxHp = S.hp;
+                                // Instant In-Game Reset without page reload to prevent Cloud Sync Overwrite Loop
+                                S.level = 1; 
+                                S.hp = rockMaxHp(1); 
+                                S.maxHp = S.hp;
                                 S.tapLv = 1; S.goldLv = 0; S.luckLv = 0;
-                                S.minerLevel = [1, 0, 0, 0, 0, 0]; S.unlocked = [true, false, false, false, false, false];
+                                S.minerLevel = [1, 0, 0, 0, 0, 0]; 
+                                S.unlocked = [true, false, false, false, false, false];
                                 S.adProgress = [0, 0, 0, 0, 0, 0];
-                                S.runStartTime = Date.now(); S.boostUntil = 0;
+                                S.runStartTime = Date.now(); 
+                                S.boostUntil = 0;
                                 S.minerResetTime = Date.now();
+                                S.bossTime = 0;
+                                S.lucky = false;
+                                
                                 save();
-                                window.location.reload();
+
+                                if (currentUser && db) {
+                                    db.collection('users').doc(currentUser.uid).set(S, { merge: true })
+                                        .catch(err => console.error("Firestore Reset Error:", err));
+                                }
+
+                                this.isResetting = false;
+                                this.refreshRock(true);
+                                this.refreshMiners();
+                                this.refreshHud();
+                                layer.destroy();
                             },
                         });
                         layer.add(b);
