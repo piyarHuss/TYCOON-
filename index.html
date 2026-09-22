@@ -2106,63 +2106,8 @@ body {
 
     <!-- 3. TASKS & ADS PAGE -->
     <section id="tasks-tab" class="tab-page">
-      <div class="hk-tasks-screen">
-        <div class="hk-featured-video-card" onclick="openFeaturedVideoTask()">
-          <div class="hk-card-left">
-            <div class="hk-icon-circle youtube-icon">
-                <img src="youtube.png" alt="YT" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
-                <i class="fa-brands fa-youtube" style="display:none;"></i>
-            </div>
-            <div class="hk-card-text">
-              <span class="hk-card-title">Crypto scandal inside Binance</span>
-              <div class="hk-reward-row"><span style="font-size:13px">🪙</span><strong>10K</strong></div>
-            </div>
-          </div>
-          <div class="hk-action-col"><div class="hk-arrow-btn" id="featVideoArrow"><i class="fa-solid fa-chevron-right"></i></div></div>
-        </div>
-
-        <div class="hk-section-title">Tasks List</div>
-        <div class="hk-task-card" id="cardTaskTg" onclick="handleTaskAction('tg')">
-          <div class="hk-card-left">
-            <div class="hk-icon-circle tg-icon">
-                <img src="telegram.png" alt="TG" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
-                <i class="fa-brands fa-telegram" style="display:none;"></i>
-            </div>
-            <div class="hk-card-text">
-              <span class="hk-card-title">Join our TG group</span>
-              <div class="hk-reward-row"><span style="font-size:13px">🪙</span><strong>5K</strong></div>
-            </div>
-          </div>
-          <div class="hk-action-col" id="actionTg"><i class="fa-solid fa-circle-check hk-check-icon"></i></div>
-        </div>
-        <div class="hk-task-card" id="cardTaskHome" onclick="handleTaskAction('home')">
-          <div class="hk-card-left">
-            <div class="hk-icon-circle app-icon">
-                <img src="app.png" alt="APP" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
-                <i class="fa-solid fa-mobile-screen-button" style="display:none;"></i>
-            </div>
-            <div class="hk-card-text">
-              <span class="hk-card-title">To Home Screen</span>
-              <div class="hk-reward-row gold-reward"><span style="font-size:13px">🎁</span><strong>10 PTS</strong></div>
-            </div>
-          </div>
-          <div class="hk-action-col" id="actionHome"><i class="fa-solid fa-circle-check hk-check-icon"></i></div>
-        </div>
-
-        <div class="hk-section-title">Ads Rewards (All-time accumulate)</div>
-        <div class="hk-task-card" onclick="openAdsMenu()">
-          <div class="hk-card-left">
-            <div class="hk-icon-circle ads-play-icon">
-                <img src="ads.png" alt="ADS" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
-                <i class="fa-solid fa-circle-play" style="display:none;"></i>
-            </div>
-            <div class="hk-card-text">
-              <span class="hk-card-title" id="ad1Title">Watch ad 0/10</span>
-              <div class="hk-reward-row gold-reward"><span style="font-size:13px">🐶</span><strong style="color:#ffffff;">+10 $DOGS</strong> • <span style="color:var(--gold);">+50 COINS</span></div>
-            </div>
-          </div>
-          <div class="hk-action-col"><div class="hk-arrow-btn"><i class="fa-solid fa-chevron-right"></i></div></div>
-        </div>
+      <div class="hk-tasks-screen" id="dynamicTasksContainer">
+        <!-- Rendered dynamically from admin tasks list -->
       </div>
     </section>
 
@@ -2214,6 +2159,9 @@ body {
             </div>
           </div>
         </div>
+
+        <!-- Game Hub Banner Ad -->
+        <div id="gameHubBannerAd" style="width:100%; display:flex; justify-content:center; align-items:center; margin-top:12px; min-height:50px;"></div>
       </div>
 
       <!-- GAME PLAYER VIEW (FULLSCREEN OVERLAY) -->
@@ -2227,6 +2175,9 @@ body {
         <div id="gameContainerFrame" style="width:100%; flex:1; background:#0d1624; border:2px solid var(--cyan-neon); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
           <!-- Loaded game code / iframe or HTML content here -->
         </div>
+
+        <!-- Game Play Banner Ad -->
+        <div id="gamePlayBannerAd" style="width:100%; display:flex; justify-content:center; align-items:center; margin-top:8px; min-height:50px;"></div>
       </div>
     </section>
 
@@ -2383,9 +2334,10 @@ body {
 
   <!-- MODALS -->
   <div class="modal-overlay hidden" id="adminUploadModal">
-    <div class="modal-dialog-box" style="text-align:left;">
-      <div class="m-title">ADMIN PANEL: UPLOAD GAME 🎮</div>
+    <div class="modal-dialog-box" style="text-align:left; max-height:90vh; overflow-y:auto;">
+      <div class="m-title">ADMIN PANEL: GAMES & TASKS 🎮📋</div>
       <div class="m-body" style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-family:var(--font-display); font-size:11px; font-weight:900; color:var(--gold);">1. UPLOAD GAME</div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Game Title:</label>
           <input type="text" id="adminGameTitle" class="airdrop-text-input" placeholder="e.g. Candy Smash" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
@@ -2396,21 +2348,47 @@ body {
         </div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Game Code / HTML / Iframe / URL:</label>
-          <textarea id="adminGameCode" placeholder="Paste HTML/JS or Iframe URL here..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:8px 10px; width:100%; height:70px; color:#fff; font-size:11px; margin-top:2px; outline:none; resize:none;"></textarea>
+          <textarea id="adminGameCode" placeholder="Paste HTML/JS or Iframe URL here..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:8px 10px; width:100%; height:55px; color:#fff; font-size:11px; margin-top:2px; outline:none; resize:none;"></textarea>
+        </div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; font-family:var(--font-display); font-size:11px; font-weight:900; color:var(--cyan-neon);">2. ADD TASK</div>
+        <div>
+          <label style="font-size:9.5px; color:#8da6c4;">Task Title:</label>
+          <input type="text" id="adminTaskTitle" class="airdrop-text-input" placeholder="e.g. Join Telegram Channel" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
         </div>
         <div style="display:flex; gap:8px;">
           <div style="flex:1;">
-            <label style="font-size:9px; color:#8da6c4;">Mining Required Ads:</label>
+            <label style="font-size:9px; color:#8da6c4;">Reward Coins:</label>
+            <input type="number" id="adminTaskReward" class="airdrop-text-input" value="5000" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:9px; color:#8da6c4;">Icon Type:</label>
+            <select id="adminTaskIcon" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px; outline:none;">
+              <option value="telegram">Telegram</option>
+              <option value="youtube">YouTube</option>
+              <option value="app">App / Web</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:9.5px; color:#8da6c4;">Task Link / URL:</label>
+          <input type="text" id="adminTaskUrl" class="airdrop-text-input" placeholder="https://t.me/..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+        </div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; font-family:var(--font-display); font-size:11px; font-weight:900; color:#ffbe0b;">3. MINING SETTINGS</div>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1;">
+            <label style="font-size:9px; color:#8da6c4;">Required Ads:</label>
             <input type="number" id="adminMiningReqAds" class="airdrop-text-input" value="10" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
           </div>
           <div style="flex:1;">
-            <label style="font-size:9px; color:#8da6c4;">Mining Coin Reward:</label>
+            <label style="font-size:9px; color:#8da6c4;">Coin Reward:</label>
             <input type="number" id="adminMiningRewCoins" class="airdrop-text-input" value="500" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
           </div>
         </div>
       </div>
-      <div class="m-btn-row" style="margin-top:6px;">
-        <button class="app-btn" onclick="saveAdminGame()">UPLOAD & SAVE</button>
+      <div class="m-btn-row" style="margin-top:8px;">
+        <button class="app-btn" onclick="saveAdminData()">SAVE & UPLOAD</button>
         <button class="app-btn btn-sec" onclick="document.getElementById('adminUploadModal').classList.add('hidden')">CANCEL</button>
       </div>
     </div>
@@ -4039,6 +4017,7 @@ window.closeModal = function() {
 
 /* App Startup */
 renderDynamicGamesGrid();
+renderDynamicTasksList();
 updateAllDisplays();
 renderInvitedFriends();
 renderLeaderboard();
@@ -4125,6 +4104,25 @@ window.finalizePeerTransfer = function(depositAddress, amount) {
 
 var CRYPTO_CRUSH_HTML_CODE = '<div style="background:#0a0e17;color:#fff;text-align:center;padding:50px 20px;font-family:sans-serif;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><h2 style="color:#00f0ff;margin-bottom:10px;">🍬 CRYPTO CRUSH</h2><p style="color:#8da6c4;font-size:13px;margin-bottom:20px;">Match crypto gems & win $DOGS rewards!</p><div style="font-size:50px;margin-bottom:20px;">💎 🍬 🚀</div><button onclick="parent.winCurrentGame(window.event)" style="background:linear-gradient(135deg,#39ff14,#00e676);border:none;padding:12px 24px;font-weight:900;border-radius:12px;cursor:pointer;color:#04240a;font-size:14px;box-shadow:0 0 15px rgba(57,255,20,0.6);">CLAIM WIN (+10 DOGS)</button></div>';
 
+function loadAdsterraBanner(containerEl) {
+  if (!containerEl) return;
+  containerEl.innerHTML = '';
+  var bannerDiv = document.createElement('div');
+  bannerDiv.style.cssText = 'width:100%; display:flex; justify-content:center; align-items:center; margin:10px 0; min-height:50px;';
+  
+  var script1 = document.createElement('script');
+  script1.type = 'text/javascript';
+  script1.text = "atOptions = { 'key' : '6e3b516e45ce9c1bea287d1b6326f411', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };";
+  
+  var script2 = document.createElement('script');
+  script2.type = 'text/javascript';
+  script2.src = 'https://www.highrevenueformat.com/6e3b516e45ce9c1bea287d1b6326f411/invoke.js';
+  
+  bannerDiv.appendChild(script1);
+  bannerDiv.appendChild(script2);
+  containerEl.appendChild(bannerDiv);
+}
+
 var adminGamesList = [];
 try {
   var savedGames = localStorage.getItem('pto_admin_games');
@@ -4141,6 +4139,12 @@ if (!adminGamesList || adminGamesList.length === 0) {
   localStorage.setItem('pto_admin_games', JSON.stringify(adminGamesList));
 }
 
+var adminTasksList = [];
+try {
+  var savedTasks = localStorage.getItem('pto_admin_tasks');
+  if (savedTasks) adminTasksList = JSON.parse(savedTasks);
+} catch(e){}
+
 if (db) {
   db.collection('potto_arcade_games').onSnapshot(function(snapshot) {
     adminGamesList = [];
@@ -4152,6 +4156,18 @@ if (db) {
     renderDynamicGamesGrid();
   }, function(error) {
     console.error("Games Snapshot Error", error);
+  });
+
+  db.collection('potto_admin_tasks').onSnapshot(function(snapshot) {
+    adminTasksList = [];
+    if (snapshot && typeof snapshot.forEach === 'function') {
+      snapshot.forEach(function(doc) {
+        adminTasksList.push({ id: doc.id, ...doc.data() });
+      });
+    }
+    renderDynamicTasksList();
+  }, function(error) {
+    console.error("Tasks Snapshot Error", error);
   });
 }
 
@@ -4179,23 +4195,97 @@ function renderDynamicGamesGrid() {
     `;
   });
   grid.innerHTML = html;
+  loadAdsterraBanner(document.getElementById('gameHubBannerAd'));
 }
+
+function renderDynamicTasksList() {
+  var container = document.getElementById('dynamicTasksContainer');
+  if (!container) return;
+
+  if (!adminTasksList || adminTasksList.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 20px; color:#8da6c4; font-size:12px; font-weight:700;">
+        No tasks available yet.<br>Double-click the <strong>ARCADE GAMES</strong> header in the Game tab to open Admin Panel and add tasks! 📋
+      </div>
+    `;
+    return;
+  }
+
+  var html = '<div class="hk-section-title">Tasks List</div>';
+  adminTasksList.forEach(function(task) {
+    var isDone = completedTasks[task.id];
+    var iconImg = 'telegram.png';
+    if (task.icon === 'youtube') iconImg = 'youtube.png';
+    else if (task.icon === 'app') iconImg = 'app.png';
+
+    var actionHtml = isDone 
+      ? '<div class="hk-action-col"><i class="fa-solid fa-circle-check hk-check-icon"></i></div>'
+      : '<div class="hk-action-col"><div class="hk-arrow-btn"><i class="fa-solid fa-chevron-right"></i></div></div>';
+
+    html += `
+      <div class="hk-task-card" onclick="handleAdminTaskClick('${task.id}', '${task.url || ''}', ${task.reward || 5000})">
+        <div class="hk-card-left">
+          <div class="hk-icon-circle">
+            <img src="${iconImg}" alt="Icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
+            <i class="fa-solid fa-circle-check" style="display:none;"></i>
+          </div>
+          <div class="hk-card-text">
+            <span class="hk-card-title">${task.title}</span>
+            <div class="hk-reward-row"><span style="font-size:13px">🪙</span><strong>${formatK(task.reward || 5000)}</strong></div>
+          </div>
+        </div>
+        ${actionHtml}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+window.handleAdminTaskClick = function(taskId, taskUrl, reward) {
+  initAudio();
+  if (completedTasks[taskId]) {
+    alert("Task already completed!");
+    return;
+  }
+  if (taskUrl) {
+    window.open(taskUrl, '_blank');
+  }
+  setTimeout(function() {
+    if (!completedTasks[taskId]) {
+      completedTasks[taskId] = true;
+      totalTasksDone++;
+      addPointsAndCoins(reward, Math.floor(reward / 4), 0, 0, 0);
+      sCoin();
+      renderDynamicTasksList();
+      showModal('<div class="m-title">TASK COMPLETED ✅</div><div class="m-body">Reward added:<br>• Coins: <strong style="color:var(--gold)">+' + reward.toLocaleString() + ' COINS</strong></div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">AWESOME</button></div>');
+    }
+  }, 1500);
+};
 
 window.openAdminUploadModal = function() {
   initAudio();
   document.getElementById('adminGameTitle').value = '';
   document.getElementById('adminGameLogo').value = '';
   document.getElementById('adminGameCode').value = '';
+  document.getElementById('adminTaskTitle').value = '';
+  document.getElementById('adminTaskUrl').value = '';
   document.getElementById('adminMiningReqAds').value = miningRequiredAds;
   document.getElementById('adminMiningRewCoins').value = miningRewardCoins;
   document.getElementById('adminUploadModal').classList.remove('hidden');
 };
 
-window.saveAdminGame = function() {
+window.saveAdminData = function() {
   initAudio();
-  var title = document.getElementById('adminGameTitle').value.trim();
-  var logo = document.getElementById('adminGameLogo').value.trim() || 'game_default.png';
-  var code = document.getElementById('adminGameCode').value.trim() || '<div style="text-align:center; color:#fff; padding:20px;"><h3>Custom Game Loaded</h3></div>';
+  var gameTitle = document.getElementById('adminGameTitle').value.trim();
+  var gameLogo = document.getElementById('adminGameLogo').value.trim() || 'game_default.png';
+  var gameCode = document.getElementById('adminGameCode').value.trim();
+
+  var taskTitle = document.getElementById('adminTaskTitle').value.trim();
+  var taskReward = parseInt(document.getElementById('adminTaskReward').value) || 5000;
+  var taskIcon = document.getElementById('adminTaskIcon').value;
+  var taskUrl = document.getElementById('adminTaskUrl').value.trim();
+
   var reqAdsInput = document.getElementById('adminMiningReqAds');
   var rewCoinsInput = document.getElementById('adminMiningRewCoins');
 
@@ -4208,30 +4298,40 @@ window.saveAdminGame = function() {
     localStorage.setItem('pto_mining_rew_coins', miningRewardCoins);
   }
 
-  if (!title) {
-    document.getElementById('adminUploadModal').classList.add('hidden');
-    alert("Mining settings updated successfully!");
-    updateTapScreenUI();
-    return;
+  if (gameTitle) {
+    var newGame = {
+      id: 'game_' + Date.now(),
+      title: gameTitle,
+      logo: gameLogo,
+      code: gameCode || '<div style="text-align:center; color:#fff; padding:20px;"><h3>Custom Game Loaded</h3></div>'
+    };
+    adminGamesList.push(newGame);
+    localStorage.setItem('pto_admin_games', JSON.stringify(adminGamesList));
+    if (db) {
+      db.collection('potto_arcade_games').doc(newGame.id).set(newGame).catch(function(){});
+    }
+    renderDynamicGamesGrid();
   }
 
-  var newGame = {
-    id: 'game_' + Date.now(),
-    title: title,
-    logo: logo,
-    code: code
-  };
-
-  adminGamesList.push(newGame);
-  localStorage.setItem('pto_admin_games', JSON.stringify(adminGamesList));
-  
-  if (db) {
-    db.collection('potto_arcade_games').doc(newGame.id).set(newGame).catch(function(){});
+  if (taskTitle) {
+    var newTask = {
+      id: 'task_' + Date.now(),
+      title: taskTitle,
+      reward: taskReward,
+      icon: taskIcon,
+      url: taskUrl
+    };
+    adminTasksList.push(newTask);
+    localStorage.setItem('pto_admin_tasks', JSON.stringify(adminTasksList));
+    if (db) {
+      db.collection('potto_admin_tasks').doc(newTask.id).set(newTask).catch(function(){});
+    }
+    renderDynamicTasksList();
   }
 
   document.getElementById('adminUploadModal').classList.add('hidden');
-  renderDynamicGamesGrid();
-  alert("Game uploaded & Mining settings saved successfully!");
+  alert("Admin data (Game / Task / Mining settings) saved successfully!");
+  updateTapScreenUI();
 };
 
 
@@ -4251,6 +4351,8 @@ window.launchAdminGame = function(gameId) {
   if (titleEl) titleEl.innerText = game.title.toUpperCase();
 
   var frame = document.getElementById('gameContainerFrame');
+  var playBanner = document.getElementById('gamePlayBannerAd');
+  if (playBanner) loadAdsterraBanner(playBanner);
   if (frame) {
     var rawCode = game.code.trim();
     if (rawCode.startsWith('http://') || rawCode.startsWith('https://')) {
@@ -4278,6 +4380,8 @@ window.launchAdminGame = function(gameId) {
 
 function showGameClaimOverlay() {
   var frame = document.getElementById('gameContainerFrame');
+  var playBanner = document.getElementById('gamePlayBannerAd');
+  if (playBanner) loadAdsterraBanner(playBanner);
   if (!frame) return;
   // Remove existing if any
   var existing = document.getElementById('gameClaimOverlay');
@@ -4328,6 +4432,8 @@ window.showGameHub = function() {
   var play = document.getElementById('gamePlayView');
   if (play) play.style.display = 'none';
   var frame = document.getElementById('gameContainerFrame');
+  var playBanner = document.getElementById('gamePlayBannerAd');
+  if (playBanner) loadAdsterraBanner(playBanner);
   if (frame) frame.innerHTML = '';
 };
 
