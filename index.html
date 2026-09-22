@@ -208,7 +208,7 @@ body {
 .tab-page.active { display: flex; }
 
 /* Scrollable tabs */
-#rating-tab.active, #tasks-tab.active, #invite-tab.active, #airdrop-tab.active, #daily-tab.active, #ads-tab.active {
+#rating-tab.active, #tasks-tab.active, #invite-tab.active, #withdrawal-tab.active, #airdrop-tab.active, #daily-tab.active, #ads-tab.active {
   overflow-y: auto !important;
   touch-action: pan-y !important;
   padding: 12px 14px 20px;
@@ -217,6 +217,7 @@ body {
 #rating-tab *,
 #tasks-tab *,
 #invite-tab *,
+#withdrawal-tab *,
 #airdrop-tab *,
 #daily-tab *,
 #ads-tab, #ads-tab *,
@@ -1845,7 +1846,7 @@ body {
           <img src="daily.png" class="side-pure-img" alt="Daily" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">🎁</span>
         </button>
-        <button class="side-btn-pure" title="Invite Friend" onclick="switchTab('invite-tab', document.getElementById('navInvite'))">
+        <button class="side-btn-pure" title="Invite Friend" onclick="switchTab('invite-tab', null)">
           <div class="side-pure-dot">1</div>
           <img src="invite.png" class="side-pure-img" alt="Invite" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">👥</span>
@@ -2212,6 +2213,122 @@ body {
       </div>
     </section>
 
+    <!-- 4.5. COIN WITHDRAWAL SCREEN -->
+    <section id="withdrawal-tab" class="tab-page">
+      <div class="referral-container" style="padding: 12px 14px 80px;">
+        <!-- Header Bar -->
+        <div class="ref-header-bar">
+          <button class="ref-header-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))"><i class="fa-solid fa-chevron-left"></i></button>
+          <span class="ref-header-title">COIN WITHDRAWAL</span>
+          <button class="ref-header-btn" onclick="openWithdrawalHelp()"><i class="fa-regular fa-circle-question"></i></button>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="airdrop-transfer-card" style="background: linear-gradient(135deg, rgba(28, 46, 74, 0.95), rgba(12, 22, 38, 0.98)); border-color: rgba(255, 190, 11, 0.4);">
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, #ffdf6d 0%, #f59e0b 60%, #b45309 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 0 16px rgba(255, 190, 11, 0.6); flex-shrink: 0;">
+              <img src="coin.png" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+              <span style="display:none;">🪙</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-family: var(--font-display); font-size: 16px; font-weight: 900; color: #ffd54f;">CASH OUT COINS</span>
+              <span style="font-size: 10px; color: #8da6c4; font-weight: 700;">Exchange Rate: <strong style="color: #ffffff;">1,000,000 Coins = ₹100</strong></span>
+            </div>
+          </div>
+          <div style="background: rgba(0, 0, 0, 0.35); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 8px; color: #8da6c4; font-weight: 800; text-transform: uppercase;">Your Balance</span>
+              <span id="withdrawBalCoins" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: #ffffff;">0 🪙</span>
+            </div>
+            <div style="text-align: right; display: flex; flex-direction: column;">
+              <span style="font-size: 8px; color: #8da6c4; font-weight: 800; text-transform: uppercase;">Equivalent Value</span>
+              <span id="withdrawBalRupees" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--green-neon);">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Withdrawal Form Card -->
+        <div class="airdrop-transfer-card">
+          <div class="airdrop-transfer-header">
+            <div class="airdrop-transfer-plane-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div class="airdrop-transfer-header-text">
+              <div class="airdrop-transfer-title">WITHDRAWAL REQUEST</div>
+              <div class="airdrop-transfer-sub">Minimum withdrawal: 1,000,000 Coins (₹100)</div>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="airdrop-input-group-row">
+            <div class="airdrop-input-label-wrap">
+              <div class="airdrop-input-icon-circle"><i class="fa-solid fa-credit-card"></i></div>
+              <span class="airdrop-input-label-text">Select Payment Method</span>
+            </div>
+            <div class="airdrop-input-field-wrap" style="padding: 0 12px;">
+              <select id="withdrawMethodSelect" class="airdrop-text-input" style="background: transparent; color: #ffffff; cursor: pointer; outline: none;">
+                <option value="UPI" style="background: #0d1624; color: #fff;">UPI ID (Google Pay / PhonePe / Paytm)</option>
+                <option value="Paytm" style="background: #0d1624; color: #fff;">Paytm Wallet Number</option>
+                <option value="Bank" style="background: #0d1624; color: #fff;">Direct Bank Transfer (IMPS/NEFT)</option>
+                <option value="Binance" style="background: #0d1624; color: #fff;">Binance Pay ID / USDT</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Account Details / UPI ID Input -->
+          <div class="airdrop-input-group-row">
+            <div class="airdrop-input-label-wrap">
+              <div class="airdrop-input-icon-circle"><i class="fa-solid fa-user-check"></i></div>
+              <span class="airdrop-input-label-text">Account Details / UPI ID / Phone</span>
+            </div>
+            <div class="airdrop-input-field-wrap">
+              <input type="text" id="withdrawAccountInput" class="airdrop-text-input" placeholder="e.g. yourname@paytm or 9876543210">
+            </div>
+          </div>
+
+          <!-- Amount Input -->
+          <div class="airdrop-input-group-row">
+            <div class="airdrop-input-label-wrap">
+              <div class="airdrop-input-icon-circle">
+                <img src="coin.png" style="width:16px;height:16px;object-fit:contain;" onerror="this.style.display='none'">
+              </div>
+              <span class="airdrop-input-label-text">Withdrawal Amount (Coins)</span>
+            </div>
+            <div class="airdrop-input-field-wrap" style="padding-right: 4px;">
+              <input type="number" id="withdrawAmountInput" class="airdrop-text-input" placeholder="Min 1,000,000 Coins" oninput="calculateWithdrawRupees(this.value)">
+              <button class="airdrop-max-btn" onclick="setWithdrawMaxCoins()">MAX</button>
+            </div>
+          </div>
+
+          <!-- Estimated Value Info -->
+          <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+            <span style="color: #8da6c4; font-weight: 700;">You will receive:</span>
+            <span id="withdrawEstRupees" style="font-family: var(--font-display); font-weight: 900; color: var(--green-neon); font-size: 13px;">₹ 0.00</span>
+          </div>
+
+          <!-- Submit Withdrawal Button -->
+          <button class="airdrop-transfer-submit-btn" onclick="executeCoinWithdrawal()" style="background: linear-gradient(135deg, #22c55e, #15803d); border-color: rgba(34, 197, 94, 0.5);">
+            <span class="airdrop-transfer-btn-bg"></span>
+            <div class="airdrop-transfer-btn-content">
+              <i class="fa-solid fa-money-bill-transfer"></i>
+              <span>WITHDRAW COINS NOW 💸</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Info / Rules Card -->
+        <div class="ref-box-card">
+          <div class="ref-box-title" style="font-size: 13px; color: var(--gold);"><i class="fa-solid fa-circle-info"></i> Withdrawal Rules & Info</div>
+          <ul style="font-size: 10.5px; color: #94a3b8; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; font-weight: 600;">
+            <li>Minimum withdrawal limit is <strong>1,000,000 Coins</strong> (₹100).</li>
+            <li>Processing time: Instant to 24 hours depending on payment method.</li>
+            <li>Ensure your UPI ID or account details are accurate before submitting.</li>
+            <li>All withdrawals are securely verified and processed.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <!-- 5. AIRDROP PORTAL ($DOGS COIN & ADS SYSTEM) -->
     <section id="airdrop-tab" class="tab-page">
 
@@ -2323,12 +2440,12 @@ body {
       </div>
       <span class="nav-tab-label">Game</span>
     </div>
-    <div class="nav-tab-item" id="navInvite" onclick="switchTab('invite-tab', this)">
+    <div class="nav-tab-item" id="navWithdraw" onclick="switchTab('withdrawal-tab', this)">
       <div class="nav-icon-container">
-        <img src="invite.png" alt="Invite" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-        <span class="nav-fallback-glyph" style="display:none;">👥</span>
+        <img src="coin.png" alt="Withdraw" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <span class="nav-fallback-glyph" style="display:none;">💰</span>
       </div>
-      <span class="nav-tab-label">Invite</span>
+      <span class="nav-tab-label">Withdraw</span>
     </div>
   </nav>
 
@@ -2450,7 +2567,7 @@ if (tgUser) {
 document.addEventListener('touchmove', function(e) {
   var target = e.target;
   if (target && target.nodeType === 3) target = target.parentElement;
-  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #airdrop-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
+  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #invite-tab, #withdrawal-tab, #airdrop-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
   if (!scrollableParent) {
     e.preventDefault();
   }
@@ -2792,6 +2909,7 @@ function updateAllDisplays() {
   updateTasksUI();
   updateDailySideDot();
   updateAdsCooldownUI();
+  updateWithdrawalUI();
   saveState();
 
   var adsTab = document.getElementById('ads-tab');
@@ -3205,6 +3323,121 @@ window.cancelAdWatch = function() {
 };
 
 /* Referral System */
+
+window.setWithdrawMaxCoins = function() {
+  initAudio();
+  var input = document.getElementById('withdrawAmountInput');
+  if (input) {
+    input.value = totalCoins;
+    calculateWithdrawRupees(totalCoins);
+  }
+};
+
+window.calculateWithdrawRupees = function(val) {
+  var amt = parseInt(val) || 0;
+  var rupees = (amt / 1000000) * 100;
+  var estEl = document.getElementById('withdrawEstRupees');
+  if (estEl) {
+    estEl.innerText = '₹ ' + rupees.toFixed(2);
+  }
+};
+
+function updateWithdrawalUI() {
+  var balCoins = document.getElementById('withdrawBalCoins');
+  var balRupees = document.getElementById('withdrawBalRupees');
+  if (balCoins) balCoins.innerText = totalCoins.toLocaleString() + ' 🪙';
+  var totalRupees = (totalCoins / 1000000) * 100;
+  if (balRupees) balRupees.innerText = '₹ ' + totalRupees.toFixed(2);
+}
+
+window.executeCoinWithdrawal = function() {
+  initAudio();
+  var methodSelect = document.getElementById('withdrawMethodSelect');
+  var accountInput = document.getElementById('withdrawAccountInput');
+  var amountInput = document.getElementById('withdrawAmountInput');
+
+  var method = methodSelect ? methodSelect.value : 'UPI';
+  var account = accountInput ? accountInput.value.trim() : '';
+  var amount = parseInt(amountInput ? amountInput.value : '0');
+
+  if (!account) {
+    alert("Please enter your account details / UPI ID / Phone number!");
+    return;
+  }
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid coin amount to withdraw!");
+    return;
+  }
+  if (amount < 1000000) {
+    alert("Minimum withdrawal limit is 1,000,000 Coins (₹100)! You entered " + amount.toLocaleString() + " Coins.");
+    return;
+  }
+  if (amount > totalCoins) {
+    alert("Insufficient coin balance! You have " + totalCoins.toLocaleString() + " Coins.");
+    return;
+  }
+
+  var rupeeVal = (amount / 1000000) * 100;
+
+  showModal(`
+    <div class="m-title">CONFIRM WITHDRAWAL 💸</div>
+    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+      <div style="margin-bottom:6px;"><strong>Method:</strong> <span style="color:#ffffff;">${method}</span></div>
+      <div style="margin-bottom:6px;"><strong>Account/UPI:</strong> <span style="color:var(--cyan-neon);">${account}</span></div>
+      <div style="margin-bottom:6px;"><strong>Withdrawal Coins:</strong> <span style="color:var(--gold); font-weight:900;">${amount.toLocaleString()} 🪙</span></div>
+      <div><strong>Rupees Value:</strong> <span style="color:var(--green-neon); font-size:16px; font-weight:900;">₹ ${rupeeVal.toFixed(2)}</span></div>
+    </div>
+    <div class="m-btn-row" style="margin-top:10px;">
+      <button class="app-btn claim-glow-btn" onclick="finalizeCoinWithdrawal('${method}', '${account}', ${amount}, ${rupeeVal})">CONFIRM WITHDRAWAL 🚀</button>
+      <button class="app-btn btn-sec" onclick="closeModal()">CANCEL</button>
+    </div>
+  `);
+};
+
+window.finalizeCoinWithdrawal = function(method, account, amount, rupeeVal) {
+  initAudio();
+  totalCoins = Math.max(0, totalCoins - amount);
+  saveState(true);
+  sCoin();
+
+  if (document.getElementById('withdrawAccountInput')) document.getElementById('withdrawAccountInput').value = '';
+  if (document.getElementById('withdrawAmountInput')) document.getElementById('withdrawAmountInput').value = '';
+  calculateWithdrawRupees(0);
+
+  updateAllDisplays();
+  updateWithdrawalUI();
+
+  var fakeTxId = 'WD' + Math.floor(Math.random() * 900000000 + 100000000);
+
+  showModal(`
+    <div style="font-size:42px;">✅</div>
+    <div class="m-title" style="color:var(--green-neon);">WITHDRAWAL REQUEST SUBMITTED!</div>
+    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(34,197,94,0.3);">
+      <div style="margin-bottom:4px;"><strong>Status:</strong> <span style="color:var(--green-neon);">Pending Processing</span></div>
+      <div style="margin-bottom:4px;"><strong>Tx ID:</strong> <span style="color:#fff; font-family:monospace;">${fakeTxId}</span></div>
+      <div style="margin-bottom:4px;"><strong>Amount Deducted:</strong> <span style="color:var(--gold);">${amount.toLocaleString()} Coins</span></div>
+      <div><strong>You Will Receive:</strong> <span style="color:#39ff14; font-weight:900;">₹ ${rupeeVal.toFixed(2)}</span> via ${method} (${account})</div>
+    </div><br>
+    <span style="font-size:9.5px; color:#8da6c4;">Your payment will be transferred within 24 hours. Thank you for playing!</span>
+    <div class="m-btn-row" style="margin-top:10px;">
+      <button class="app-btn" onclick="closeModal()">DONE</button>
+    </div>
+  `);
+};
+
+window.openWithdrawalHelp = function() {
+  showModal(`
+    <div class="m-title">WITHDRAWAL HELP ℹ️</div>
+    <div class="m-body" style="text-align:left;">
+      • <strong>Exchange Rate:</strong> 1,000,000 Coins = ₹100.<br>
+      • <strong>Minimum Limit:</strong> 1,000,000 Coins.<br>
+      • <strong>Payment Methods:</strong> UPI, Paytm, Bank Transfer, Binance Pay.<br>
+      • <strong>Processing:</strong> Instant to 24 hours.
+    </div>
+    <div class="m-btn-row"><button class="app-btn" onclick="closeModal()">GOT IT</button></div>
+  `);
+};
+
 function renderInvitedFriends() {
   var container = document.getElementById('invitedFriendsList');
   if (!container) return;
