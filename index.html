@@ -10,6 +10,8 @@
 <!-- FontAwesome Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<!-- Telegram WebApp SDK Integration -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- Adsgram SDK Integration -->
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <!-- Montage Rewarded Interstitial SDK Integration -->
@@ -1798,6 +1800,7 @@ body {
         </div>
         <div class="user-meta-info">
           <span class="user-meta-name" id="topUserName">Pilot</span>
+          <span class="user-meta-id" id="topUserId" style="font-size:7.5px; color:#8da6c4; font-weight:700;">ID: --</span>
           <div class="xp-progress-track">
             <div class="xp-progress-fill" id="topXpFill"></div>
           </div>
@@ -2218,7 +2221,7 @@ body {
         <div class="game-top-bar" style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:8px;">
           <button class="top-back-btn" onclick="showGameHub()" style="width:36px;height:36px;font-size:14px;"><i class="fa-solid fa-arrow-left"></i></button>
           <div style="font-family:var(--font-display); font-size:13px; font-weight:900; color:#fff; text-transform:uppercase;" id="currentGameTitleText">GAME PLAY</div>
-          <button class="app-btn claim-glow-btn" onclick="winCurrentGame(event)" style="font-size:9.5px; padding:7px 12px;">🏆 WIN (+10 DOGS)</button>
+          <div style="width:36px;"></div>
         </div>
 
         <div id="gameContainerFrame" style="width:100%; flex:1; background:#0d1624; border:2px solid var(--cyan-neon); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
@@ -2435,6 +2438,35 @@ body {
 <script>
 (function(){
 'use strict';
+
+let tgUser = null;
+try {
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+    tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+  }
+} catch(e){}
+
+if (tgUser) {
+  if (tgUser.first_name) {
+    myDisplayName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+    localStorage.setItem('pto_display_name', myDisplayName);
+  }
+  if (tgUser.photo_url) {
+    setTimeout(function() {
+      var avImg = document.querySelector('.user-avatar-icon img');
+      if (avImg) {
+        avImg.src = tgUser.photo_url;
+        avImg.style.display = 'block';
+        if (avImg.nextElementSibling) avImg.nextElementSibling.style.display = 'none';
+      }
+    }, 500);
+  }
+  setTimeout(function() {
+    var userIdEl = document.getElementById('topUserId');
+    if (userIdEl) userIdEl.innerText = 'ID: ' + tgUser.id;
+  }, 500);
+}
+
 
 /* Prevent pull-to-refresh and touch drags on non-scrollable areas while allowing smooth scrolling */
 document.addEventListener('touchmove', function(e) {
@@ -4202,6 +4234,9 @@ window.saveAdminGame = function() {
   alert("Game uploaded & Mining settings saved successfully!");
 };
 
+
+var activeGameTimer = null;
+
 window.launchAdminGame = function(gameId) {
   initAudio();
   var game = adminGamesList.find(function(g){ return g.id === gameId; });
@@ -4233,9 +4268,63 @@ window.launchAdminGame = function(gameId) {
       frame.appendChild(iframe);
     }
   }
+
+  // Start 1-minute (60 seconds) active play timer (No visible timer on screen)
+  if (activeGameTimer) clearTimeout(activeGameTimer);
+  activeGameTimer = setTimeout(function() {
+    showGameClaimOverlay();
+  }, 60000);
+};
+
+function showGameClaimOverlay() {
+  var frame = document.getElementById('gameContainerFrame');
+  if (!frame) return;
+  // Remove existing if any
+  var existing = document.getElementById('gameClaimOverlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'gameClaimOverlay';
+  overlay.style.cssText = 'position:absolute; inset:0; background:rgba(10,14,23,0.92); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; padding:20px; text-align:center; animation:fadeIn 0.3s ease;';
+  overlay.innerHTML = `
+    <div style="font-size:52px; margin-bottom:12px; filter:drop-shadow(0 0 15px var(--gold));">🎁</div>
+    <div style="font-family:var(--font-display); font-size:18px; font-weight:900; color:var(--gold); margin-bottom:6px; letter-spacing:1px;">REWARD READY!</div>
+    <p style="font-size:12px; color:#c4d8ea; margin-bottom:20px; font-weight:700;">You have played for 1 minute!<br>Claim your +10 $DOGS reward now.</p>
+    <button class="app-btn claim-glow-btn" onclick="claimGameReward(event)" style="font-size:13px; padding:12px 30px;">CLAIM +10 $DOGS 🦴</button>
+  `;
+  frame.appendChild(overlay);
+}
+
+window.claimGameReward = function(event) {
+  initAudio();
+  var rect = event.target.getBoundingClientRect();
+  var startX = rect.left + rect.width / 2;
+  var startY = rect.top + rect.height / 2;
+
+  var overlay = document.getElementById('gameClaimOverlay');
+  if (overlay) overlay.remove();
+
+  flyCoinsToBalance(startX, startY, 'dogs', 10, function() {
+    dogsBalance += 10;
+    saveState(true);
+    updateAllDisplays();
+  });
+
+  // Restart 1-minute timer for next reward
+  if (activeGameTimer) clearTimeout(activeGameTimer);
+  activeGameTimer = setTimeout(function() {
+    showGameClaimOverlay();
+  }, 60000);
 };
 
 window.showGameHub = function() {
+  if (activeGameTimer) {
+    clearTimeout(activeGameTimer);
+    activeGameTimer = null;
+  }
+  var overlay = document.getElementById('gameClaimOverlay');
+  if (overlay) overlay.remove();
+
   var play = document.getElementById('gamePlayView');
   if (play) play.style.display = 'none';
   var frame = document.getElementById('gameContainerFrame');
