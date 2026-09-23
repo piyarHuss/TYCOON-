@@ -1783,6 +1783,376 @@ body {
   margin-top: 8px !important;
   box-sizing: border-box !important;
 }
+
+/* ========================================================
+   WITHDRAWAL SCREEN (PHOTO-ACCURATE DESIGN MATCHING SCREENSHOT)
+   ======================================================== */
+#withdrawal-tab {
+  background: radial-gradient(circle at 50% 10%, #0c1c38 0%, #030814 100%) !important;
+  padding: 14px 16px 85px !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+
+.wd-container {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Header */
+.wd-top-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px 8px;
+}
+.wd-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.wd-icon-btn:active {
+  transform: scale(0.92);
+  background: rgba(0, 114, 255, 0.2);
+}
+.wd-icon-btn img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+.wd-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.wd-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wd-header-title-row img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(0, 114, 255, 0.6));
+}
+.wd-header-title {
+  font-family: var(--font-main);
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+.wd-header-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8da6c4;
+  margin-top: 1px;
+}
+
+/* Balance & Minimum Card */
+.wd-hero-card {
+  width: 100%;
+  background: linear-gradient(180deg, #0d2244 0%, #071328 100%);
+  border: 1.5px solid #0070f3;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0, 112, 243, 0.28), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+  padding: 16px 14px;
+  display: grid;
+  grid-template-columns: 1fr 1px 1.15fr;
+  align-items: center;
+  gap: 8px;
+}
+.wd-hero-col-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wd-hero-coin-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(255, 190, 11, 0.5));
+  flex-shrink: 0;
+}
+.wd-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.wd-hero-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #8da6c4;
+}
+.wd-hero-balance-val {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
+}
+.wd-hero-rupee-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #8da6c4;
+}
+.wd-hero-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(0, 114, 255, 0.25);
+}
+.wd-hero-col-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 4px;
+}
+.wd-hero-wallet-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(0, 150, 255, 0.5));
+  flex-shrink: 0;
+}
+.wd-hero-min-val {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #00a2ff;
+  text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+  line-height: 1.2;
+}
+
+/* Method Selector Section */
+.wd-section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 6px 0 2px 2px;
+}
+.wd-methods-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+.wd-method-card {
+  position: relative;
+  background: #081426;
+  border: 1.5px solid #162a46;
+  border-radius: 18px;
+  padding: 18px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 96px;
+}
+.wd-method-card:active {
+  transform: scale(0.97);
+}
+.wd-method-card.active {
+  background: linear-gradient(180deg, #0e2b58 0%, #071732 100%);
+  border: 2px solid #0070f3;
+  box-shadow: 0 0 20px rgba(0, 112, 243, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+.wd-method-badge-check {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0080ff;
+  border: 1.5px solid #ffffff;
+  color: #ffffff;
+  font-size: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(0, 128, 255, 0.8);
+}
+.wd-method-card.active .wd-method-badge-check {
+  display: flex;
+}
+.wd-method-logo {
+  height: 32px;
+  max-width: 90px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+.wd-method-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8da6c4;
+}
+.wd-method-card.active .wd-method-title {
+  color: #ffffff;
+}
+
+/* Input Rows */
+.wd-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+.wd-field-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #cbd5e1;
+  padding-left: 2px;
+}
+.wd-input-container {
+  width: 100%;
+  background: #07101e;
+  border: 1.5px solid #142844;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.wd-input-container:focus-within {
+  border-color: #0070f3;
+  box-shadow: 0 0 14px rgba(0, 112, 243, 0.35);
+}
+.wd-field-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.wd-text-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: #ffffff;
+  font-weight: 600;
+}
+.wd-text-input::placeholder {
+  color: #475569;
+  font-weight: 500;
+}
+.wd-max-btn {
+  background: linear-gradient(135deg, #0050c8, #0070f3);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 112, 243, 0.4);
+  transition: transform 0.1s ease;
+}
+.wd-max-btn:active {
+  transform: scale(0.94);
+}
+
+/* Fee & Summary Box */
+.wd-summary-card {
+  width: 100%;
+  background: #07101e;
+  border: 1.5px solid #142844;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.wd-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.wd-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8da6c4;
+  font-weight: 600;
+}
+.wd-info-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0070f3;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+}
+.wd-summary-fee-val {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #00a2ff;
+}
+.wd-summary-recv-val {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  color: #00e676;
+}
+
+/* Bottom Action Button */
+.wd-submit-btn {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(90deg, #006aff 0%, #1e52ff 50%, #7c3aed 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 6px 24px rgba(0, 106, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  margin-top: 6px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.wd-submit-btn:active {
+  transform: scale(0.97);
+}
+.wd-submit-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.wd-submit-btn span {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
 </style>
 </head>
 <body>
@@ -1916,7 +2286,11 @@ body {
 
               <!-- 3D Machine Viewer -->
               <div id="miningMachineDiv" style="display: none; width: 100%; height: 250px; margin-bottom: 10px;">
-                  <model-viewer src="machine.glb" autoplay camera-controls auto-rotate style="width:100%; height:100%; background-color: transparent; outline: none;"></model-viewer>
+                  <model-viewer id="miningModelViewer" src="machine.glb" poster="machine.png" autoplay camera-controls auto-rotate exposure="1.3" shadow-intensity="1.5" shadow-softness="0.5" environment-image="neutral" tone-mapping="neutral" style="width:100%; height:100%; background-color: transparent; outline: none;">
+                      <div slot="poster" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                        <img src="machine.png" alt="Goblin Shredder Shield" style="max-width:85%; max-height:85%; object-fit:contain; filter:drop-shadow(0 0 20px #ff7700);" onerror="this.onerror=null; this.src='rock_gold.png';">
+                      </div>
+                  </model-viewer>
               </div>
 
               <!-- Ads Progress (Naya Photo Design) -->
@@ -2223,117 +2597,125 @@ body {
 
     <!-- 4.5. COIN WITHDRAWAL SCREEN -->
     <section id="withdrawal-tab" class="tab-page">
-      <div class="referral-container" style="padding: 12px 14px 80px;">
-        <!-- Header Bar -->
-        <div class="ref-header-bar">
-          <button class="ref-header-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))"><i class="fa-solid fa-chevron-left"></i></button>
-          <span class="ref-header-title">COIN WITHDRAWAL</span>
-          <button class="ref-header-btn" onclick="openWithdrawalHelp()"><i class="fa-regular fa-circle-question"></i></button>
-        </div>
+      <div class="wd-container">
 
-        <!-- Hero Card -->
-        <div class="airdrop-transfer-card" style="background: linear-gradient(135deg, rgba(28, 46, 74, 0.95), rgba(12, 22, 38, 0.98)); border-color: rgba(255, 190, 11, 0.4);">
-          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, #ffdf6d 0%, #f59e0b 60%, #b45309 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 0 16px rgba(255, 190, 11, 0.6); flex-shrink: 0;">
-              <img src="coin.png" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-              <span style="display:none;">🪙</span>
+        <!-- Top Header Bar (Photo Accurate) -->
+        <div class="wd-top-bar">
+          <button class="wd-icon-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))" title="Back">
+            <img src="back.png" alt="<" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-solid fa-chevron-left" style="display:none;"></i>
+          </button>
+          
+          <div class="wd-header-center">
+            <div class="wd-header-title-row">
+              <img src="wallet.png" alt="Wallet" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+              <span style="display:none; font-size:20px; color:#0070f3;"><i class="fa-solid fa-wallet"></i></span>
+              <span class="wd-header-title">Withdraw</span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-family: var(--font-display); font-size: 16px; font-weight: 900; color: #ffd54f;">CASH OUT COINS</span>
-              <span style="font-size: 10px; color: #8da6c4; font-weight: 700;">Exchange Rate: <strong style="color: #ffffff;">1,000,000 Coins = ₹100</strong></span>
-            </div>
-          </div>
-          <div style="background: rgba(0, 0, 0, 0.35); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.08);">
-            <div style="display: flex; flex-direction: column;">
-              <span style="font-size: 8px; color: #8da6c4; font-weight: 800; text-transform: uppercase;">Your Balance</span>
-              <span id="withdrawBalCoins" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: #ffffff;">0 🪙</span>
-            </div>
-            <div style="text-align: right; display: flex; flex-direction: column;">
-              <span style="font-size: 8px; color: #8da6c4; font-weight: 800; text-transform: uppercase;">Equivalent Value</span>
-              <span id="withdrawBalRupees" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--green-neon);">₹0.00</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Withdrawal Form Card -->
-        <div class="airdrop-transfer-card">
-          <div class="airdrop-transfer-header">
-            <div class="airdrop-transfer-plane-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);">
-              <i class="fa-solid fa-wallet"></i>
-            </div>
-            <div class="airdrop-transfer-header-text">
-              <div class="airdrop-transfer-title">WITHDRAWAL REQUEST</div>
-              <div class="airdrop-transfer-sub">Minimum withdrawal: 1,000,000 Coins (₹100)</div>
-            </div>
+            <span class="wd-header-sub">Convert your coins to real money</span>
           </div>
 
-          <!-- Payment Method -->
-          <div class="airdrop-input-group-row">
-            <div class="airdrop-input-label-wrap">
-              <div class="airdrop-input-icon-circle"><i class="fa-solid fa-credit-card"></i></div>
-              <span class="airdrop-input-label-text">Select Payment Method</span>
-            </div>
-            <div class="airdrop-input-field-wrap" style="padding: 0 12px;">
-              <select id="withdrawMethodSelect" class="airdrop-text-input" style="background: transparent; color: #ffffff; cursor: pointer; outline: none;">
-                <option value="UPI" style="background: #0d1624; color: #fff;">UPI ID (Google Pay / PhonePe / Paytm)</option>
-                <option value="Paytm" style="background: #0d1624; color: #fff;">Paytm Wallet Number</option>
-                <option value="Bank" style="background: #0d1624; color: #fff;">Direct Bank Transfer (IMPS/NEFT)</option>
-                <option value="Binance" style="background: #0d1624; color: #fff;">Binance Pay ID / USDT</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Account Details / UPI ID Input -->
-          <div class="airdrop-input-group-row">
-            <div class="airdrop-input-label-wrap">
-              <div class="airdrop-input-icon-circle"><i class="fa-solid fa-user-check"></i></div>
-              <span class="airdrop-input-label-text">Account Details / UPI ID / Phone</span>
-            </div>
-            <div class="airdrop-input-field-wrap">
-              <input type="text" id="withdrawAccountInput" class="airdrop-text-input" placeholder="e.g. yourname@paytm or 9876543210">
-            </div>
-          </div>
-
-          <!-- Amount Input -->
-          <div class="airdrop-input-group-row">
-            <div class="airdrop-input-label-wrap">
-              <div class="airdrop-input-icon-circle">
-                <img src="coin.png" style="width:16px;height:16px;object-fit:contain;" onerror="this.style.display='none'">
-              </div>
-              <span class="airdrop-input-label-text">Withdrawal Amount (Coins)</span>
-            </div>
-            <div class="airdrop-input-field-wrap" style="padding-right: 4px;">
-              <input type="number" id="withdrawAmountInput" class="airdrop-text-input" placeholder="Min 1,000,000 Coins" oninput="calculateWithdrawRupees(this.value)">
-              <button class="airdrop-max-btn" onclick="setWithdrawMaxCoins()">MAX</button>
-            </div>
-          </div>
-
-          <!-- Estimated Value Info -->
-          <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
-            <span style="color: #8da6c4; font-weight: 700;">You will receive:</span>
-            <span id="withdrawEstRupees" style="font-family: var(--font-display); font-weight: 900; color: var(--green-neon); font-size: 13px;">₹ 0.00</span>
-          </div>
-
-          <!-- Submit Withdrawal Button -->
-          <button class="airdrop-transfer-submit-btn" onclick="executeCoinWithdrawal()" style="background: linear-gradient(135deg, #22c55e, #15803d); border-color: rgba(34, 197, 94, 0.5);">
-            <span class="airdrop-transfer-btn-bg"></span>
-            <div class="airdrop-transfer-btn-content">
-              <i class="fa-solid fa-money-bill-transfer"></i>
-              <span>WITHDRAW COINS NOW 💸</span>
-            </div>
+          <button class="wd-icon-btn" onclick="openWithdrawalHelp()" title="Help">
+            <img src="help.png" alt="?" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-solid fa-question" style="display:none; color:#00a2ff;"></i>
           </button>
         </div>
 
-        <!-- Info / Rules Card -->
-        <div class="ref-box-card">
-          <div class="ref-box-title" style="font-size: 13px; color: var(--gold);"><i class="fa-solid fa-circle-info"></i> Withdrawal Rules & Info</div>
-          <ul style="font-size: 10.5px; color: #94a3b8; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; font-weight: 600;">
-            <li>Minimum withdrawal limit is <strong>1,000,000 Coins</strong> (₹100).</li>
-            <li>Processing time: Instant to 24 hours depending on payment method.</li>
-            <li>Ensure your UPI ID or account details are accurate before submitting.</li>
-            <li>All withdrawals are securely verified and processed.</li>
-          </ul>
+        <!-- Hero Card (Balance & Minimum Withdrawal) -->
+        <div class="wd-hero-card">
+          <!-- Left Column: Your Balance -->
+          <div class="wd-hero-col-left">
+            <img src="coin.png" class="wd-hero-coin-icon" alt="Coins" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none; font-size:32px;">🪙</span>
+            <div class="wd-hero-meta">
+              <span class="wd-hero-label">Your Balance</span>
+              <span class="wd-hero-balance-val" id="withdrawBalCoins">0</span>
+              <span class="wd-hero-rupee-sub" id="withdrawBalRupees">≈ ₹0.00</span>
+            </div>
+          </div>
+
+          <!-- Vertical Divider -->
+          <div class="wd-hero-divider"></div>
+
+          <!-- Right Column: Minimum Withdrawal -->
+          <div class="wd-hero-col-right">
+            <img src="wallet.png" class="wd-hero-wallet-icon" alt="Wallet" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none; font-size:28px; color:#0070f3;"><i class="fa-solid fa-wallet"></i></span>
+            <div class="wd-hero-meta">
+              <span class="wd-hero-label">Minimum Withdrawal</span>
+              <span class="wd-hero-min-val" id="withdrawMinValText">10,000 coins</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Section Title: Select Withdrawal Method -->
+        <div class="wd-section-title">Select Withdrawal Method</div>
+
+        <!-- Withdrawal Methods Grid -->
+        <div class="wd-methods-grid">
+          <!-- Method 1: UPI (India) -->
+          <div class="wd-method-card active" id="wdCardUPI" onclick="selectWithdrawMethod('UPI')">
+            <div class="wd-method-badge-check"><i class="fa-solid fa-check"></i></div>
+            <img src="upi.png" class="wd-method-logo" alt="UPI" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none; font-family:sans-serif; font-size:18px; font-weight:900; color:#fff; letter-spacing:1px; margin-bottom:6px;">UPI▸</div>
+            <span class="wd-method-title">UPI (India)</span>
+          </div>
+
+          <!-- Method 2: USDT (TRC20) -->
+          <div class="wd-method-card" id="wdCardUSDT" onclick="selectWithdrawMethod('USDT')">
+            <div class="wd-method-badge-check"><i class="fa-solid fa-check"></i></div>
+            <img src="usdt.png" class="wd-method-logo" alt="USDT" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none; width:34px; height:34px; border-radius:50%; background:#26a17b; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; margin-bottom:6px;">₮</div>
+            <span class="wd-method-title">USDT (TRC20)</span>
+          </div>
+        </div>
+
+        <!-- Input 1: Destination Account (UPI ID / USDT Address) -->
+        <div class="wd-field-group">
+          <div class="wd-field-label" id="wdAccountFieldLabel">UPI ID</div>
+          <div class="wd-input-container">
+            <img id="wdAccountFieldIcon" src="upi.png" class="wd-field-icon" alt="Method" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <span id="wdAccountFieldIconFallback" style="display:none; font-size:16px;">💳</span>
+            <input type="text" id="withdrawAccountInput" class="wd-text-input" placeholder="Enter your UPI ID">
+          </div>
+        </div>
+
+        <!-- Input 2: Withdrawal Amount -->
+        <div class="wd-field-group">
+          <div class="wd-field-label">Withdrawal Amount</div>
+          <div class="wd-input-container">
+            <img src="coin.png" class="wd-field-icon" alt="Coins" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <span style="display:none; font-size:16px;">🪙</span>
+            <input type="number" id="withdrawAmountInput" class="wd-text-input" placeholder="Enter amount (min 10,000)" oninput="calculateWithdrawFeeAndReceive(this.value)">
+            <button class="wd-max-btn" onclick="setWithdrawMaxCoins()">MAX</button>
+          </div>
+        </div>
+
+        <!-- Summary & Fee Card -->
+        <div class="wd-summary-card">
+          <div class="wd-summary-row">
+            <div class="wd-summary-left">
+              <div class="wd-info-circle"><i class="fa-solid fa-info"></i></div>
+              <span id="wdFeeLabel">UPI Withdrawal Fee</span>
+            </div>
+            <span class="wd-summary-fee-val" id="wdFeeValue">2000 coins</span>
+          </div>
+
+          <div class="wd-summary-row">
+            <div class="wd-summary-left">
+              <span>You will receive</span>
+            </div>
+            <span class="wd-summary-recv-val" id="wdReceiveValue">- 0 coins</span>
+          </div>
+        </div>
+
+        <!-- Withdraw Now Button -->
+        <button class="wd-submit-btn" onclick="executeCoinWithdrawal()">
+          <img src="send.png" alt="Send" onerror="this.src='telegram.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}">
+          <i class="fa-solid fa-paper-plane" style="display:none; font-size:16px;"></i>
+          <span>Withdraw Now</span>
+        </button>
+
       </div>
     </section>
 
@@ -2480,6 +2862,18 @@ body {
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Task Title:</label>
           <input type="text" id="adminTaskTitle" class="airdrop-text-input" placeholder="e.g. Join Telegram Channel" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+        </div>
+        <div>
+          <label style="font-size:9.5px; color:#8da6c4;">Task Logo Image (PNG / URL / File Upload):</label>
+          <div style="display:flex; gap:6px; margin-top:2px;">
+            <input type="text" id="adminTaskLogo" class="airdrop-text-input" placeholder="e.g. task_logo.png or https://..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; flex:1; color:#fff; font-size:11.5px;">
+            <input type="file" id="adminTaskLogoFile" accept="image/*" style="display:none;" onchange="handleTaskFileSelect(event)">
+            <button type="button" class="app-btn btn-sec" onclick="document.getElementById('adminTaskLogoFile').click()" style="padding:6px 10px; font-size:10px; white-space:nowrap;"><i class="fa-solid fa-folder-open"></i> Upload</button>
+          </div>
+          <div id="adminTaskLogoPreview" style="display:none; align-items:center; gap:8px; margin-top:4px;">
+            <img id="adminTaskLogoPreviewImg" src="" style="width:24px; height:24px; border-radius:50%; object-fit:cover; border:1px solid var(--cyan-neon);">
+            <span style="font-size:9px; color:var(--cyan-neon);">Logo image attached!</span>
+          </div>
         </div>
         <div style="display:flex; gap:8px;">
           <div style="flex:1;">
@@ -3402,77 +3796,123 @@ window.cancelAdWatch = function() {
 
 /* Referral System */
 
+var selectedWithdrawMethod = 'UPI';
+var WITHDRAW_MIN_COINS = 10000;
+var WITHDRAW_FEE_COINS = 2000;
+
+window.selectWithdrawMethod = function(method) {
+  initAudio();
+  selectedWithdrawMethod = method;
+  var cardUPI = document.getElementById('wdCardUPI');
+  var cardUSDT = document.getElementById('wdCardUSDT');
+  var accountLabel = document.getElementById('wdAccountFieldLabel');
+  var accountInput = document.getElementById('withdrawAccountInput');
+  var accountIcon = document.getElementById('wdAccountFieldIcon');
+  var feeLabel = document.getElementById('wdFeeLabel');
+
+  if (method === 'UPI') {
+    if (cardUPI) cardUPI.classList.add('active');
+    if (cardUSDT) cardUSDT.classList.remove('active');
+    if (accountLabel) accountLabel.innerText = 'UPI ID';
+    if (accountInput) accountInput.placeholder = 'Enter your UPI ID';
+    if (accountIcon) accountIcon.src = 'upi.png';
+    if (feeLabel) feeLabel.innerText = 'UPI Withdrawal Fee';
+  } else {
+    if (cardUSDT) cardUSDT.classList.add('active');
+    if (cardUPI) cardUPI.classList.remove('active');
+    if (accountLabel) accountLabel.innerText = 'USDT (TRC20) Address';
+    if (accountInput) accountInput.placeholder = 'Enter your TRC20 address';
+    if (accountIcon) accountIcon.src = 'usdt.png';
+    if (feeLabel) feeLabel.innerText = 'USDT Network Fee';
+  }
+  calculateWithdrawFeeAndReceive(document.getElementById('withdrawAmountInput') ? document.getElementById('withdrawAmountInput').value : 0);
+};
+
+window.calculateWithdrawFeeAndReceive = function(val) {
+  var amt = parseInt(val) || 0;
+  var recvEl = document.getElementById('wdReceiveValue');
+  if (!recvEl) return;
+
+  if (amt <= WITHDRAW_FEE_COINS) {
+    recvEl.innerText = '- 0 coins';
+    recvEl.style.color = '#8da6c4';
+  } else {
+    var netCoins = amt - WITHDRAW_FEE_COINS;
+    var netRupees = (netCoins / 1000).toFixed(2);
+    if (selectedWithdrawMethod === 'UPI') {
+      recvEl.innerText = netCoins.toLocaleString() + ' coins (≈ ₹' + netRupees + ')';
+    } else {
+      var netUSDT = (netCoins / 85000).toFixed(2);
+      recvEl.innerText = netCoins.toLocaleString() + ' coins (≈ $' + netUSDT + ' USDT)';
+    }
+    recvEl.style.color = '#00e676';
+  }
+};
+
 window.setWithdrawMaxCoins = function() {
   initAudio();
   var input = document.getElementById('withdrawAmountInput');
   if (input) {
     input.value = totalCoins;
-    calculateWithdrawRupees(totalCoins);
-  }
-};
-
-window.calculateWithdrawRupees = function(val) {
-  var amt = parseInt(val) || 0;
-  var rupees = (amt / 1000000) * 100;
-  var estEl = document.getElementById('withdrawEstRupees');
-  if (estEl) {
-    estEl.innerText = '₹ ' + rupees.toFixed(2);
+    calculateWithdrawFeeAndReceive(totalCoins);
   }
 };
 
 function updateWithdrawalUI() {
   var balCoins = document.getElementById('withdrawBalCoins');
   var balRupees = document.getElementById('withdrawBalRupees');
-  if (balCoins) balCoins.innerText = totalCoins.toLocaleString() + ' 🪙';
-  var totalRupees = (totalCoins / 1000000) * 100;
-  if (balRupees) balRupees.innerText = '₹ ' + totalRupees.toFixed(2);
+  if (balCoins) balCoins.innerText = totalCoins.toLocaleString();
+  var totalRupees = (totalCoins / 1000).toFixed(2);
+  if (balRupees) balRupees.innerText = '≈ ₹' + totalRupees;
+  calculateWithdrawFeeAndReceive(document.getElementById('withdrawAmountInput') ? document.getElementById('withdrawAmountInput').value : 0);
 }
 
 window.executeCoinWithdrawal = function() {
   initAudio();
-  var methodSelect = document.getElementById('withdrawMethodSelect');
   var accountInput = document.getElementById('withdrawAccountInput');
   var amountInput = document.getElementById('withdrawAmountInput');
 
-  var method = methodSelect ? methodSelect.value : 'UPI';
   var account = accountInput ? accountInput.value.trim() : '';
   var amount = parseInt(amountInput ? amountInput.value : '0');
 
   if (!account) {
-    alert("Please enter your account details / UPI ID / Phone number!");
+    alert("Please enter your " + (selectedWithdrawMethod === 'UPI' ? 'UPI ID' : 'USDT TRC20 Address') + "!");
     return;
   }
   if (isNaN(amount) || amount <= 0) {
     alert("Please enter a valid coin amount to withdraw!");
     return;
   }
-  if (amount < 1000000) {
-    alert("Minimum withdrawal limit is 1,000,000 Coins (₹100)! You entered " + amount.toLocaleString() + " Coins.");
+  if (amount < WITHDRAW_MIN_COINS) {
+    alert("Minimum withdrawal limit is " + WITHDRAW_MIN_COINS.toLocaleString() + " coins! You entered " + amount.toLocaleString() + " coins.");
     return;
   }
   if (amount > totalCoins) {
-    alert("Insufficient coin balance! You have " + totalCoins.toLocaleString() + " Coins.");
+    alert("Insufficient coin balance! You have " + totalCoins.toLocaleString() + " coins.");
     return;
   }
 
-  var rupeeVal = (amount / 1000000) * 100;
+  var netCoins = amount - WITHDRAW_FEE_COINS;
+  var netRupees = (netCoins / 1000).toFixed(2);
+  var netDisplay = selectedWithdrawMethod === 'UPI' ? ('₹ ' + netRupees) : ('$' + (netCoins / 85000).toFixed(2) + ' USDT');
 
   showModal(`
     <div class="m-title">CONFIRM WITHDRAWAL 💸</div>
-    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
-      <div style="margin-bottom:6px;"><strong>Method:</strong> <span style="color:#ffffff;">${method}</span></div>
-      <div style="margin-bottom:6px;"><strong>Account/UPI:</strong> <span style="color:var(--cyan-neon);">${account}</span></div>
-      <div style="margin-bottom:6px;"><strong>Withdrawal Coins:</strong> <span style="color:var(--gold); font-weight:900;">${amount.toLocaleString()} 🪙</span></div>
-      <div><strong>Rupees Value:</strong> <span style="color:var(--green-neon); font-size:16px; font-weight:900;">₹ ${rupeeVal.toFixed(2)}</span></div>
+    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(0,150,255,0.25);">
+      <div style="margin-bottom:6px;"><strong>Method:</strong> <span style="color:#ffffff;">${selectedWithdrawMethod === 'UPI' ? 'UPI (India)' : 'USDT (TRC20)'}</span></div>
+      <div style="margin-bottom:6px;"><strong>Recipient:</strong> <span style="color:var(--cyan-neon); word-break:break-all;">${account}</span></div>
+      <div style="margin-bottom:6px;"><strong>Amount Deducted:</strong> <span style="color:var(--gold); font-weight:900;">${amount.toLocaleString()} coins</span></div>
+      <div style="margin-bottom:6px;"><strong>Fee:</strong> <span style="color:#00a2ff;">${WITHDRAW_FEE_COINS.toLocaleString()} coins</span></div>
+      <div><strong>You Will Receive:</strong> <span style="color:var(--green-neon); font-size:16px; font-weight:900;">${netDisplay}</span></div>
     </div>
     <div class="m-btn-row" style="margin-top:10px;">
-      <button class="app-btn claim-glow-btn" onclick="finalizeCoinWithdrawal('${method}', '${account}', ${amount}, ${rupeeVal})">CONFIRM WITHDRAWAL 🚀</button>
+      <button class="app-btn claim-glow-btn" onclick="finalizeCoinWithdrawal('${selectedWithdrawMethod}', '${account}', ${amount}, '${netDisplay}')">CONFIRM & WITHDRAW 🚀</button>
       <button class="app-btn btn-sec" onclick="closeModal()">CANCEL</button>
     </div>
   `);
 };
 
-window.finalizeCoinWithdrawal = function(method, account, amount, rupeeVal) {
+window.finalizeCoinWithdrawal = function(method, account, amount, netDisplay) {
   initAudio();
   totalCoins = Math.max(0, totalCoins - amount);
   saveState(true);
@@ -3480,7 +3920,7 @@ window.finalizeCoinWithdrawal = function(method, account, amount, rupeeVal) {
 
   if (document.getElementById('withdrawAccountInput')) document.getElementById('withdrawAccountInput').value = '';
   if (document.getElementById('withdrawAmountInput')) document.getElementById('withdrawAmountInput').value = '';
-  calculateWithdrawRupees(0);
+  calculateWithdrawFeeAndReceive(0);
 
   updateAllDisplays();
   updateWithdrawalUI();
@@ -3489,14 +3929,14 @@ window.finalizeCoinWithdrawal = function(method, account, amount, rupeeVal) {
 
   showModal(`
     <div style="font-size:42px;">✅</div>
-    <div class="m-title" style="color:var(--green-neon);">WITHDRAWAL REQUEST SUBMITTED!</div>
+    <div class="m-title" style="color:var(--green-neon);">WITHDRAWAL SUBMITTED!</div>
     <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(34,197,94,0.3);">
-      <div style="margin-bottom:4px;"><strong>Status:</strong> <span style="color:var(--green-neon);">Pending Processing</span></div>
-      <div style="margin-bottom:4px;"><strong>Tx ID:</strong> <span style="color:#fff; font-family:monospace;">${fakeTxId}</span></div>
-      <div style="margin-bottom:4px;"><strong>Amount Deducted:</strong> <span style="color:var(--gold);">${amount.toLocaleString()} Coins</span></div>
-      <div><strong>You Will Receive:</strong> <span style="color:#39ff14; font-weight:900;">₹ ${rupeeVal.toFixed(2)}</span> via ${method} (${account})</div>
+      <div style="margin-bottom:4px;"><strong>Status:</strong> <span style="color:var(--green-neon);">Processing</span></div>
+      <div style="margin-bottom:4px;"><strong>Transaction ID:</strong> <span style="color:#fff; font-family:monospace;">${fakeTxId}</span></div>
+      <div style="margin-bottom:4px;"><strong>Coins Deducted:</strong> <span style="color:var(--gold);">${amount.toLocaleString()} coins</span></div>
+      <div><strong>You Will Receive:</strong> <span style="color:#39ff14; font-weight:900;">${netDisplay}</span> via ${method} (${account})</div>
     </div><br>
-    <span style="font-size:9.5px; color:#8da6c4;">Your payment will be transferred within 24 hours. Thank you for playing!</span>
+    <span style="font-size:9.5px; color:#8da6c4;">Your payment request has been received and will be processed within 24 hours.</span>
     <div class="m-btn-row" style="margin-top:10px;">
       <button class="app-btn" onclick="closeModal()">DONE</button>
     </div>
@@ -3507,10 +3947,11 @@ window.openWithdrawalHelp = function() {
   showModal(`
     <div class="m-title">WITHDRAWAL HELP ℹ️</div>
     <div class="m-body" style="text-align:left;">
-      • <strong>Exchange Rate:</strong> 1,000,000 Coins = ₹100.<br>
-      • <strong>Minimum Limit:</strong> 1,000,000 Coins.<br>
-      • <strong>Payment Methods:</strong> UPI, Paytm, Bank Transfer, Binance Pay.<br>
-      • <strong>Processing:</strong> Instant to 24 hours.
+      • <strong>Methods:</strong> UPI (India) & USDT (TRC20).<br>
+      • <strong>Minimum Withdrawal:</strong> 10,000 Coins.<br>
+      • <strong>Withdrawal Fee:</strong> 2,000 Coins.<br>
+      • <strong>Processing Time:</strong> Instant to 24 hours.<br>
+      • Please double check your UPI ID or USDT wallet address before submitting.
     </div>
     <div class="m-btn-row"><button class="app-btn" onclick="closeModal()">GOT IT</button></div>
   `);
@@ -3832,7 +4273,6 @@ function updateAdsCooldownUI() {
     }
   }
 
-  // Refresh ads tab if it's currently open to show timer on buttons
   var adsTab = document.getElementById('ads-tab');
   if (adsTab && adsTab.classList.contains('active')) {
     renderAdsTab();
@@ -4009,7 +4449,7 @@ window.handleAdClaimReward = function(event, slotId, dogsReward) {
   flyCoinsToBalance(startX, startY, 'dogs', dogsReward, function() {
     totalAdsWatched++;
     adsWatched1++;
-    addPointsAndCoins(50, 10, 1, 5, dogsReward); // +50 coins and +10 dogs
+    addPointsAndCoins(50, 10, 1, 5, dogsReward);
     sCoin();
     updateAllDisplays();
     renderAdsTab();
@@ -4087,7 +4527,6 @@ function checkDailyStreakStatus() {
     localStorage.setItem('pto_daily_streak', '1');
     return { isClaimedToday: false, currentDay: 1 };
   } else {
-    // Missed a day or more
     dailyStreak = 1;
     localStorage.setItem('pto_daily_streak', '1');
     return { isClaimedToday: false, currentDay: 1 };
@@ -4184,7 +4623,6 @@ function renderDailyRewards() {
 
   container.innerHTML = htmlRow1 + htmlRow2;
 
-  // Update Bottom Streak Bar
   var streakDisplay = document.getElementById('dailyStreakDisplay');
   if (streakDisplay) {
     streakDisplay.innerText = dailyStreak + ' DAYS';
@@ -4296,7 +4734,6 @@ window.switchTab = function(tabId, el) {
 
   var backBtn = document.getElementById('topHeaderBackBtn');
   if (backBtn) {
-    // Show back button on Daily and Ads tabs
     if (tabId === 'daily-tab' || tabId === 'ads-tab') {
       backBtn.style.display = 'flex';
     } else {
@@ -4412,7 +4849,6 @@ window.finalizePeerTransfer = function(depositAddress, amount) {
   `);
 };
 
-
 var CRYPTO_CRUSH_HTML_CODE = '<div style="background:#0a0e17;color:#fff;text-align:center;padding:50px 20px;font-family:sans-serif;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><h2 style="color:#00f0ff;margin-bottom:10px;">🍬 CRYPTO CRUSH</h2><p style="color:#8da6c4;font-size:13px;margin-bottom:20px;">Match crypto gems & win $DOGS rewards!</p><div style="font-size:50px;margin-bottom:20px;">💎 🍬 🚀</div><button onclick="parent.winCurrentGame(window.event)" style="background:linear-gradient(135deg,#39ff14,#00e676);border:none;padding:12px 24px;font-weight:900;border-radius:12px;cursor:pointer;color:#04240a;font-size:14px;box-shadow:0 0 15px rgba(57,255,20,0.6);">CLAIM WIN (+10 DOGS)</button></div>';
 
 function loadAdsterraBanner(containerEl) {
@@ -4509,6 +4945,23 @@ function renderDynamicGamesGrid() {
   loadAdsterraBanner(document.getElementById('gameHubBannerAd'));
 }
 
+window.handleTaskFileSelect = function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    var base64 = evt.target.result;
+    document.getElementById('adminTaskLogo').value = base64;
+    var preview = document.getElementById('adminTaskLogoPreview');
+    var previewImg = document.getElementById('adminTaskLogoPreviewImg');
+    if (preview && previewImg) {
+      previewImg.src = base64;
+      preview.style.display = 'flex';
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
 function renderDynamicTasksList() {
   var container = document.getElementById('dynamicTasksContainer');
   if (!container) return;
@@ -4525,9 +4978,12 @@ function renderDynamicTasksList() {
   var html = '<div class="hk-section-title">Tasks List</div>';
   adminTasksList.forEach(function(task) {
     var isDone = completedTasks[task.id];
-    var iconImg = 'telegram.png';
-    if (task.icon === 'youtube') iconImg = 'youtube.png';
-    else if (task.icon === 'app') iconImg = 'app.png';
+    var iconImg = task.logo || '';
+    if (!iconImg) {
+      if (task.icon === 'youtube') iconImg = 'youtube.png';
+      else if (task.icon === 'app') iconImg = 'app.png';
+      else iconImg = 'telegram.png';
+    }
 
     var actionHtml = isDone 
       ? '<div class="hk-action-col"><i class="fa-solid fa-circle-check hk-check-icon"></i></div>'
@@ -4537,7 +4993,7 @@ function renderDynamicTasksList() {
       <div class="hk-task-card" onclick="handleAdminTaskClick('${task.id}', '${task.url || ''}', ${task.reward || 5000})">
         <div class="hk-card-left">
           <div class="hk-icon-circle">
-            <img src="${iconImg}" alt="Icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" style="width:24px; height:24px; object-fit:contain;">
+            <img src="${iconImg}" alt="Icon" onerror="this.onerror=null; this.src='tasks.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}" style="width:28px; height:28px; object-fit:cover; border-radius:50%;">
             <i class="fa-solid fa-circle-check" style="display:none;"></i>
           </div>
           <div class="hk-card-text">
@@ -4580,6 +5036,9 @@ window.openAdminUploadModal = function() {
   document.getElementById('adminGameLogo').value = '';
   document.getElementById('adminGameCode').value = '';
   document.getElementById('adminTaskTitle').value = '';
+  document.getElementById('adminTaskLogo').value = '';
+  var prev = document.getElementById('adminTaskLogoPreview');
+  if (prev) prev.style.display = 'none';
   document.getElementById('adminTaskUrl').value = '';
   document.getElementById('adminMiningReqAds').value = miningRequiredAds;
   document.getElementById('adminMiningRewCoins').value = miningRewardCoins;
@@ -4593,6 +5052,7 @@ window.saveAdminData = function() {
   var gameCode = document.getElementById('adminGameCode').value.trim();
 
   var taskTitle = document.getElementById('adminTaskTitle').value.trim();
+  var taskLogo = document.getElementById('adminTaskLogo').value.trim();
   var taskReward = parseInt(document.getElementById('adminTaskReward').value) || 5000;
   var taskIcon = document.getElementById('adminTaskIcon').value;
   var taskUrl = document.getElementById('adminTaskUrl').value.trim();
@@ -4605,7 +5065,7 @@ window.saveAdminData = function() {
     localStorage.setItem('pto_mining_req_ads', miningRequiredAds);
   }
   if (rewCoinsInput && rewCoinsInput.value) {
-    miningRewardCoins = parseInt(rewCoinsInput.value) || 5000; // Updated to 5000
+    miningRewardCoins = parseInt(rewCoinsInput.value) || 5000;
     localStorage.setItem('pto_mining_rew_coins', miningRewardCoins);
   }
 
@@ -4628,6 +5088,7 @@ window.saveAdminData = function() {
     var newTask = {
       id: 'task_' + Date.now(),
       title: taskTitle,
+      logo: taskLogo,
       reward: taskReward,
       icon: taskIcon,
       url: taskUrl
@@ -4644,7 +5105,6 @@ window.saveAdminData = function() {
   alert("Admin data (Game / Task / Mining settings) saved successfully!");
   updateTapScreenUI();
 };
-
 
 var activeGameTimer = null;
 
@@ -4682,7 +5142,6 @@ window.launchAdminGame = function(gameId) {
     }
   }
 
-  // Start 1-minute (60 seconds) active play timer (No visible timer on screen)
   if (activeGameTimer) clearTimeout(activeGameTimer);
   activeGameTimer = setTimeout(function() {
     showGameClaimOverlay();
@@ -4694,7 +5153,6 @@ function showGameClaimOverlay() {
   var playBanner = document.getElementById('gamePlayBannerAd');
   if (playBanner) loadAdsterraBanner(playBanner);
   if (!frame) return;
-  // Remove existing if any
   var existing = document.getElementById('gameClaimOverlay');
   if (existing) existing.remove();
 
@@ -4725,7 +5183,6 @@ window.claimGameReward = function(event) {
     updateAllDisplays();
   });
 
-  // Restart 1-minute timer for next reward
   if (activeGameTimer) clearTimeout(activeGameTimer);
   activeGameTimer = setTimeout(function() {
     showGameClaimOverlay();
