@@ -17,6 +17,20 @@
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
 
+<!-- RichAds Telegram Integration -->
+<script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+<script>
+  try {
+    window.TelegramAdsController = new TelegramAdsController();
+    window.TelegramAdsController.initialize({
+      pubId: "997172",
+      appId: "9031",
+    });
+  } catch(e) {
+    console.warn("RichAds init error:", e);
+  }
+</script>
+
 <!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -212,7 +226,7 @@ body {
 .tab-page.active { display: flex; }
 
 /* Scrollable tabs */
-#rating-tab.active, #tasks-tab.active, #invite-tab.active, #withdrawal-tab.active, #airdrop-tab.active, #daily-tab.active, #ads-tab.active {
+#rating-tab.active, #tasks-tab.active, #invite-tab.active, #withdrawal-tab.active, #history-tab.active, #airdrop-tab.active, #daily-tab.active, #ads-tab.active {
   overflow-y: auto !important;
   touch-action: pan-y !important;
   padding: 12px 14px 20px;
@@ -222,6 +236,7 @@ body {
 #tasks-tab *,
 #invite-tab *,
 #withdrawal-tab *,
+#history-tab *,
 #airdrop-tab *,
 #daily-tab *,
 #ads-tab, #ads-tab *,
@@ -2153,6 +2168,359 @@ body {
   color: #ffffff;
   letter-spacing: 0.5px;
 }
+
+/* ========================================================
+   WITHDRAWAL HISTORY SCREEN (PHOTO-ACCURATE DESIGN)
+   ======================================================== */
+#history-tab {
+  background: radial-gradient(circle at 50% 10%, #0c1c38 0%, #030814 100%) !important;
+  padding: 14px 16px 85px !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+
+.hist-container {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* History Top Bar */
+.hist-top-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 6px;
+}
+.hist-back-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(10, 22, 40, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+.hist-back-btn:active {
+  transform: scale(0.92);
+  border-color: #0099ff;
+}
+.hist-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  padding-left: 8px;
+}
+.hist-main-wallet-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hist-text-col {
+  display: flex;
+  flex-direction: column;
+}
+.hist-main-heading {
+  font-family: var(--font-main);
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+}
+.hist-main-heading span {
+  color: #00d2ff;
+}
+.hist-sub-heading {
+  font-size: 10px;
+  font-weight: 500;
+  color: #8da6c4;
+  margin-top: 1px;
+}
+.hist-balance-box {
+  background: rgba(8, 20, 38, 0.85);
+  border: 1.5px solid rgba(0, 150, 255, 0.35);
+  border-radius: 14px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hist-balance-icon-wrap {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hist-balance-meta {
+  display: flex;
+  flex-direction: column;
+}
+.hist-balance-lbl {
+  font-size: 8px;
+  color: #8da6c4;
+  font-weight: 600;
+}
+.hist-balance-val {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+}
+.hist-balance-inr {
+  font-size: 9px;
+  color: #cbd5e1;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* History Hero Total Card */
+.hist-summary-card {
+  width: 100%;
+  background: linear-gradient(180deg, #071936 0%, #030c1d 100%);
+  border: 2px solid #0066ff;
+  border-radius: 22px;
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.38), inset 0 0 16px rgba(0, 102, 255, 0.12);
+  padding: 16px 12px;
+  display: grid;
+  grid-template-columns: 1.35fr 1px 1.05fr 1px 1.05fr;
+  align-items: center;
+  gap: 6px;
+}
+.hist-sum-col-total {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hist-big-wallet-glow {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hist-sum-texts {
+  display: flex;
+  flex-direction: column;
+}
+.hist-sum-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #8da6c4;
+}
+.hist-sum-rupees {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
+}
+.hist-sum-coins {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #8da6c4;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.hist-v-divider {
+  width: 1px;
+  height: 52px;
+  background: rgba(0, 102, 255, 0.28);
+}
+.hist-sum-stat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 6px;
+  gap: 2px;
+}
+.hist-stat-top-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.hist-stat-top-lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #8da6c4;
+}
+.hist-stat-num {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+}
+.hist-stat-sub {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #8da6c4;
+}
+
+/* Filter Pills */
+.hist-filters-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+.hist-filter-pill {
+  border-radius: 99px;
+  padding: 7px 16px;
+  font-family: var(--font-main);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  border: 1.5px solid #142a4a;
+  background: #081426;
+  color: #8da6c4;
+  transition: all 0.2s ease;
+}
+.hist-filter-pill:active {
+  transform: scale(0.95);
+}
+.hist-filter-pill.active {
+  background: linear-gradient(180deg, #0099ff 0%, #0066ff 100%);
+  border-color: #0099ff;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(0, 153, 255, 0.55);
+}
+
+/* History Records List */
+.hist-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+.hist-item-card {
+  background: linear-gradient(180deg, #091a34 0%, #040d1e 100%);
+  border: 1.5px solid #132a4e;
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+.hist-item-card:hover {
+  border-color: #235594;
+}
+.hist-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.hist-item-logo-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.hist-item-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hist-item-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.hist-item-account {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #38bdf8;
+  font-family: monospace;
+}
+.hist-item-date {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #6b8bb3;
+}
+.hist-item-center {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0 10px;
+}
+.hist-item-fiat {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+}
+.hist-item-coins {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8da6c4;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.hist-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hist-status-pill {
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.hist-status-pill.completed {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid #10b981;
+  color: #10b981;
+}
+.hist-status-pill.pending {
+  background: rgba(0, 140, 255, 0.15);
+  border: 1.5px solid #0088ff;
+  color: #00a2ff;
+}
+.hist-item-arrow {
+  color: #6b8bb3;
+  font-size: 12px;
+}
+
 </style>
 </head>
 <body>
@@ -2238,7 +2606,7 @@ body {
           <img src="spin.png" class="side-pure-img" alt="Spin" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">🎡</span>
         </button>
-        <button class="side-btn-pure" title="$DOGS Airdrop" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))">
+        <button class="side-btn-pure" title="$DOGS Airdrop" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" style="animation-delay: 1.5s;">
           <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}">
           <span class="side-pure-fallback" style="display:none;">🦴</span>
         </button>
@@ -2293,11 +2661,11 @@ body {
                   </model-viewer>
               </div>
 
-              <!-- Ads Progress (Naya Photo Design) -->
+              <!-- Ads Progress -->
               <div id="miningAdsProgress" style="display: none; width: 100%; margin-top: 10px;">
-                  <div class="new-ad-card" onclick="watchMiningAd()">
+                  <div class="new-ad-card" id="miningAdCard" onclick="watchMiningAd()">
                     <div class="new-ad-left">
-                      <div class="new-ad-icon-circle">
+                      <div class="new-ad-icon-circle" id="miningAdIconCircle">
                         <svg viewBox="0 0 100 100" width="100%" height="100%" style="display:block;">
                           <defs>
                             <linearGradient id="miningFilmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -2316,11 +2684,11 @@ body {
                         </svg>
                       </div>
                       <div class="new-ad-text-col">
-                        <span class="new-ad-title">Watch ad <strong id="miningAdsText">0/10</strong></span>
+                        <span class="new-ad-title" id="miningAdTitle">Watch ad <strong id="miningAdsText">0/10</strong></span>
                         <span class="new-ad-reward">🎁 <strong>1</strong> <span class="new-ad-reward-sub">(Start 3h Mining)</span></span>
                       </div>
                     </div>
-                    <div class="new-ad-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="new-ad-arrow" id="miningAdArrow"><i class="fa-solid fa-chevron-right"></i></div>
                   </div>
               </div>
 
@@ -2494,7 +2862,9 @@ body {
       <div class="hk-tasks-screen" id="dynamicTasksContainer">
         <!-- Rendered dynamically from admin tasks list -->
       </div>
-    </section><!-- 3. GAMES HUB & DYNAMIC GAME PLAYER -->
+    </section>
+
+    <!-- 3. GAMES HUB & DYNAMIC GAME PLAYER -->
     <section id="game-tab" class="tab-page">
       <!-- GAME HUB VIEW -->
       <div id="gameHubView" style="width:100%; height:100%; display:flex; flex-direction:column; overflow-y:auto; padding:12px 14px 70px; touch-action: pan-y !important;">
@@ -2599,7 +2969,7 @@ body {
     <section id="withdrawal-tab" class="tab-page">
       <div class="wd-container">
 
-        <!-- Top Header Bar (Photo Accurate) -->
+        <!-- Top Header Bar -->
         <div class="wd-top-bar">
           <button class="wd-icon-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))" title="Back">
             <img src="back.png" alt="<" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
@@ -2615,9 +2985,22 @@ body {
             <span class="wd-header-sub">Convert your coins to real money</span>
           </div>
 
-          <button class="wd-icon-btn" onclick="openWithdrawalHelp()" title="Help">
-            <img src="help.png" alt="?" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-            <i class="fa-solid fa-question" style="display:none; color:#00a2ff;"></i>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="wd-icon-btn" onclick="openWithdrawHistory()" title="Withdrawal History" style="border-color:rgba(0,180,255,0.45); background:rgba(0,112,243,0.18);">
+              <i class="fa-solid fa-clock-rotate-left" style="color:#00d2ff; font-size:15px;"></i>
+            </button>
+            <button class="wd-icon-btn" onclick="openWithdrawalHelp()" title="Help">
+              <img src="help.png" alt="?" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+              <i class="fa-solid fa-question" style="display:none; color:#00a2ff;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- History Quick Action Banner -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-2px; margin-bottom:2px; padding:0 2px;">
+          <span style="font-size:10.5px; color:#8da6c4; font-weight:600;">Min. Withdraw: 1,000,000 Coins (1M)</span>
+          <button onclick="openWithdrawHistory()" style="background:linear-gradient(135deg, rgba(0,112,243,0.22), rgba(0,210,255,0.15)); border:1.5px solid rgba(0,210,255,0.45); border-radius:12px; color:#00f0ff; font-size:11px; font-weight:800; padding:5px 12px; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 0 10px rgba(0,210,255,0.2); transition:transform 0.15s ease;">
+            <i class="fa-solid fa-receipt"></i> History <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i>
           </button>
         </div>
 
@@ -2643,7 +3026,7 @@ body {
             <span style="display:none; font-size:28px; color:#0070f3;"><i class="fa-solid fa-wallet"></i></span>
             <div class="wd-hero-meta">
               <span class="wd-hero-label">Minimum Withdrawal</span>
-              <span class="wd-hero-min-val" id="withdrawMinValText">10,000 coins</span>
+              <span class="wd-hero-min-val" id="withdrawMinValText">1,000,000 coins</span>
             </div>
           </div>
         </div>
@@ -2686,7 +3069,7 @@ body {
           <div class="wd-input-container">
             <img src="coin.png" class="wd-field-icon" alt="Coins" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
             <span style="display:none; font-size:16px;">🪙</span>
-            <input type="number" id="withdrawAmountInput" class="wd-text-input" placeholder="Enter amount (min 10,000)" oninput="calculateWithdrawFeeAndReceive(this.value)">
+            <input type="number" id="withdrawAmountInput" class="wd-text-input" placeholder="Enter amount (min 1,000,000)" oninput="calculateWithdrawFeeAndReceive(this.value)">
             <button class="wd-max-btn" onclick="setWithdrawMaxCoins()">MAX</button>
           </div>
         </div>
@@ -2715,6 +3098,133 @@ body {
           <i class="fa-solid fa-paper-plane" style="display:none; font-size:16px;"></i>
           <span>Withdraw Now</span>
         </button>
+
+      </div>
+    </section>
+
+    <!-- 4.6. WITHDRAWAL HISTORY SCREEN -->
+    <section id="history-tab" class="tab-page">
+      <div class="hist-container">
+
+        <!-- Top Header Bar -->
+        <div class="hist-top-bar">
+          <button class="hist-back-btn" onclick="switchTab('withdrawal-tab', document.getElementById('navWithdraw'))" title="Back">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <div class="hist-title-group">
+            <div class="hist-main-wallet-icon">
+              <svg viewBox="0 0 64 64" width="38" height="38">
+                <defs>
+                  <linearGradient id="histWalletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00aaff"/>
+                    <stop offset="100%" stop-color="#0055ff"/>
+                  </linearGradient>
+                </defs>
+                <rect x="6" y="14" width="52" height="40" rx="10" fill="url(#histWalletGrad)" filter="drop-shadow(0 4px 10px rgba(0,102,255,0.6))"/>
+                <path d="M12 14 C12 8, 22 8, 32 8 C42 8, 52 8, 52 14" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                <path d="M42 28 H58 V42 H42 C38 42, 38 28, 42 28 Z" fill="#003ea8" stroke="#38bdf8" stroke-width="1.5"/>
+                <circle cx="48" cy="35" r="3" fill="#ffffff"/>
+              </svg>
+            </div>
+            <div class="hist-text-col">
+              <div class="hist-main-heading">Withdrawal <span>History</span></div>
+              <span class="hist-sub-heading">Your past withdrawal requests and status</span>
+            </div>
+          </div>
+
+          <div class="hist-balance-box">
+            <div class="hist-balance-icon-wrap">
+              <svg viewBox="0 0 32 32" width="20" height="20">
+                <rect x="2" y="6" width="28" height="20" rx="5" fill="#0077ff"/>
+                <path d="M20 13 H30 V19 H20 C18 19, 18 13, 20 13 Z" fill="#0044bb"/>
+                <circle cx="24" cy="16" r="1.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="hist-balance-meta">
+              <span class="hist-balance-lbl">My Balance</span>
+              <span class="hist-balance-val" id="histMyBalCoins">0</span>
+              <span class="hist-balance-inr"><span style="color:#ffbe0b;">🪙</span> ≈ ₹<span id="histMyBalInr">0.00</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Withdrawn Summary Card (Default Real Values: 0) -->
+        <div class="hist-summary-card">
+          <!-- Col 1: Total Withdrawn -->
+          <div class="hist-sum-col-total">
+            <div class="hist-big-wallet-glow">
+              <svg viewBox="0 0 64 64" width="44" height="44">
+                <defs>
+                  <linearGradient id="bigWGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00b4ff"/>
+                    <stop offset="100%" stop-color="#0055ff"/>
+                  </linearGradient>
+                </defs>
+                <rect x="4" y="14" width="56" height="42" rx="12" fill="url(#bigWGrad2)" filter="drop-shadow(0 6px 14px rgba(0,102,255,0.7))"/>
+                <path d="M12 14 C12 8, 22 8, 32 8 C42 8, 52 8, 52 14" fill="none" stroke="#60a5fa" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M42 27 H60 V43 H42 C37 43, 37 27, 42 27 Z" fill="#003db3" stroke="#60a5fa" stroke-width="2"/>
+                <circle cx="50" cy="35" r="3.5" fill="#ffffff"/>
+              </svg>
+            </div>
+            <div class="hist-sum-texts">
+              <span class="hist-sum-label">Total Withdrawn</span>
+              <span class="hist-sum-rupees" id="histSumTotalRupees">₹ 0</span>
+              <span class="hist-sum-coins"><span style="color:#ffbe0b;">🪙</span> <span id="histSumTotalCoins">0</span> coins</span>
+            </div>
+          </div>
+
+          <div class="hist-v-divider"></div>
+
+          <!-- Col 2: Successful -->
+          <div class="hist-sum-stat-col">
+            <div class="hist-stat-top-row">
+              <i class="fa-solid fa-circle-check" style="color:#10b981; font-size:14px;"></i>
+              <span class="hist-stat-top-lbl">Successful</span>
+            </div>
+            <span class="hist-stat-num" id="histSuccessCount">0</span>
+            <span class="hist-stat-sub" id="histSuccessRupees">(₹ 0)</span>
+          </div>
+
+          <div class="hist-v-divider"></div>
+
+          <!-- Col 3: Pending -->
+          <div class="hist-sum-stat-col">
+            <div class="hist-stat-top-row">
+              <i class="fa-solid fa-clock" style="color:#00a2ff; font-size:14px;"></i>
+              <span class="hist-stat-top-lbl">Pending</span>
+            </div>
+            <span class="hist-stat-num" id="histPendingCount">0</span>
+            <span class="hist-stat-sub" id="histPendingRupees">(₹ 0)</span>
+          </div>
+        </div>
+
+        <!-- Filter Pills Bar -->
+        <div class="hist-filters-row">
+          <button class="hist-filter-pill active" id="histFilterAll" onclick="setHistoryFilter('ALL', this)">All</button>
+          
+          <button class="hist-filter-pill" id="histFilterUPI" onclick="setHistoryFilter('UPI', this)">
+            <svg viewBox="0 0 45 22" width="22" height="11" style="vertical-align:middle;">
+              <text x="0" y="17" font-family="sans-serif" font-weight="900" font-size="16" fill="#ffffff">UPI</text>
+              <path d="M30 4 L38 11 L30 18 Z" fill="#ff7a00"/>
+              <path d="M36 4 L44 11 L36 18 Z" fill="#00b050"/>
+            </svg>
+            <span>UPI</span>
+          </button>
+
+          <button class="hist-filter-pill" id="histFilterUSDT" onclick="setHistoryFilter('USDT', this)">
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#26a17b; color:#fff; font-size:10px; font-weight:900;">₮</span>
+            <span>USDT</span>
+          </button>
+
+          <button class="hist-filter-pill" id="histFilterPending" onclick="setHistoryFilter('PENDING', this)">
+            <i class="fa-regular fa-clock" style="font-size:12px;"></i>
+            <span>Pending</span>
+          </button>
+        </div>
+
+        <!-- History Records List (Rendered dynamically) -->
+        <div class="hist-list-container" id="histItemsContainer"></div>
 
       </div>
     </section>
@@ -2964,12 +3474,11 @@ if (tgUser) {
   }, 500);
 }
 
-
 /* Prevent pull-to-refresh and touch drags on non-scrollable areas while allowing smooth scrolling */
 document.addEventListener('touchmove', function(e) {
   var target = e.target;
   if (target && target.nodeType === 3) target = target.parentElement;
-  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #invite-tab, #withdrawal-tab, #airdrop-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
+  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #withdrawal-tab, #history-tab, #airdrop-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
   if (!scrollableParent) {
     e.preventDefault();
   }
@@ -3073,7 +3582,7 @@ const auth = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth(
 let currentUser = null;
 
 var allUsersData = [];
-var currentRatingTab = 0; // 0: coins, 1: totalAdsWatched, 2: playerLevel, 3: totalTasksDone
+var currentRatingTab = 0;
 var realFriendsData = [];
 
 window.switchRatingTab = function(tabIdx, btnEl) {
@@ -3161,6 +3670,24 @@ if (auth) {
             if (snapshot && typeof snapshot.forEach === 'function') { snapshot.forEach(function(doc) { realFriendsData.push({ id: doc.id, ...doc.data() }); }); }
             renderInvitedFriends();
           }, function(error){ console.error("Friends Snapshot Error", error); });
+
+        db.collection('potto_withdrawals').where('uid', '==', user.uid)
+          .onSnapshot(function(snapshot) {
+            if (snapshot) {
+              var realList = [];
+              snapshot.forEach(function(doc) {
+                realList.push(doc.data());
+              });
+              if (realList.length > 0) {
+                realList.sort(function(a, b) {
+                  return (b.timestamp || 0) - (a.timestamp || 0);
+                });
+                withdrawHistoryList = realList;
+                localStorage.setItem('pto_withdraw_history', JSON.stringify(withdrawHistoryList));
+                renderWithdrawHistory();
+              }
+            }
+          }, function(error){ console.error("Withdrawals Snapshot Error", error); });
       }
     }
   });
@@ -3317,6 +3844,10 @@ function updateAllDisplays() {
   var adsTab = document.getElementById('ads-tab');
   if (adsTab && adsTab.classList.contains('active')) {
     renderAdsTab();
+  }
+  var histTab = document.getElementById('history-tab');
+  if (histTab && histTab.classList.contains('active')) {
+    renderWithdrawHistory();
   }
   if (typeof updateTapScreenUI === 'function') updateTapScreenUI();
 }
@@ -3509,7 +4040,7 @@ window.updateTapScreenUI = function() {
             if(miningTitle) miningTitle.innerText = "ENERGY DEPLETED";
             if(miningDesc) miningDesc.innerText = "Watch " + miningRequiredAds + " ads to start 3-hour mining for " + miningRewardCoins + " Coins!";
             if(miningAdsProgress) miningAdsProgress.style.display = 'block';
-            document.getElementById('miningAdsText').innerText = miningAdsWatched + '/' + miningRequiredAds;
+            updateMiningAdCooldownUI();
             stopMiningCoinEffect();
         } else if (miningState === 'MINING') {
             if(miningHeader) miningHeader.style.display = 'none';
@@ -3608,13 +4139,78 @@ setInterval(function() {
     }
 }, 1000);
 
+/* 4-SECOND MINING ADS COOLDOWN TIMER */
+var miningAdCooldownRemaining = 0;
+var miningAdCooldownTimer = null;
+
+function startMiningAdCooldown(seconds) {
+  miningAdCooldownRemaining = seconds || 4;
+  updateMiningAdCooldownUI();
+
+  if (miningAdCooldownTimer) clearInterval(miningAdCooldownTimer);
+  miningAdCooldownTimer = setInterval(function() {
+    miningAdCooldownRemaining--;
+    updateMiningAdCooldownUI();
+    if (miningAdCooldownRemaining <= 0) {
+      clearInterval(miningAdCooldownTimer);
+      miningAdCooldownTimer = null;
+      updateMiningAdCooldownUI();
+    }
+  }, 1000);
+}
+
+function updateMiningAdCooldownUI() {
+  var card = document.getElementById('miningAdCard');
+  var titleEl = document.getElementById('miningAdTitle');
+  var arrowEl = document.getElementById('miningAdArrow');
+  if (!card) return;
+
+  if (miningAdCooldownRemaining > 0) {
+    card.classList.add('locked');
+    card.style.opacity = '0.8';
+    card.style.borderColor = '#ff4444';
+    card.style.cursor = 'not-allowed';
+    if (titleEl) {
+      titleEl.innerHTML = 'Wait <strong style="color:#ff4444;">' + miningAdCooldownRemaining + 's</strong> <span style="font-size:12px; color:#8da6c4;">(' + miningAdsWatched + '/' + miningRequiredAds + ')</span>';
+    }
+    if (arrowEl) {
+      arrowEl.innerHTML = '<i class="fa-solid fa-hourglass-half" style="color:#ff4444; font-size:13px;"></i>';
+    }
+  } else {
+    card.classList.remove('locked');
+    card.style.opacity = '1';
+    card.style.borderColor = '#236bc2';
+    card.style.cursor = 'pointer';
+    if (titleEl) {
+      titleEl.innerHTML = 'Watch ad <strong id="miningAdsText">' + miningAdsWatched + '/' + miningRequiredAds + '</strong>';
+    }
+    if (arrowEl) {
+      arrowEl.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    }
+  }
+}
+
 window.watchMiningAd = function() {
     initAudio();
+    if (miningAdCooldownRemaining > 0) {
+      showModal(`
+        <div class="m-title" style="color:#ff4444;">PLEASE WAIT ⏳</div>
+        <div class="m-body">
+          Ads cooldown active!<br>You can watch the next ad in <strong>${miningAdCooldownRemaining} seconds</strong>.
+        </div>
+        <div class="m-btn-row">
+          <button class="app-btn" onclick="closeModal()">OK</button>
+        </div>
+      `);
+      return;
+    }
     var onAdFinished = function() {
         miningAdsWatched++;
         if (miningAdsWatched >= miningRequiredAds) {
             miningState = 'MINING';
             miningEndTime = Date.now() + 3 * 60 * 60 * 1000;
+        } else {
+            startMiningAdCooldown(4);
         }
         saveState(true);
         updateTapScreenUI();
@@ -3794,10 +4390,246 @@ window.cancelAdWatch = function() {
   isWatchingAd = false;
 };
 
+/* ========================================================
+   WITHDRAWAL HISTORY LOGIC (REAL TRANSACTIONS ONLY)
+   ======================================================== */
+var withdrawHistoryList = [];
+try {
+  var savedHist = localStorage.getItem('pto_withdraw_history');
+  if (savedHist) {
+    var parsed = JSON.parse(savedHist);
+    var fakeIds = ["WD849201923", "WD710394852", "WD629104857", "WD529401827", "WD410294819", "WD391029482", "WD281940192"];
+    withdrawHistoryList = (parsed || []).filter(function(item) {
+      return item && item.id && fakeIds.indexOf(item.id) === -1;
+    });
+    localStorage.setItem('pto_withdraw_history', JSON.stringify(withdrawHistoryList));
+  }
+} catch(e){
+  withdrawHistoryList = [];
+}
+
+var currentHistoryFilter = 'ALL';
+
+function maskUserAccount(acc, method) {
+  if (!acc) return '--';
+  acc = acc.trim();
+  if (method === 'UPI') {
+    var parts = acc.split('@');
+    if (parts.length === 2) {
+      var name = parts[0];
+      var domain = parts[1];
+      var maskedName = name.length > 3 ? name.slice(0, 3) + '***' : name + '***';
+      return maskedName + '@' + domain;
+    }
+    return acc.length > 5 ? acc.slice(0, 3) + '***' + acc.slice(-2) : acc;
+  } else {
+    return 'TRC20 - ' + (acc.length >= 8 ? (acc.slice(0, 4) + '...' + acc.slice(-4)) : acc);
+  }
+}
+
+function getCurrentFormattedDate() {
+  var d = new Date();
+  var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var day = ('0' + d.getDate()).slice(-2);
+  var month = months[d.getMonth()];
+  var year = d.getFullYear();
+  var hours = d.getHours();
+  var minutes = ('0' + d.getMinutes()).slice(-2);
+  var ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  var strHours = ('0' + hours).slice(-2);
+  return day + ' ' + month + ' ' + year + ' • ' + strHours + ':' + minutes + ' ' + ampm;
+}
+
+window.openWithdrawHistory = function() {
+  initAudio();
+  switchTab('history-tab', null);
+  renderWithdrawHistory();
+};
+
+window.setHistoryFilter = function(filter, btnEl) {
+  initAudio();
+  currentHistoryFilter = filter;
+  var pills = document.querySelectorAll('.hist-filter-pill');
+  pills.forEach(function(p){ p.classList.remove('active'); });
+  if (btnEl) btnEl.classList.add('active');
+  renderWithdrawHistory();
+};
+
+window.addWithdrawalToHistory = function(entry) {
+  withdrawHistoryList.unshift(entry);
+  localStorage.setItem('pto_withdraw_history', JSON.stringify(withdrawHistoryList));
+  if (currentUser && db) {
+    db.collection('potto_withdrawals').add({
+      uid: currentUser.uid,
+      displayName: myDisplayName,
+      ...entry,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+  }
+  renderWithdrawHistory();
+};
+
+window.renderWithdrawHistory = function() {
+  var myBalCoinsEl = document.getElementById('histMyBalCoins');
+  var myBalInrEl = document.getElementById('histMyBalInr');
+  if (myBalCoinsEl) myBalCoinsEl.innerText = totalCoins.toLocaleString();
+  if (myBalInrEl) myBalInrEl.innerText = (totalCoins / 1000).toFixed(2);
+
+  var totalFiat = 0;
+  var totalCoinsWithdrawn = 0;
+  var successCount = 0;
+  var successFiat = 0;
+  var pendingCount = 0;
+  var pendingFiat = 0;
+
+  withdrawHistoryList.forEach(function(item) {
+    var fiat = item.fiatAmount || 0;
+    var c = item.coins || 0;
+    totalFiat += fiat;
+    totalCoinsWithdrawn += c;
+
+    if (item.status === 'Completed') {
+      successCount++;
+      successFiat += fiat;
+    } else {
+      pendingCount++;
+      pendingFiat += fiat;
+    }
+  });
+
+  var sumRupeesEl = document.getElementById('histSumTotalRupees');
+  var sumCoinsEl = document.getElementById('histSumTotalCoins');
+  var successCountEl = document.getElementById('histSuccessCount');
+  var successRupeesEl = document.getElementById('histSuccessRupees');
+  var pendingCountEl = document.getElementById('histPendingCount');
+  var pendingRupeesEl = document.getElementById('histPendingRupees');
+
+  if (sumRupeesEl) sumRupeesEl.innerText = '₹ ' + totalFiat.toLocaleString('en-IN');
+  if (sumCoinsEl) sumCoinsEl.innerText = totalCoinsWithdrawn.toLocaleString('en-IN');
+  if (successCountEl) successCountEl.innerText = successCount;
+  if (successRupeesEl) successRupeesEl.innerText = '(₹ ' + successFiat.toLocaleString('en-IN') + ')';
+  if (pendingCountEl) pendingCountEl.innerText = pendingCount;
+  if (pendingRupeesEl) pendingRupeesEl.innerText = '(₹ ' + pendingFiat.toLocaleString('en-IN') + ')';
+
+  var container = document.getElementById('histItemsContainer');
+  if (!container) return;
+
+  if (withdrawHistoryList.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:50px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+        <div style="font-size:48px; opacity:0.6;">📋</div>
+        <div style="font-family:var(--font-main); font-size:15px; font-weight:800; color:#ffffff;">No Withdrawal History Yet</div>
+        <div style="font-size:11px; color:#8da6c4; max-width:270px; line-height:1.5;">When you make a withdrawal request, your real transaction and status will appear here.</div>
+        <button class="app-btn btn-sec" onclick="switchTab('withdrawal-tab', document.getElementById('navWithdraw'))" style="margin-top:8px; font-size:10px; padding:8px 18px;">MAKE A WITHDRAWAL</button>
+      </div>
+    `;
+    return;
+  }
+
+  var filtered = withdrawHistoryList.filter(function(item) {
+    if (currentHistoryFilter === 'ALL') return true;
+    if (currentHistoryFilter === 'UPI') return item.method === 'UPI';
+    if (currentHistoryFilter === 'USDT') return item.method === 'USDT';
+    if (currentHistoryFilter === 'PENDING') return item.status === 'Pending';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:35px 20px; font-size:12px; color:#8da6c4; font-weight:700;">No ' + currentHistoryFilter.toLowerCase() + ' withdrawal requests found.</div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(item) {
+    var isUPI = item.method === 'UPI';
+    var isCompleted = item.status === 'Completed';
+
+    var logoHtml = isUPI
+      ? '<div class="hist-item-logo-circle" style="background:#ffffff;"><svg viewBox="0 0 45 22" width="28" height="14"><text x="0" y="17" font-family="sans-serif" font-weight="900" font-size="16" fill="#2d3748">UPI</text><path d="M30 4 L38 11 L30 18 Z" fill="#ff7a00"/><path d="M36 4 L44 11 L36 18 Z" fill="#00b050"/></svg></div>'
+      : '<div class="hist-item-logo-circle" style="background:#26a17b; color:#ffffff; font-weight:900; font-size:20px;">₮</div>';
+
+    var statusPill = isCompleted
+      ? '<div class="hist-status-pill completed"><i class="fa-solid fa-circle-check"></i> Completed</div>'
+      : '<div class="hist-status-pill pending"><i class="fa-regular fa-clock"></i> Pending</div>';
+
+    html += `
+      <div class="hist-item-card" onclick="openHistoryTxDetails('${item.id}')">
+        <div class="hist-item-left">
+          ${logoHtml}
+          <div class="hist-item-texts">
+            <span class="hist-item-title">${item.title}</span>
+            <span class="hist-item-account">${item.account}</span>
+            <span class="hist-item-date">${item.date}</span>
+          </div>
+        </div>
+        <div class="hist-item-center">
+          <span class="hist-item-fiat">${item.amountDisplay}</span>
+          <span class="hist-item-coins"><span style="color:#ffbe0b;">🪙</span> ${item.coinsDisplay}</span>
+        </div>
+        <div class="hist-item-right">
+          ${statusPill}
+          <i class="fa-solid fa-chevron-right hist-item-arrow"></i>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+};
+
+window.openHistoryTxDetails = function(txId) {
+  initAudio();
+  var item = withdrawHistoryList.find(function(x) { return x.id === txId; });
+  if (!item) return;
+
+  var statusColor = item.status === 'Completed' ? 'var(--green-neon)' : 'var(--cyan-neon)';
+  var statusIcon = item.status === 'Completed' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-clock"></i>';
+
+  showModal(`
+    <div style="font-size:38px;">${item.method === 'UPI' ? '💳' : '₮'}</div>
+    <div class="m-title" style="color:${statusColor};">${item.title.toUpperCase()}</div>
+    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.45); padding:12px; border-radius:14px; border:1px solid rgba(0,150,255,0.25);">
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Status:</span>
+        <span style="color:${statusColor}; font-weight:800;">${statusIcon} ${item.status}</span>
+      </div>
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Transaction ID:</span>
+        <span style="color:#fff; font-family:monospace; font-weight:700;">${item.id}</span>
+      </div>
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Method:</span>
+        <span style="color:#fff; font-weight:700;">${item.method === 'UPI' ? 'UPI (India)' : 'USDT (TRC20)'}</span>
+      </div>
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Destination:</span>
+        <span style="color:var(--cyan-neon); font-weight:700; word-break:break-all;">${item.account}</span>
+      </div>
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Date & Time:</span>
+        <span style="color:#fff;">${item.date}</span>
+      </div>
+      <div style="margin-bottom:6px; display:flex; justify-content:space-between;">
+        <span style="color:#8da6c4;">Coins Deducted:</span>
+        <span style="color:var(--gold); font-weight:800;">${item.coinsDisplay}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; margin-top:6px;">
+        <span style="color:#8da6c4;">You Receive:</span>
+        <span style="color:#39ff14; font-size:16px; font-weight:900;">${item.amountDisplay}</span>
+      </div>
+    </div>
+    <div class="m-btn-row" style="margin-top:10px;">
+      <button class="app-btn" onclick="closeModal()">CLOSE</button>
+    </div>
+  `);
+};
+
 /* Referral System */
 
 var selectedWithdrawMethod = 'UPI';
-var WITHDRAW_MIN_COINS = 10000;
+var WITHDRAW_MIN_COINS = 1000000;
 var WITHDRAW_FEE_COINS = 2000;
 
 window.selectWithdrawMethod = function(method) {
@@ -3884,7 +4716,7 @@ window.executeCoinWithdrawal = function() {
     return;
   }
   if (amount < WITHDRAW_MIN_COINS) {
-    alert("Minimum withdrawal limit is " + WITHDRAW_MIN_COINS.toLocaleString() + " coins! You entered " + amount.toLocaleString() + " coins.");
+    alert("Minimum withdrawal limit is " + WITHDRAW_MIN_COINS.toLocaleString() + " coins (1 Million)! You entered " + amount.toLocaleString() + " coins.");
     return;
   }
   if (amount > totalCoins) {
@@ -3927,18 +4759,34 @@ window.finalizeCoinWithdrawal = function(method, account, amount, netDisplay) {
 
   var fakeTxId = 'WD' + Math.floor(Math.random() * 900000000 + 100000000);
 
+  addWithdrawalToHistory({
+    id: fakeTxId,
+    method: method,
+    title: method === 'UPI' ? 'UPI Withdrawal' : 'USDT Withdrawal',
+    account: maskUserAccount(account, method),
+    rawAccount: account,
+    date: getCurrentFormattedDate(),
+    amountDisplay: netDisplay,
+    coinsDisplay: amount.toLocaleString() + ' coins',
+    coins: amount,
+    fiatAmount: (method === 'UPI' ? Math.max(0, Math.floor((amount - WITHDRAW_FEE_COINS) / 1000)) : Math.max(0, Math.floor(((amount - WITHDRAW_FEE_COINS) / 85000) * 85))),
+    status: 'Pending',
+    timestamp: Date.now()
+  });
+
   showModal(`
     <div style="font-size:42px;">✅</div>
     <div class="m-title" style="color:var(--green-neon);">WITHDRAWAL SUBMITTED!</div>
     <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(34,197,94,0.3);">
-      <div style="margin-bottom:4px;"><strong>Status:</strong> <span style="color:var(--green-neon);">Processing</span></div>
+      <div style="margin-bottom:4px;"><strong>Status:</strong> <span style="color:var(--cyan-neon);">Pending (Processing)</span></div>
       <div style="margin-bottom:4px;"><strong>Transaction ID:</strong> <span style="color:#fff; font-family:monospace;">${fakeTxId}</span></div>
       <div style="margin-bottom:4px;"><strong>Coins Deducted:</strong> <span style="color:var(--gold);">${amount.toLocaleString()} coins</span></div>
       <div><strong>You Will Receive:</strong> <span style="color:#39ff14; font-weight:900;">${netDisplay}</span> via ${method} (${account})</div>
     </div><br>
-    <span style="font-size:9.5px; color:#8da6c4;">Your payment request has been received and will be processed within 24 hours.</span>
+    <span style="font-size:9.5px; color:#8da6c4;">Your payment request has been received and will be processed within 24 hours. Check status anytime in Withdrawal History!</span>
     <div class="m-btn-row" style="margin-top:10px;">
-      <button class="app-btn" onclick="closeModal()">DONE</button>
+      <button class="app-btn claim-glow-btn" onclick="closeModal(); openWithdrawHistory();">VIEW HISTORY 📋</button>
+      <button class="app-btn btn-sec" onclick="closeModal()">DONE</button>
     </div>
   `);
 };
@@ -3948,7 +4796,7 @@ window.openWithdrawalHelp = function() {
     <div class="m-title">WITHDRAWAL HELP ℹ️</div>
     <div class="m-body" style="text-align:left;">
       • <strong>Methods:</strong> UPI (India) & USDT (TRC20).<br>
-      • <strong>Minimum Withdrawal:</strong> 10,000 Coins.<br>
+      • <strong>Minimum Withdrawal:</strong> 1,000,000 Coins (1 Million).<br>
       • <strong>Withdrawal Fee:</strong> 2,000 Coins.<br>
       • <strong>Processing Time:</strong> Instant to 24 hours.<br>
       • Please double check your UPI ID or USDT wallet address before submitting.
@@ -4276,6 +5124,10 @@ function updateAdsCooldownUI() {
   var adsTab = document.getElementById('ads-tab');
   if (adsTab && adsTab.classList.contains('active')) {
     renderAdsTab();
+  }
+  var histTab = document.getElementById('history-tab');
+  if (histTab && histTab.classList.contains('active')) {
+    renderWithdrawHistory();
   }
   if (typeof updateTapScreenUI === 'function') updateTapScreenUI();
 }
@@ -4747,6 +5599,8 @@ window.switchTab = function(tabId, el) {
     renderAdsTab();
   } else if (tabId === 'game-tab') {
     renderDynamicGamesGrid();
+  } else if (tabId === 'history-tab') {
+    renderWithdrawHistory();
   }
 };
 
@@ -4772,6 +5626,7 @@ renderLeaderboard();
 checkDailyStreakStatus();
 renderDailyRewards();
 updateDailySideDot();
+renderWithdrawHistory();
 
 window.setMaxTransferAmount = function() {
   initAudio();
