@@ -3563,31 +3563,39 @@ body {
 (function(){
 'use strict';
 
-// Adexium Initialization Waiter
+// NAYA FIXED INITIALIZER (On-Demand Support Ke Saath)
 window.adexiumWidgetInstance = null;
+
+function initAdexiumWidget() {
+    try {
+        if (typeof AdexiumWidget !== 'undefined') {
+            if (!window.adexiumWidgetInstance) {
+                window.adexiumWidgetInstance = new AdexiumWidget({
+                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+                    adFormat: 'interstitial' // ya 'rewarded' agar aapne dashboard me rewarded select kiya hai
+                });
+                console.log("✅ Adexium successfully initialized!");
+            }
+            return window.adexiumWidgetInstance;
+        } else {
+            console.warn("⚠️ AdexiumWidget SDK abhi load nahi hua.");
+            return null;
+        }
+    } catch(err) {
+        console.error("Adexium Init Error:", err);
+        return null;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        // 1. Telegram ko ready aur full-screen karne ka signal bhejo
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
-
-        // 2. Sirf tabhi Adexium chalu karo jab app Telegram ke andar khula ho
-        if (typeof AdexiumWidget !== 'undefined') {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-                window.adexiumWidgetInstance = new AdexiumWidget({
-                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                    adFormat: 'interstitial'
-                });
-                console.log("Adexium Telegram ke andar successfully load ho gaya!");
-            } else {
-                console.warn("Adexium warning: App Telegram ke bahar open hai. Ads sirf Telegram bot ke andar chalenge.");
-            }
-        }
+        initAdexiumWidget();
     } catch(e) {
-        console.warn("Adexium Init Error:", e);
+        console.warn("Telegram init warning:", e);
     }
 });
 
@@ -5318,13 +5326,31 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
 
   } else if (network === 'adexium') {
       try {
-          if (window.adexiumWidgetInstance && window.adexiumWidgetInstance.showAd) {
-              window.adexiumWidgetInstance.showAd();
-              startTimerModal(6, onAdFinished); // Manual check for adexium
+          // 1. Agar instance pehle se nahi bana hai to yahan turant bana lo
+          if (!window.adexiumWidgetInstance && typeof AdexiumWidget !== 'undefined') {
+              window.adexiumWidgetInstance = new AdexiumWidget({
+                  wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+                  adFormat: 'interstitial'
+              });
+          }
+
+          var adex = window.adexiumWidgetInstance;
+
+          // 2. Asli Adexium function .show() hota hai (na ki .showAd)
+          if (adex && typeof adex.show === 'function') {
+              adex.show();
+              startTimerModal(6, onAdFinished);
+          } else if (adex && typeof adex.showAd === 'function') {
+              adex.showAd();
+              startTimerModal(6, onAdFinished);
           } else {
+              // Agar SDK block ya fail ho to fallback timer
               startTimerModal(4, onAdFinished);
           }
-      } catch(e) { startTimerModal(4, onAdFinished); }
+      } catch(e) {
+          console.warn("Adexium Show Error:", e);
+          startTimerModal(4, onAdFinished);
+      }
 
   } else if (network === 'montage') {
       try {
