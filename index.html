@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
-<script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', () => {
-        const adexiumWidget = new AdexiumWidget({wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd', adFormat: 'interstitial'});
-        adexiumWidget.autoMode();
-    });
-</script>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>POTTO ($DOGS) — Web3 Tap & $DOGS Airdrop Ecosystem</title>
@@ -25,6 +16,8 @@
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
+<!-- Adexium SDK Integration -->
+<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
 
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
@@ -779,6 +772,50 @@ body {
   flex-direction: column;
   gap: 10px;
   padding-bottom: 20px;
+}
+
+/* ========================================================
+   NEW ADS CATEGORY CARDS
+   ======================================================== */
+.ads-cat-card {
+  width: 100%;
+  background: linear-gradient(180deg, #091a34 0%, #040d1e 100%);
+  border-radius: 16px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.ads-cat-card:active {
+  transform: scale(0.97);
+}
+.ads-cat-icon {
+  width: 46px; height: 46px; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; flex-shrink:0;
+}
+.ads-cat-info {
+  flex: 1; display:flex; flex-direction:column;
+}
+.ads-cat-title {
+  font-family: var(--font-main); font-size: 15px; font-weight: 800; color: #fff; margin-bottom:2px;
+}
+.ads-cat-sub {
+  font-size: 9.5px; color: #8da6c4; line-height: 1.2;
+}
+.ads-cat-reward {
+  display:flex; align-items:center; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:6px; gap:6px;
+}
+.acr-col {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 1px;
+}
+.acr-icon { font-size:12px; }
+.acr-val { font-family:var(--font-display); font-size:11px; font-weight:900; }
+.acr-lbl { font-size:6px; font-weight:800; color:#8da6c4; }
+.acr-plus { font-size:12px; font-weight:900; color:#fff; }
+.ads-cat-arrow {
+  width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; font-size: 12px;
 }
 
 /* ========================================================
@@ -2774,64 +2811,135 @@ body {
 
     <!-- 1.6. ADS SCREEN (WATCH & EARN) -->
     <section id="ads-tab" class="tab-page">
-      <!-- HERO BANNER -->
-      <div class="ads-hero-card">
-        <div class="ads-hero-left">
-          📺
-          <img src="dogs.png" style="position:absolute; width:40px; right:-15px; top:-5px;" onerror="this.style.display='none'">
-        </div>
-        <div class="ads-hero-center">
-          <span class="ads-hero-title">WATCH & EARN</span>
-          <span class="ads-hero-sub">Watch ads and earn rewards</span>
-        </div>
-        <div class="ads-hero-right">
-          <div class="ads-hero-reward-row">
-            <div class="ads-hero-r-item">
-              <span class="ads-hero-r-icon">🪙</span>
-              <span class="ads-hero-r-val" style="color:var(--gold);">50</span>
-              <span class="ads-hero-r-lbl">COINS</span>
-            </div>
-            <span style="font-size:14px; color:#fff; font-weight:900;">+</span>
-            <div class="ads-hero-r-item">
-              <span class="ads-hero-r-icon">🐶</span>
-              <span class="ads-hero-r-val" style="color:var(--cyan-neon);">10</span>
-              <span class="ads-hero-r-lbl">DOGS</span>
-            </div>
+      <div id="adsCategoriesView" style="width: 100%;">
+        <!-- HERO BANNER -->
+        <div class="ads-hero-card">
+          <div class="ads-hero-left">
+            📺
+            <img src="dogs.png" style="position:absolute; width:40px; right:-15px; top:-5px;" onerror="this.style.display='none'">
           </div>
-          <div style="font-size: 6px; color: #8da6c4; font-weight: 700; text-transform: uppercase; margin-top: 2px;">PER COMPLETED AD</div>
+          <div class="ads-hero-center">
+            <span class="ads-hero-title">WATCH & EARN</span>
+            <span class="ads-hero-sub">Watch ads and earn rewards</span>
+          </div>
+          <div class="ads-hero-right">
+            <div class="ads-hero-reward-row">
+              <div class="ads-hero-r-item">
+                <span class="ads-hero-r-icon">🪙</span>
+                <span class="ads-hero-r-val" style="color:var(--gold);">100</span>
+                <span class="ads-hero-r-lbl">COINS</span>
+              </div>
+              <span style="font-size:14px; color:#fff; font-weight:900;">+</span>
+              <div class="ads-hero-r-item">
+                <span class="ads-hero-r-icon">🐶</span>
+                <span class="ads-hero-r-val" style="color:var(--cyan-neon);">10</span>
+                <span class="ads-hero-r-lbl">DOGS</span>
+              </div>
+            </div>
+            <div style="font-size: 6px; color: #8da6c4; font-weight: 700; text-transform: uppercase; margin-top: 2px;">PER AD WATCHED</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <!-- Quick Ads -->
+          <div class="ads-cat-card" style="border: 1px solid #0055ff; box-shadow: inset 0 0 10px rgba(0,85,255,0.4);" onclick="openAdSlots('adsgram')">
+            <div class="ads-cat-icon" style="background: linear-gradient(135deg, #a200ff, #0055ff); position: relative;">
+              <i class="fa-solid fa-clapperboard" style="position: absolute; top: 12px;"></i>
+              <i class="fa-solid fa-play" style="position: absolute; font-size: 14px; color: #fff; text-shadow: 0 0 5px #000;"></i>
+            </div>
+            <div class="ads-cat-info">
+              <div class="ads-cat-title">Quick Ads</div>
+              <div class="ads-cat-sub">Short video ads<br>(15–30 seconds)</div>
+            </div>
+            <div class="ads-cat-reward">
+              <div class="acr-col"><div class="acr-icon">🪙</div><div class="acr-val" style="color:var(--gold);">100</div><div class="acr-lbl">COINS</div></div>
+              <div class="acr-plus">+</div>
+              <div class="acr-col"><div class="acr-icon">🐶</div><div class="acr-val" style="color:var(--cyan-neon);">10</div><div class="acr-lbl">DOGS</div></div>
+            </div>
+            <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+
+          <!-- Video Series -->
+          <div class="ads-cat-card" style="border: 1px solid #00ff66; box-shadow: inset 0 0 10px rgba(0,255,102,0.3);" onclick="openAdSlots('adexium')">
+            <div class="ads-cat-icon" style="background: linear-gradient(135deg, #00b0ff, #00ff66); position: relative;">
+              <i class="fa-solid fa-mobile-screen" style="position: absolute;"></i>
+              <i class="fa-solid fa-play" style="position: absolute; font-size: 14px; color: #fff; text-shadow: 0 0 5px #000;"></i>
+              <div style="position: absolute; bottom: -5px; right: -5px; background: #00ff66; color: #000; font-size: 10px; font-weight: 900; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #fff;">1</div>
+            </div>
+            <div class="ads-cat-info">
+              <div class="ads-cat-title">Video Series</div>
+              <div class="ads-cat-sub">Longer ads<br>(1–3 minutes)</div>
+            </div>
+            <div class="ads-cat-reward">
+              <div class="acr-col"><div class="acr-icon">🪙</div><div class="acr-val" style="color:var(--gold);">100</div><div class="acr-lbl">COINS</div></div>
+              <div class="acr-plus">+</div>
+              <div class="acr-col"><div class="acr-icon">🐶</div><div class="acr-val" style="color:var(--cyan-neon);">10</div><div class="acr-lbl">DOGS</div></div>
+            </div>
+            <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+
+          <!-- Featured Ads -->
+          <div class="ads-cat-card" style="border: 1px solid #ff9900; box-shadow: inset 0 0 10px rgba(255,153,0,0.3);" onclick="openAdSlots('montage')">
+            <div class="ads-cat-icon" style="background: linear-gradient(135deg, #ff0055, #ff9900); position: relative;">
+              <i class="fa-solid fa-star" style="position: absolute; font-size: 32px;"></i>
+              <div style="position: absolute; font-size: 9px; font-weight: 900; background: #fff; color: #ff0055; padding: 1px 4px; border-radius: 4px;">AD</div>
+            </div>
+            <div class="ads-cat-info">
+              <div class="ads-cat-title">Featured Ads</div>
+              <div class="ads-cat-sub">Premium & high reward<br>ads (30–60 seconds)</div>
+            </div>
+            <div class="ads-cat-reward">
+              <div class="acr-col"><div class="acr-icon">🪙</div><div class="acr-val" style="color:var(--gold);">100</div><div class="acr-lbl">COINS</div></div>
+              <div class="acr-plus">+</div>
+              <div class="acr-col"><div class="acr-icon">💎</div><div class="acr-val" style="color:var(--cyan-neon);">10</div><div class="acr-lbl">GEMS</div></div>
+            </div>
+            <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0,150,255,0.2); border-radius: 12px; padding: 10px; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+           <i class="fa-solid fa-circle-info" style="color: var(--cyan-neon); font-size: 20px;"></i>
+           <div style="font-size: 11px; color: #8da6c4; line-height: 1.4;">Watch ads, earn coins and DOGS tokens.<br>More ads = More rewards!</div>
         </div>
       </div>
 
-      <!-- STATS ROW -->
-      <div class="ads-stats-row">
-        <div class="ads-stat-box">
-          <span class="ads-stat-icon">🪙</span>
-          <div class="ads-stat-val-col">
-            <span class="ads-stat-val" id="adsStatCoins">0</span>
-            <span class="ads-stat-lbl">COINS</span>
-          </div>
+      <div id="adsSlotsView" style="display:none; flex-direction:column; gap:10px; width: 100%;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <button class="top-back-btn" onclick="closeAdSlots()"><i class="fa-solid fa-chevron-left"></i></button>
+          <h3 id="adsSlotsTitle" style="font-family:var(--font-display); color:#fff; margin:0; text-transform:uppercase;">QUICK ADS</h3>
         </div>
-        <div class="ads-stat-box">
-          <span class="ads-stat-icon">🐶</span>
-          <div class="ads-stat-val-col">
-            <span class="ads-stat-val" id="adsStatDogs">0</span>
-            <span class="ads-stat-lbl">DOGS</span>
-          </div>
-        </div>
-        <div class="ads-stat-box progress-box">
-          <div class="ads-progress-header">
-            <span style="font-size:12px;">🎬</span>
-            <span class="ads-progress-text" id="adsStatProgressText">0 / 10 ADS COMPLETED</span>
-          </div>
-          <div class="ads-progress-track">
-            <div class="ads-progress-fill" id="adsStatProgressFill" style="width:0%;"></div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ADS LIST -->
-      <div class="ads-list-container" id="adsListContainer">
-        <!-- Rendered dynamically -->
+        <!-- STATS ROW -->
+        <div class="ads-stats-row" style="margin-bottom: 8px;">
+          <div class="ads-stat-box">
+            <span class="ads-stat-icon">🪙</span>
+            <div class="ads-stat-val-col">
+              <span class="ads-stat-val" id="adsStatCoins">0</span>
+              <span class="ads-stat-lbl">COINS</span>
+            </div>
+          </div>
+          <div class="ads-stat-box">
+            <span class="ads-stat-icon">🐶</span>
+            <div class="ads-stat-val-col">
+              <span class="ads-stat-val" id="adsStatDogs">0</span>
+              <span class="ads-stat-lbl">REWARDS</span>
+            </div>
+          </div>
+          <div class="ads-stat-box progress-box">
+            <div class="ads-progress-header">
+              <span style="font-size:12px;">🎬</span>
+              <span class="ads-progress-text" id="adsStatProgressText">0 / 10 ADS COMPLETED</span>
+            </div>
+            <div class="ads-progress-track">
+              <div class="ads-progress-fill" id="adsStatProgressFill" style="width:0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADS LIST -->
+        <div class="ads-list-container" id="adsListContainer">
+          <!-- Rendered dynamically -->
+        </div>
       </div>
     </section>
 
@@ -3455,6 +3563,17 @@ body {
 (function(){
 'use strict';
 
+// Adexium Initialization Waiter
+window.adexiumWidgetInstance = null;
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        window.adexiumWidgetInstance = new AdexiumWidget({wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd', adFormat: 'interstitial'});
+        // We purposely omit .autoMode() here to make it manual tap trigger
+    } catch(e) {
+        console.warn("Adexium Init Error", e);
+    }
+});
+
 let tgUser = null;
 try {
   if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
@@ -3498,10 +3617,6 @@ var AIRDROP_CONFIG = {
   TOKEN_TICKER: "DOGS",
   TOTAL_AIRDROP_POOL: 500000, 
   ESTIMATED_NETWORK_TOTAL_POINTS: 15000000,
-  AD_COIN_REWARD: 50,
-  AD_POINTS_REWARD: 10,
-  AD_DOGS_REWARD: 10,
-  INVITE_DOGS_REWARD: 100,
   TGE_TIMESTAMP: Date.now() + (45 * 24 * 60 * 60 * 1000)
 };
 
@@ -3530,7 +3645,12 @@ var miningAdsWatched = parseInt(localStorage.getItem('pto_mining_ads') || '0');
 var miningEndTime = parseInt(localStorage.getItem('pto_mining_end') || '0');
 
 var totalAdsWatched = parseInt(localStorage.getItem('pto_all_ads_watched') || '0');
-var adsWatched1 = parseInt(localStorage.getItem('pto_ads_watched_1') || '0');
+var adsWatchedAdsgram = parseInt(localStorage.getItem('pto_ads_adsgram') || '0');
+var adsWatchedAdexium = parseInt(localStorage.getItem('pto_ads_adexium') || '0');
+var adsWatchedMontage = parseInt(localStorage.getItem('pto_ads_montage') || '0');
+var currentAdNetwork = null;
+var adSlotsConfig = [];
+
 var walletAddress = localStorage.getItem('pto_wallet_address') || '';
 var totalTasksDone = parseInt(localStorage.getItem('pto_total_tasks_done') || '0');
 
@@ -3622,6 +3742,16 @@ if (auth) {
       }
 
       if (db) {
+        // Load Admin Config for dynamic ad rewards
+        db.collection('config').doc('admin_config').onSnapshot(function(docSnap) {
+            if(docSnap.exists) {
+                var d = docSnap.data();
+                if(d.adSlots && Array.isArray(d.adSlots)) {
+                    adSlotsConfig = d.adSlots;
+                }
+            }
+        });
+
         db.collection('potto_users').doc(user.uid).get().then(function(doc){
           if (doc.exists) {
             var data = doc.data();
@@ -3836,21 +3966,18 @@ function updateAllDisplays() {
   document.getElementById('mainCoinBalance').innerText = totalCoins.toLocaleString();
   document.getElementById('energyMeterVal').innerText = tapEnergy.toLocaleString() + ' / ' + maxEnergy.toLocaleString();
 
-  var ad1Title = document.getElementById('ad1Title');
-  if (ad1Title) ad1Title.innerText = 'Watch ad ' + (adsWatched1 % 10) + '/10';
   document.getElementById('myRankPoints').innerText = formatPointsShort(totalCoins);
 
   updateRockUI();
   updateWalletUI();
   updateTasksUI();
   updateDailySideDot();
-  updateAdsCooldownUI();
   updateWithdrawalUI();
   saveState();
 
   var adsTab = document.getElementById('ads-tab');
   if (adsTab && adsTab.classList.contains('active')) {
-    renderAdsTab();
+    if (currentAdNetwork) renderAdsTab();
   }
   var histTab = document.getElementById('history-tab');
   if (histTab && histTab.classList.contains('active')) {
@@ -3876,7 +4003,11 @@ function saveState(force) {
   localStorage.setItem('pto_mining_ads', miningAdsWatched);
   localStorage.setItem('pto_mining_end', miningEndTime);
   localStorage.setItem('pto_all_ads_watched', totalAdsWatched);
-  localStorage.setItem('pto_ads_watched_1', adsWatched1);
+  
+  localStorage.setItem('pto_ads_adsgram', adsWatchedAdsgram);
+  localStorage.setItem('pto_ads_adexium', adsWatchedAdexium);
+  localStorage.setItem('pto_ads_montage', adsWatchedMontage);
+
   localStorage.setItem('pto_total_tasks_done', totalTasksDone);
   localStorage.setItem('pto_wallet_address', walletAddress);
   localStorage.setItem('pto_completed_tasks', JSON.stringify(completedTasks));
@@ -4222,7 +4353,15 @@ window.watchMiningAd = function() {
         saveState(true);
         updateTapScreenUI();
     };
-    simulateAdWithTimer(4, "int-41522", onAdFinished);
+    
+    if (window.Adsgram) {
+      try {
+        const AdController = window.Adsgram.init({ blockId: "int-41522" });
+        AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
+      } catch(e) { startTimerModal(4, onAdFinished); }
+    } else {
+      startTimerModal(4, onAdFinished);
+    }
 };
 
 window.claimMiningReward = function() {
@@ -4312,10 +4451,6 @@ function renderLeaderboard() {
 }
 
 /* Tasks & Ads */
-var activeAdTaskType = 'ad1';
-var adTimerInterval = null;
-var isWatchingAd = false;
-
 window.openFeaturedVideoTask = function() {
   initAudio();
   window.open('https://youtube.com', '_blank');
@@ -4349,52 +4484,9 @@ function updateTasksUI() {
   if (completedTasks.home && actionHome) actionHome.innerHTML = '<i class="fa-solid fa-circle-check hk-check-icon"></i>';
 }
 
-function tryMontage(grantReward) {
-  if (typeof window.show_11520403 === 'function') {
-    window.show_11520403().then(function(){ grantReward(); }).catch(function(){ simulateAd(grantReward); });
-  } else { simulateAd(grantReward); }
-}
-
-function simulateAd(grantReward) {
-  isWatchingAd = true;
-  var adModal = document.getElementById('adWatchModal');
-  var countdownEl = document.getElementById('adCountdownNum');
-  var progressFill = document.getElementById('adProgressFill');
-  var closeBtn = document.getElementById('btnCloseAd');
-
-  adModal.classList.remove('hidden');
-  progressFill.style.width = '0%';
-  closeBtn.innerText = 'WAIT...';
-  closeBtn.style.opacity = '0.5';
-  closeBtn.style.pointerEvents = 'none';
-
-  var secondsLeft = 5;
-  countdownEl.innerText = secondsLeft + 's';
-
-  adTimerInterval = setInterval(function(){
-    secondsLeft--;
-    countdownEl.innerText = secondsLeft + 's';
-    progressFill.style.width = ((5 - secondsLeft) / 5 * 100) + '%';
-
-    if (secondsLeft <= 0) {
-      clearInterval(adTimerInterval);
-      closeBtn.innerText = 'CLAIM REWARD ✓';
-      closeBtn.style.opacity = '1';
-      closeBtn.style.pointerEvents = 'auto';
-      closeBtn.style.background = 'linear-gradient(90deg,#00e676,#00a854)';
-      closeBtn.onclick = function() {
-        adModal.classList.add('hidden');
-        isWatchingAd = false;
-        grantReward();
-      };
-    }
-  }, 1000);
-}
-
 window.cancelAdWatch = function() {
   if (adTimerInterval) clearInterval(adTimerInterval);
   document.getElementById('adWatchModal').classList.add('hidden');
-  isWatchingAd = false;
 };
 
 /* ========================================================
@@ -4942,107 +5034,13 @@ window.copyWalletAddr = function() {
   } else alert("Wallet: " + walletAddress);
 };
 
-window.handleInstantTransferDogs = function() {
-  initAudio();
-  if (!walletAddress) {
-    showModal(`
-      <div class="m-title">CONNECT TON WALLET ⚠️</div>
-      <div class="m-body">
-        Please connect your public TON / Web3 wallet (Tonkeeper or Telegram Wallet) below before transferring your $DOGS!
-      </div>
-      <div class="m-btn-row">
-        <button class="app-btn" onclick="closeModal(); handleWalletConnect();">CONNECT WALLET</button>
-      </div>
-    `);
-    return;
-  }
-
-  if (dogsBalance < 10000) {
-    showModal(`
-      <div class="m-title">MINIMUM 10,000 $DOGS 🦴</div>
-      <div class="m-body">
-        You currently have <strong style="color:#ffffff;">${dogsBalance.toLocaleString()} $DOGS</strong>.<br><br>
-        Minimum transfer requirement is <strong style="color:var(--gold);">10,000 $DOGS</strong>.<br>
-        Keep watching ads and inviting friends to reach 10,000 $DOGS!
-      </div>
-      <div class="m-btn-row">
-        <button class="app-btn" onclick="closeModal(); openAdsMenu();">EARN MORE DOGS</button>
-      </div>
-    `);
-    return;
-  }
-
-  var transferAmount = dogsBalance;
-  var shortAddr = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
-
-  showModal(`
-    <div class="m-title">TURANT TRANSFER ⚡</div>
-    <div class="m-body" style="text-align:left; background:rgba(0,0,0,0.4); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
-      <div style="margin-bottom:6px;"><strong>Transfer Amount:</strong> <span style="color:#ffffff; font-size:16px; font-weight:900;">${transferAmount} $DOGS 🐶</span></div>
-      <div style="margin-bottom:6px;"><strong>Destination:</strong> <span style="color:var(--cyan-neon); font-size:10px; word-break:break-all;">${shortAddr}</span></div>
-      <div style="margin-bottom:6px;"><strong>Network:</strong> <span style="color:var(--gold);">The Open Network (TON)</span></div>
-      <div><strong>Gas Fee:</strong> <span style="color:var(--green-neon);">0 TON (Free Sponsored)</span></div>
-    </div>
-    <div class="m-btn-row" style="margin-top:10px;">
-      <button class="app-btn" id="btnConfirmTransfer" onclick="executeInstantTransfer(${transferAmount})">CONFIRM TRANSFER NOW 🚀</button>
-      <button class="app-btn btn-sec" onclick="closeModal()">CANCEL</button>
-    </div>
-  `);
-};
-
-window.executeInstantTransfer = function(amount) {
-  initAudio();
-  var modalBox = document.getElementById('genericModalContent');
-  if (modalBox) {
-    modalBox.innerHTML = `
-      <div style="font-size:36px;">⚡</div>
-      <div class="m-title">PROCESSING TRANSFER...</div>
-      <div class="m-body">
-        Broadcasting transaction to TON blockchain...<br>
-        Please wait a moment!
-      </div>
-      <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border-radius:99px; overflow:hidden; border:1px solid rgba(0,229,255,0.3); margin-top:8px;">
-        <div style="height:100%; width:100%; background:linear-gradient(90deg, #00e5ff, #39ff14); animation:progressLoad 1.5s ease-in-out infinite;"></div>
-      </div>
-    `;
-  }
-
-  setTimeout(function() {
-    dogsBalance = Math.max(0, dogsBalance - amount);
-    transferredDogs += amount;
-    localStorage.setItem('pto_dogs_balance', dogsBalance);
-    localStorage.setItem('pto_dogs_transferred', transferredDogs);
-    localStorage.setItem('pto_daily_streak', dailyStreak);
-    localStorage.setItem('pto_daily_last_claim_date', lastDailyClaimDate);
-    saveState(true);
-    sCoin();
-
-    var fakeTx = '0x' + Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
-    
-    showModal(`
-      <div style="font-size:40px;">✅</div>
-      <div class="m-title" style="color:var(--green-neon);">TRANSFER SUCCESSFUL! 🚀</div>
-      <div class="m-body">
-        <strong style="color:#ffffff; font-size:18px;">${amount} $DOGS 🐶</strong> has been transferred successfully to your TON wallet!<br><br>
-        <div style="background:rgba(0,0,0,0.4); padding:8px; border-radius:8px; font-size:9px; word-break:break-all; border:1px solid rgba(0,255,100,0.2);">
-          <strong>Tx Hash:</strong><br>${fakeTx}
-        </div><br>
-        Check your wallet in Telegram / Tonkeeper! Keep watching ads and inviting friends to earn more $DOGS.
-      </div>
-      <div class="m-btn-row">
-        <button class="app-btn" onclick="closeModal()">AWESOME</button>
-      </div>
-    `);
-    updateAllDisplays();
-  }, 1400);
-};
-
 /* FLYING COINS ANIMATION & REWARD CLAIM */
 function flyCoinsToBalance(startX, startY, type, amount, callback) {
   initAudio();
-  var targetPill = (type === 'dogs')
-    ? (document.getElementById('headerDogsPill') || document.querySelector('.header-curr-pill.dogs-pill'))
-    : (document.getElementById('headerCoinPill') || document.querySelector('.header-curr-pill'));
+  var targetPill = null;
+  if (type === 'dogs') targetPill = document.getElementById('headerDogsPill');
+  else if (type === 'gems') targetPill = document.querySelector('.gem-pill');
+  else targetPill = document.getElementById('headerCoinPill');
 
   var targetRect = targetPill ? targetPill.getBoundingClientRect() : { left: window.innerWidth - 60, top: 25, width: 24, height: 24 };
   var endX = targetRect.left + targetRect.width / 2;
@@ -5054,9 +5052,13 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
       setTimeout(function() {
         var p = document.createElement('div');
         p.className = 'flying-coin-particle';
-        p.innerHTML = (type === 'dogs')
-          ? '<img src="dogs.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🐶\'">'
-          : '<img src="coin.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🪙\'">' ;
+        if (type === 'dogs') {
+           p.innerHTML = '<img src="dogs.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🐶\'">';
+        } else if (type === 'gems') {
+           p.innerHTML = '💎';
+        } else {
+           p.innerHTML = '<img src="coin.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🪙\'">';
+        }
 
         var randOffsetX = (Math.random() - 0.5) * 40;
         var randOffsetY = (Math.random() - 0.5) * 40;
@@ -5085,17 +5087,6 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
                 targetPill.style.boxShadow = 'none';
               }, 300);
             }
-
-            var heroNum = document.getElementById('airdropHeroDogs');
-            if (heroNum && type === 'dogs') {
-              heroNum.style.transform = 'scale(1.2)';
-              heroNum.style.color = '#39ff14';
-              setTimeout(function() {
-                heroNum.style.transform = 'scale(1)';
-                heroNum.style.color = '#ffffff';
-              }, 300);
-            }
-
             if (callback) callback();
           }
         }, 950);
@@ -5110,169 +5101,21 @@ var adCooldownTimer = null;
 
 function startAdsCooldown(seconds) {
   adCooldownRemaining = seconds || 4;
-  updateAdsCooldownUI();
 
   if (adCooldownTimer) clearInterval(adCooldownTimer);
   adCooldownTimer = setInterval(function() {
     adCooldownRemaining--;
-    updateAdsCooldownUI();
+    if (document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) {
+       renderAdsTab();
+    }
     if (adCooldownRemaining <= 0) {
       clearInterval(adCooldownTimer);
       adCooldownTimer = null;
-      updateAdsCooldownUI();
     }
   }, 1000);
 }
 
-function updateAdsCooldownUI() {
-  var badgeEl = document.getElementById('adsDailyCountBadge');
-  if (badgeEl) {
-    if (adCooldownRemaining > 0) {
-      badgeEl.innerText = '⏳ WAIT ' + adCooldownRemaining + 's';
-      badgeEl.style.borderColor = '#ff4444';
-      badgeEl.style.color = '#ff4444';
-    } else {
-      badgeEl.innerText = (adsWatched1 % 10) + '/10 WATCHED';
-      badgeEl.style.borderColor = 'rgba(0, 240, 255, 0.25)';
-      badgeEl.style.color = 'var(--cyan-neon)';
-    }
-  }
-
-  var adsTab = document.getElementById('ads-tab');
-  if (adsTab && adsTab.classList.contains('active')) {
-    renderAdsTab();
-  }
-  var histTab = document.getElementById('history-tab');
-  if (histTab && histTab.classList.contains('active')) {
-    renderWithdrawHistory();
-  }
-  if (typeof updateTapScreenUI === 'function') updateTapScreenUI();
-}
-
-/* RENDERING THE NEW ADS SCREEN (10 ADS WITH PHOTO DESIGN) */
-window.openAdsMenu = function() {
-  switchTab('ads-tab', null);
-  renderAdsTab();
-};
-
-window.renderAdsTab = function() {
-  var container = document.getElementById('adsListContainer');
-  if (!container) return;
-
-  var totalAds = 10;
-  var adsCompleted = adsWatched1 % totalAds; 
-  var html = '';
-
-  var filmSvg = '<svg viewBox="0 0 100 100" width="100%" height="100%" style="display:block;"><defs><linearGradient id="adFilmGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#56c2ff"/><stop offset="100%" stop-color="#2185e8"/></linearGradient></defs><circle cx="50" cy="50" r="48" fill="url(#adFilmGrad)"/><rect x="16" y="22" width="14" height="14" rx="4" fill="#153e70"/><rect x="16" y="43" width="14" height="14" rx="4" fill="#153e70"/><rect x="16" y="64" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="22" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="43" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="64" width="14" height="14" rx="4" fill="#153e70"/><path d="M41 33 L67 50 L41 67 Z" fill="#ffffff"/></svg>';
-
-  for (var i = 1; i <= totalAds; i++) {
-    var isLocked = i > adsCompleted + 1; 
-    var isCompleted = i <= adsCompleted;
-    var isCurrent = i === adsCompleted + 1;
-    
-    var cardClass = 'new-ad-card';
-    if (isLocked) cardClass += ' locked';
-    if (isCompleted) cardClass += ' completed';
-
-    var titleText = isCompleted ? "Completed" : (isLocked ? "Locked" : "Watch ad");
-    var iconHtml = isCompleted ? '<i class="fa-solid fa-check"></i>' : (isLocked ? '<i class="fa-solid fa-lock"></i>' : filmSvg);
-    var clickAttr = isCurrent ? 'onclick="watchDogsAd(' + i + ', 10)"' : (isLocked ? 'onclick="alert(\'Please complete Ad ' + (adsCompleted + 1) + ' first!\')"' : '');
-    var rightIcon = isCompleted ? '<i class="fa-solid fa-check" style="color:#22c55e;"></i>' : (isLocked ? '<i class="fa-solid fa-lock" style="color:#64748b;font-size:12px;"></i>' : '<i class="fa-solid fa-chevron-right"></i>');
-
-    if (adCooldownRemaining > 0 && isCurrent) {
-        titleText = 'Wait ' + adCooldownRemaining + 's';
-        clickAttr = '';
-        cardClass += ' locked';
-        rightIcon = '<i class="fa-solid fa-hourglass-half"></i>';
-    }
-
-    html += '<div class="' + cardClass + '" ' + clickAttr + '>' +
-              '<div class="new-ad-left">' +
-                '<div class="new-ad-icon-circle">' + iconHtml + '</div>' +
-                '<div class="new-ad-text-col">' +
-                  '<span class="new-ad-title">' + titleText + ' <strong>' + (isCompleted ? '1/1' : (i + '/10')) + '</strong></span>' +
-                  '<span class="new-ad-reward">🎁 <strong>1</strong> <span class="new-ad-reward-sub">(🪙 50 & 🐶 10)</span></span>' +
-                '</div>' +
-              '</div>' +
-              '<div class="new-ad-arrow">' + rightIcon + '</div>' +
-            '</div>';
-  }
-  
-  html += '<div class="ads-scroll-hint"><span><i class="fa-solid fa-angles-down"></i> Scroll down for all 10 ads <i class="fa-solid fa-angles-down"></i></span></div>';
-
-  container.innerHTML = html;
-  
-  var adsStatCoins = document.getElementById('adsStatCoins');
-  var adsStatDogs = document.getElementById('adsStatDogs');
-  var progressText = document.getElementById('adsStatProgressText');
-  var progressFill = document.getElementById('adsStatProgressFill');
-  
-  if (adsStatCoins) adsStatCoins.innerText = formatK(totalAdsWatched * 50);
-  if (adsStatDogs) adsStatDogs.innerText = (totalAdsWatched * 10);
-  
-  if (progressText) progressText.innerText = adsCompleted + ' / 10 ADS COMPLETED';
-  if (progressFill) progressFill.style.width = (adsCompleted / 10 * 100) + '%';
-};
-
-/* WATCH ADS & SHOW CLAIM REWARD WITH FLYING COINS */
-window.watchDogsAd = function(slotId, dogsReward) {
-  initAudio();
-  if (adCooldownRemaining > 0) {
-    showModal(`
-      <div class="m-title" style="color:#ff4444;">PLEASE WAIT ⏳</div>
-      <div class="m-body">
-        Ads cooldown active!<br>You can watch the next ad in <strong>${adCooldownRemaining} seconds</strong>.
-      </div>
-      <div class="m-btn-row">
-        <button class="app-btn" onclick="closeModal()">OK</button>
-      </div>
-    `);
-    return;
-  }
-
-  dogsReward = dogsReward || 10;
-  activeAdTaskType = 'ad_slot_' + slotId;
-
-  var onAdFinished = function() {
-    showModal(`
-      <div style="font-size:42px;">🎁</div>
-      <div class="m-title" style="color:var(--green-neon);">AD COMPLETED!</div>
-      <div class="m-body">
-        Sponsor ad watched successfully!<br><br>
-        <strong>Your Reward is Ready:</strong><br>
-        <div style="font-size:26px; font-weight:900; color:#ffffff; margin:8px 0; text-shadow:0 0 15px rgba(255,255,255,0.8);">
-          +${dogsReward} $DOGS 🐶
-        </div>
-        <span style="font-size:11px; color:var(--gold);">+50 Coins added!</span><br><br>
-        <span style="font-size:9.5px; color:#8da6c4;">Tap CLAIM below to fly coins into your balance!</span>
-      </div>
-      <div class="m-btn-row">
-        <button class="app-btn claim-glow-btn" id="btnAdClaimReward" onclick="handleAdClaimReward(event, ${slotId}, ${dogsReward})">
-          <i class="fa-solid fa-gift"></i> CLAIM REWARD NOW 🚀
-        </button>
-      </div>
-    `);
-  };
-
-  simulateAdWithTimer(4, "int-41524", onAdFinished);
-};
-
-function simulateAdWithTimer(durationSeconds, blockId, onFinished) {
-  var runWithAdsgram = function() {
-    if (window.Adsgram) {
-      try {
-        const AdController = window.Adsgram.init({ blockId: blockId });
-        AdController.show().then(function(){ onFinished(); }).catch(function(){ startTimerModal(durationSeconds, onFinished); });
-      } catch(e) { startTimerModal(durationSeconds, onFinished); }
-    } else {
-      startTimerModal(durationSeconds, onFinished);
-    }
-  };
-  runWithAdsgram();
-}
-
 function startTimerModal(seconds, onFinished) {
-  isWatchingAd = true;
   var adModal = document.getElementById('adWatchModal');
   var countdownEl = document.getElementById('adCountdownNum');
   var progressFill = document.getElementById('adProgressFill');
@@ -5301,24 +5144,197 @@ function startTimerModal(seconds, onFinished) {
       closeBtn.style.background = 'linear-gradient(90deg,#00e676,#00a854)';
       closeBtn.onclick = function() {
         adModal.classList.add('hidden');
-        isWatchingAd = false;
         onFinished();
       };
     }
   }, 1000);
 }
 
-window.handleAdClaimReward = function(event, slotId, dogsReward) {
+/* RENDERING THE NEW ADS SCREEN (3 CATEGORIES x 10 ADS) */
+window.openAdsMenu = function() {
+  switchTab('ads-tab', null);
+  currentAdNetwork = null;
+  document.getElementById('adsCategoriesView').style.display = 'block';
+  document.getElementById('adsSlotsView').style.display = 'none';
+};
+
+window.openAdSlots = function(network) {
+  initAudio();
+  currentAdNetwork = network;
+  document.getElementById('adsCategoriesView').style.display = 'none';
+  document.getElementById('adsSlotsView').style.display = 'flex';
+  
+  var title = "QUICK ADS";
+  if (network === 'adexium') title = "VIDEO SERIES";
+  if (network === 'montage') title = "FEATURED ADS";
+  document.getElementById('adsSlotsTitle').innerText = title;
+  
+  renderAdsTab();
+};
+
+window.closeAdSlots = function() {
+  initAudio();
+  currentAdNetwork = null;
+  document.getElementById('adsSlotsView').style.display = 'none';
+  document.getElementById('adsCategoriesView').style.display = 'block';
+};
+
+window.renderAdsTab = function() {
+  var container = document.getElementById('adsListContainer');
+  if (!container || !currentAdNetwork) return;
+
+  var totalAds = 10;
+  var adsCompleted = 0;
+  var networkIcon = '🐶';
+  var networkLabel = 'DOGS';
+
+  if (currentAdNetwork === 'adsgram') adsCompleted = adsWatchedAdsgram % totalAds;
+  else if (currentAdNetwork === 'adexium') adsCompleted = adsWatchedAdexium % totalAds;
+  else if (currentAdNetwork === 'montage') {
+      adsCompleted = adsWatchedMontage % totalAds;
+      networkIcon = '💎';
+      networkLabel = 'GEMS';
+  }
+
+  var html = '';
+  var filmSvg = '<svg viewBox="0 0 100 100" width="100%" height="100%" style="display:block;"><defs><linearGradient id="adFilmGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#56c2ff"/><stop offset="100%" stop-color="#2185e8"/></linearGradient></defs><circle cx="50" cy="50" r="48" fill="url(#adFilmGrad)"/><rect x="16" y="22" width="14" height="14" rx="4" fill="#153e70"/><rect x="16" y="43" width="14" height="14" rx="4" fill="#153e70"/><rect x="16" y="64" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="22" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="43" width="14" height="14" rx="4" fill="#153e70"/><rect x="70" y="64" width="14" height="14" rx="4" fill="#153e70"/><path d="M41 33 L67 50 L41 67 Z" fill="#ffffff"/></svg>';
+
+  for (var i = 1; i <= totalAds; i++) {
+    var isLocked = i > adsCompleted + 1; 
+    var isCompleted = i <= adsCompleted;
+    var isCurrent = i === adsCompleted + 1;
+
+    // Get Admin Config values
+    var rewardCoins = 50;
+    var rewardAlt = 10;
+    if (adSlotsConfig && adSlotsConfig[i-1]) {
+        rewardCoins = adSlotsConfig[i-1].coins || 50;
+        rewardAlt = adSlotsConfig[i-1].dogs || 10;
+    }
+    
+    var cardClass = 'new-ad-card';
+    if (isLocked) cardClass += ' locked';
+    if (isCompleted) cardClass += ' completed';
+
+    var titleText = isCompleted ? "Completed" : (isLocked ? "Locked" : "Watch ad");
+    var iconHtml = isCompleted ? '<i class="fa-solid fa-check"></i>' : (isLocked ? '<i class="fa-solid fa-lock"></i>' : filmSvg);
+    var clickAttr = isCurrent ? `onclick="watchDogsAd(${i}, '${currentAdNetwork}', ${rewardCoins}, ${rewardAlt})"` : (isLocked ? 'onclick="alert(\'Please complete previous ad first!\')"' : '');
+    var rightIcon = isCompleted ? '<i class="fa-solid fa-check" style="color:#22c55e;"></i>' : (isLocked ? '<i class="fa-solid fa-lock" style="color:#64748b;font-size:12px;"></i>' : '<i class="fa-solid fa-play"></i>');
+
+    if (adCooldownRemaining > 0 && isCurrent) {
+        titleText = 'Wait ' + adCooldownRemaining + 's';
+        clickAttr = '';
+        cardClass += ' locked';
+        rightIcon = '<i class="fa-solid fa-hourglass-half"></i>';
+    }
+
+    html += '<div class="' + cardClass + '" ' + clickAttr + '>' +
+              '<div class="new-ad-left">' +
+                '<div class="new-ad-icon-circle">' + iconHtml + '</div>' +
+                '<div class="new-ad-text-col">' +
+                  '<span class="new-ad-title">' + titleText + ' <strong>' + (isCompleted ? '1/1' : (i + '/10')) + '</strong></span>' +
+                  '<span class="new-ad-reward">🎁 <strong>1</strong> <span class="new-ad-reward-sub">(🪙 ' + rewardCoins + ' & ' + networkIcon + ' ' + rewardAlt + ')</span></span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="new-ad-arrow">' + rightIcon + '</div>' +
+            '</div>';
+  }
+  
+  html += '<div class="ads-scroll-hint"><span><i class="fa-solid fa-angles-down"></i> Scroll down for all 10 ads <i class="fa-solid fa-angles-down"></i></span></div>';
+
+  container.innerHTML = html;
+  
+  var adsStatCoins = document.getElementById('adsStatCoins');
+  var adsStatDogs = document.getElementById('adsStatDogs');
+  var progressText = document.getElementById('adsStatProgressText');
+  var progressFill = document.getElementById('adsStatProgressFill');
+  
+  var totalWatchedInNet = currentAdNetwork === 'adsgram' ? adsWatchedAdsgram : (currentAdNetwork === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
+
+  if (adsStatCoins) adsStatCoins.innerText = formatK(totalWatchedInNet * 50); 
+  if (adsStatDogs) {
+      adsStatDogs.innerText = (totalWatchedInNet * 10);
+      adsStatDogs.nextElementSibling.innerText = networkLabel;
+  }
+  
+  if (progressText) progressText.innerText = adsCompleted + ' / 10 ADS COMPLETED';
+  if (progressFill) progressFill.style.width = (adsCompleted / 10 * 100) + '%';
+};
+
+/* WATCH ADS & SHOW CLAIM REWARD WITH FLYING COINS */
+window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
+  initAudio();
+  if (adCooldownRemaining > 0) return;
+
+  var altName = (network === 'montage') ? 'GEMS 💎' : '$DOGS 🐶';
+  var altType = (network === 'montage') ? 'gems' : 'dogs';
+
+  var onAdFinished = function() {
+    showModal(`
+      <div style="font-size:42px;">🎁</div>
+      <div class="m-title" style="color:var(--green-neon);">AD COMPLETED!</div>
+      <div class="m-body">
+        Sponsor ad watched successfully!<br><br>
+        <strong>Your Reward is Ready:</strong><br>
+        <div style="font-size:26px; font-weight:900; color:#ffffff; margin:8px 0; text-shadow:0 0 15px rgba(255,255,255,0.8);">
+          +${altReward} ${altName}
+        </div>
+        <span style="font-size:11px; color:var(--gold);">+${coinsReward} Coins added!</span><br><br>
+        <span style="font-size:9.5px; color:#8da6c4;">Tap CLAIM below to fly rewards into your balance!</span>
+      </div>
+      <div class="m-btn-row">
+        <button class="app-btn claim-glow-btn" id="btnAdClaimReward" onclick="handleAdClaimReward(event, '${network}', ${coinsReward}, ${altReward}, '${altType}')">
+          <i class="fa-solid fa-gift"></i> CLAIM REWARD NOW 🚀
+        </button>
+      </div>
+    `);
+  };
+
+  // Switch between 3 Ad Networks based on category
+  if (network === 'adsgram') {
+      if (window.Adsgram) {
+          try {
+              const AdController = window.Adsgram.init({ blockId: "int-41524" });
+              AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
+          } catch(e) { startTimerModal(4, onAdFinished); }
+      } else startTimerModal(4, onAdFinished);
+
+  } else if (network === 'adexium') {
+      try {
+          if (window.adexiumWidgetInstance && window.adexiumWidgetInstance.showAd) {
+              window.adexiumWidgetInstance.showAd();
+              startTimerModal(6, onAdFinished); // Manual check for adexium
+          } else {
+              startTimerModal(4, onAdFinished);
+          }
+      } catch(e) { startTimerModal(4, onAdFinished); }
+
+  } else if (network === 'montage') {
+      try {
+          if (typeof show_11520403 === 'function') {
+              show_11520403().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
+          } else startTimerModal(4, onAdFinished);
+      } catch(e) { startTimerModal(4, onAdFinished); }
+  }
+};
+
+window.handleAdClaimReward = function(event, network, coinsReward, altReward, altType) {
   var rect = event.target.getBoundingClientRect();
   var startX = rect.left + rect.width / 2;
   var startY = rect.top + rect.height / 2;
 
   closeModal();
 
-  flyCoinsToBalance(startX, startY, 'dogs', dogsReward, function() {
+  flyCoinsToBalance(startX, startY, altType, altReward, function() {
     totalAdsWatched++;
-    adsWatched1++;
-    addPointsAndCoins(50, 10, 1, 5, dogsReward);
+    if (network === 'adsgram') adsWatchedAdsgram++;
+    else if (network === 'adexium') adsWatchedAdexium++;
+    else if (network === 'montage') adsWatchedMontage++;
+
+    var addGems = (altType === 'gems') ? altReward : 0;
+    var addDogs = (altType === 'dogs') ? altReward : 0;
+    
+    addPointsAndCoins(coinsReward, 10, addGems, 5, addDogs);
     sCoin();
     updateAllDisplays();
     renderAdsTab();
@@ -5326,6 +5342,7 @@ window.handleAdClaimReward = function(event, slotId, dogsReward) {
 
   startAdsCooldown(4);
 };
+
 
 window.startWatchAdFlow = function(taskType) {
   openAdsMenu();
