@@ -3565,12 +3565,29 @@ body {
 
 // Adexium Initialization Waiter
 window.adexiumWidgetInstance = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        window.adexiumWidgetInstance = new AdexiumWidget({wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd', adFormat: 'interstitial'});
-        // We purposely omit .autoMode() here to make it manual tap trigger
+        // 1. Telegram ko ready aur full-screen karne ka signal bhejo
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
+        // 2. Sirf tabhi Adexium chalu karo jab app Telegram ke andar khula ho
+        if (typeof AdexiumWidget !== 'undefined') {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                window.adexiumWidgetInstance = new AdexiumWidget({
+                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+                    adFormat: 'interstitial'
+                });
+                console.log("Adexium Telegram ke andar successfully load ho gaya!");
+            } else {
+                console.warn("Adexium warning: App Telegram ke bahar open hai. Ads sirf Telegram bot ke andar chalenge.");
+            }
+        }
     } catch(e) {
-        console.warn("Adexium Init Error", e);
+        console.warn("Adexium Init Error:", e);
     }
 });
 
