@@ -3565,71 +3565,24 @@ body {
 
 // NAYA FIXED INITIALIZER (On-Demand Support Ke Saath)
 window.adexiumWidgetInstance = null;
-window._adexiumInitError = null;
 
 function initAdexiumWidget() {
     try {
-        if (typeof window.AdexiumWidget !== 'function') {
-            window._adexiumInitError = 'Adexium SDK not loaded';
-            console.warn('Adexium SDK not loaded yet.');
+        if (typeof AdexiumWidget !== 'undefined') {
+            if (!window.adexiumWidgetInstance) {
+                window.adexiumWidgetInstance = new AdexiumWidget({
+                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+                    adFormat: 'interstitial' // ya 'rewarded' agar aapne dashboard me rewarded select kiya hai
+                });
+                console.log("✅ Adexium successfully initialized!");
+            }
+            return window.adexiumWidgetInstance;
+        } else {
+            console.warn("⚠️ AdexiumWidget SDK abhi load nahi hua.");
             return null;
         }
-
-        if (window.adexiumWidgetInstance) return window.adexiumWidgetInstance;
-
-        // Production/manual mode. No autoMode() and no debug/test ads.
-        var widget = new window.AdexiumWidget({
-            wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-            adFormat: 'interstitial'
-        });
-
-        if (!widget || typeof widget.requestAd !== 'function' ||
-            typeof widget.displayAd !== 'function' || typeof widget.on !== 'function') {
-            throw new Error('Unsupported Adexium SDK build');
-        }
-
-        widget.on('adReceived', function(ad) {
-            console.log('Adexium: ad received');
-            try {
-                widget.displayAd(ad);
-            } catch (err) {
-                console.error('Adexium display error:', err);
-                if (typeof window._adexiumNoAdHandler === 'function') {
-                    window._adexiumNoAdHandler();
-                }
-            }
-        });
-
-        widget.on('adDisplayed', function() {
-            console.log('Adexium: ad displayed');
-        });
-
-        widget.on('adClosed', function() {
-            console.log('Adexium: ad closed');
-        });
-
-        widget.on('noAdFound', function() {
-            console.warn('Adexium: no ad found');
-            if (typeof window._adexiumNoAdHandler === 'function') {
-                window._adexiumNoAdHandler();
-            }
-        });
-
-        widget.on('adPlaybackCompleted', function() {
-            console.log('Adexium: playback completed');
-            if (typeof window._adexiumCompletedHandler === 'function') {
-                window._adexiumCompletedHandler();
-            }
-        });
-
-        window.adexiumWidgetInstance = widget;
-        window._adexiumInitError = null;
-        console.log('Adexium initialized successfully.');
-        return widget;
-    } catch (err) {
-        window.adexiumWidgetInstance = null;
-        window._adexiumInitError = err;
-        console.error('Adexium Init Error:', err && err.message ? err.message : err);
+    } catch(err) {
+        console.error("Adexium Init Error:", err);
         return null;
     }
 }
@@ -3640,6 +3593,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
+        initAdexiumWidget();
     } catch(e) {
         console.warn("Telegram init warning:", e);
     }
@@ -3719,6 +3673,8 @@ var totalAdsWatched = parseInt(localStorage.getItem('pto_all_ads_watched') || '0
 var adsWatchedAdsgram = parseInt(localStorage.getItem('pto_ads_adsgram') || '0');
 var adsWatchedAdexium = parseInt(localStorage.getItem('pto_ads_adexium') || '0');
 var adsWatchedMontage = parseInt(localStorage.getItem('pto_ads_montage') || '0');
+// Global ads cycle cooldown: after all 10 ads are completed, lock ALL ad networks for 2 hours.
+var adsCycleCooldownUntil = parseInt(localStorage.getItem('pto_ads_cycle_cooldown_until') || '0');
 var currentAdNetwork = null;
 var adSlotsConfig = [];
 
@@ -5166,25 +5122,64 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
   }
 }
 
-/* 4-SECOND ADS COOLDOWN TIMER */
+/* ADS CYCLE: 10 ADS -> 2 HOURS LOCK FOR ALL AD NETWORKS */
 var adCooldownRemaining = 0;
 var adCooldownTimer = null;
+var ADS_CYCLE_TOTAL = 10;
+var ADS_CYCLE_COOLDOWN_MS = 2 * 60 * 60 * 1000;
 
-function startAdsCooldown(seconds) {
-  adCooldownRemaining = seconds || 4;
+function getAdsCycleRemaining() {
+  var diff = adsCycleCooldownUntil - Date.now();
+  return diff > 0 ? Math.ceil(diff / 1000) : 0;
+}
 
+function isAdsCycleLocked() {
+  return getAdsCycleRemaining() > 0;
+}
+
+function formatAdsCooldown(seconds) {
+  var h = Math.floor(seconds / 3600);
+  var m = Math.floor((seconds % 3600) / 60);
+  var s = seconds % 60;
+  return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function startAdsCycleCooldown() {
+  adsCycleCooldownUntil = Date.now() + ADS_CYCLE_COOLDOWN_MS;
+  localStorage.setItem('pto_ads_cycle_cooldown_until', String(adsCycleCooldownUntil));
   if (adCooldownTimer) clearInterval(adCooldownTimer);
   adCooldownTimer = setInterval(function() {
-    adCooldownRemaining--;
-    if (document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) {
-       renderAdsTab();
+    if (document.getElementById('ads-tab') && document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) {
+      renderAdsTab();
     }
-    if (adCooldownRemaining <= 0) {
+    if (!isAdsCycleLocked()) {
       clearInterval(adCooldownTimer);
       adCooldownTimer = null;
+      renderAdsTab();
     }
   }, 1000);
+  renderAdsTab();
 }
+
+function restoreAdsCycleCooldown() {
+  if (isAdsCycleLocked()) {
+    if (adCooldownTimer) clearInterval(adCooldownTimer);
+    adCooldownTimer = setInterval(function() {
+      if (!isAdsCycleLocked()) {
+        clearInterval(adCooldownTimer);
+        adCooldownTimer = null;
+        adsCycleCooldownUntil = 0;
+        localStorage.removeItem('pto_ads_cycle_cooldown_until');
+      }
+      if (document.getElementById('ads-tab') && document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) renderAdsTab();
+    }, 1000);
+  } else {
+    adsCycleCooldownUntil = 0;
+    localStorage.removeItem('pto_ads_cycle_cooldown_until');
+  }
+}
+
+restoreAdsCycleCooldown();
 function startTimerModal(seconds, onFinished) {
   var adModal = document.getElementById('adWatchModal');
   var countdownEl = document.getElementById('adCountdownNum');
@@ -5255,6 +5250,8 @@ window.renderAdsTab = function() {
 
   var totalAds = 10;
   var adsCompleted = 0;
+  var cycleLocked = isAdsCycleLocked();
+  var cycleRemaining = getAdsCycleRemaining();
   var networkIcon = '🐶';
   var networkLabel = 'DOGS';
 
@@ -5291,8 +5288,8 @@ window.renderAdsTab = function() {
     var clickAttr = isCurrent ? `onclick="watchDogsAd(${i}, '${currentAdNetwork}', ${rewardCoins}, ${rewardAlt})"` : (isLocked ? 'onclick="alert(\'Please complete previous ad first!\')"' : '');
     var rightIcon = isCompleted ? '<i class="fa-solid fa-check" style="color:#22c55e;"></i>' : (isLocked ? '<i class="fa-solid fa-lock" style="color:#64748b;font-size:12px;"></i>' : '<i class="fa-solid fa-play"></i>');
 
-    if (adCooldownRemaining > 0 && isCurrent) {
-        titleText = 'Wait ' + adCooldownRemaining + 's';
+    if (cycleLocked) {
+        titleText = 'Available in ' + formatAdsCooldown(cycleRemaining);
         clickAttr = '';
         cardClass += ' locked';
         rightIcon = '<i class="fa-solid fa-hourglass-half"></i>';
@@ -5310,7 +5307,11 @@ window.renderAdsTab = function() {
             '</div>';
   }
   
-  html += '<div class="ads-scroll-hint"><span><i class="fa-solid fa-angles-down"></i> Scroll down for all 10 ads <i class="fa-solid fa-angles-down"></i></span></div>';
+  if (cycleLocked) {
+    html += '<div style="margin:14px 0;padding:16px;border:1px solid rgba(255,193,7,.35);border-radius:16px;text-align:center;background:rgba(255,193,7,.06);"><div style="font-size:13px;font-weight:900;color:#ffd54a;">ALL ADS COMPLETED</div><div style="font-size:11px;color:#9fb1c8;margin-top:5px;">Come back after the 2-hour cooldown</div><div style="font-size:25px;font-weight:900;color:#fff;margin-top:7px;">' + formatAdsCooldown(cycleRemaining) + '</div></div>';
+  } else {
+    html += '<div class="ads-scroll-hint"><span><i class="fa-solid fa-angles-down"></i> Scroll down for all 10 ads <i class="fa-solid fa-angles-down"></i></span></div>';
+  }
 
   container.innerHTML = html;
   
@@ -5334,7 +5335,10 @@ window.renderAdsTab = function() {
 /* WATCH ADS & SHOW CLAIM REWARD WITH FLYING COINS */
 window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
   initAudio();
-  if (adCooldownRemaining > 0) return;
+  if (isAdsCycleLocked()) {
+    renderAdsTab();
+    return;
+  }
 
   var altName = (network === 'montage') ? 'GEMS 💎' : '$DOGS 🐶';
   var altType = (network === 'montage') ? 'gems' : 'dogs';
@@ -5370,61 +5374,31 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
       } else startTimerModal(4, onAdFinished);
 
   } else if (network === 'adexium') {
-      // Adexium: MANUAL TAP ONLY + PRODUCTION ADS.
-      // Do not use show(), showAd(), autoMode(), debug:true, or a fake fallback timer.
-      // Reward is granted only after Adexium reports adPlaybackCompleted.
       try {
-          var adex = initAdexiumWidget();
-
-          if (!adex) {
-              showModal(`
-                <div style="font-size:42px;">⚠️</div>
-                <div class="m-title">AD NOT READY</div>
-                <div class="m-body">Adexium could not be loaded. Please try again.</div>
-                <div class="m-btn-row">
-                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
-                </div>
-              `);
-              return;
+          // 1. Agar instance pehle se nahi bana hai to yahan turant bana lo
+          if (!window.adexiumWidgetInstance && typeof AdexiumWidget !== 'undefined') {
+              window.adexiumWidgetInstance = new AdexiumWidget({
+                  wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+                  adFormat: 'interstitial'
+              });
           }
 
-          // These callbacks are consumed by the Adexium event listeners.
-          window._adexiumCompletedHandler = function() {
-              window._adexiumCompletedHandler = null;
-              window._adexiumNoAdHandler = null;
-              onAdFinished();
-          };
+          var adex = window.adexiumWidgetInstance;
 
-          window._adexiumNoAdHandler = function() {
-              window._adexiumCompletedHandler = null;
-              window._adexiumNoAdHandler = null;
-              showModal(`
-                <div style="font-size:42px;">📺</div>
-                <div class="m-title">NO AD AVAILABLE</div>
-                <div class="m-body">Adexium has no ad available right now. Please try again later.</div>
-                <div class="m-btn-row">
-                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
-                </div>
-              `);
-          };
-
-          // Manual request: only after the user taps this Adexium card.
-          // No autoMode(), no debug/test mode, and no fake fallback timer.
-          adex.requestAd('interstitial');
-
+          // 2. Asli Adexium function .show() hota hai (na ki .showAd)
+          if (adex && typeof adex.show === 'function') {
+              adex.show();
+              startTimerModal(6, onAdFinished);
+          } else if (adex && typeof adex.showAd === 'function') {
+              adex.showAd();
+              startTimerModal(6, onAdFinished);
+          } else {
+              // Agar SDK block ya fail ho to fallback timer
+              startTimerModal(4, onAdFinished);
+          }
       } catch(e) {
-          window._adexiumCompletedHandler = null;
-          window._adexiumNoAdHandler = null;
-          console.warn("Adexium request error:", e);
-
-          showModal(`
-            <div style="font-size:42px;">⚠️</div>
-            <div class="m-title">AD ERROR</div>
-            <div class="m-body">Adexium could not start. Please try again.</div>
-            <div class="m-btn-row">
-              <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
-            </div>
-          `);
+          console.warn("Adexium Show Error:", e);
+          startTimerModal(4, onAdFinished);
       }
 
   } else if (network === 'montage') {
@@ -5455,10 +5429,15 @@ window.handleAdClaimReward = function(event, network, coinsReward, altReward, al
     addPointsAndCoins(coinsReward, 10, addGems, 5, addDogs);
     sCoin();
     updateAllDisplays();
-    renderAdsTab();
-  });
 
-  startAdsCooldown(4);
+    // After the 10th ad, lock every ad network for exactly 2 hours.
+    var watchedInNetwork = network === 'adsgram' ? adsWatchedAdsgram : (network === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
+    if (watchedInNetwork > 0 && watchedInNetwork % ADS_CYCLE_TOTAL === 0) {
+      startAdsCycleCooldown();
+    } else {
+      renderAdsTab();
+    }
+  });
 };
 
 
