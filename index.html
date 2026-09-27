@@ -17,7 +17,7 @@
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
 <!-- Adexium SDK Integration -->
-<script type="text/javascript" src="https://cdn.adexium.tech/assets/js/adexium-widget.min.js"></script>
+<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
 
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
@@ -3565,57 +3565,71 @@ body {
 
 // NAYA FIXED INITIALIZER (On-Demand Support Ke Saath)
 window.adexiumWidgetInstance = null;
+window._adexiumInitError = null;
 
 function initAdexiumWidget() {
     try {
-        if (typeof AdexiumWidget !== 'undefined') {
-            if (!window.adexiumWidgetInstance) {
-                window.adexiumWidgetInstance = new AdexiumWidget({
-                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                    adFormat: 'interstitial',
-                    debug: true
-                });
-
-                // IMPORTANT:
-                // No autoMode() here.
-                // Adexium will NOT open automatically.
-                // It is requested only after the user taps an Adexium ad card.
-                window.adexiumWidgetInstance.on('adReceived', function(ad) {
-                    console.log("✅ Adexium ad received");
-                    window.adexiumWidgetInstance.displayAd(ad);
-                });
-
-                window.adexiumWidgetInstance.on('adDisplayed', function() {
-                    console.log("✅ Adexium ad displayed");
-                });
-
-                window.adexiumWidgetInstance.on('adClosed', function() {
-                    console.log("ℹ️ Adexium ad closed");
-                });
-
-                window.adexiumWidgetInstance.on('noAdFound', function() {
-                    console.warn("⚠️ Adexium: no ad found");
-                    if (typeof window._adexiumNoAdHandler === 'function') {
-                        window._adexiumNoAdHandler();
-                    }
-                });
-
-                window.adexiumWidgetInstance.on('adPlaybackCompleted', function() {
-                    console.log("✅ Adexium ad playback completed");
-                    if (typeof window._adexiumCompletedHandler === 'function') {
-                        window._adexiumCompletedHandler();
-                    }
-                });
-
-                console.log("✅ Adexium initialized (manual tap mode)");
-            }
-            return window.adexiumWidgetInstance;
-        } else {
-            console.warn("⚠️ AdexiumWidget SDK abhi load nahi hua.");
+        if (typeof window.AdexiumWidget !== 'function') {
+            window._adexiumInitError = 'Adexium SDK not loaded';
+            console.warn('Adexium SDK not loaded yet.');
             return null;
         }
-    } catch(err) {
-        console.error("Adexium Init Error:", err);
+
+        if (window.adexiumWidgetInstance) return window.adexiumWidgetInstance;
+
+        // Production/manual mode. No autoMode() and no debug/test ads.
+        var widget = new window.AdexiumWidget({
+            wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
+            adFormat: 'interstitial'
+        });
+
+        if (!widget || typeof widget.requestAd !== 'function' ||
+            typeof widget.displayAd !== 'function' || typeof widget.on !== 'function') {
+            throw new Error('Unsupported Adexium SDK build');
+        }
+
+        widget.on('adReceived', function(ad) {
+            console.log('Adexium: ad received');
+            try {
+                widget.displayAd(ad);
+            } catch (err) {
+                console.error('Adexium display error:', err);
+                if (typeof window._adexiumNoAdHandler === 'function') {
+                    window._adexiumNoAdHandler();
+                }
+            }
+        });
+
+        widget.on('adDisplayed', function() {
+            console.log('Adexium: ad displayed');
+        });
+
+        widget.on('adClosed', function() {
+            console.log('Adexium: ad closed');
+        });
+
+        widget.on('noAdFound', function() {
+            console.warn('Adexium: no ad found');
+            if (typeof window._adexiumNoAdHandler === 'function') {
+                window._adexiumNoAdHandler();
+            }
+        });
+
+        widget.on('adPlaybackCompleted', function() {
+            console.log('Adexium: playback completed');
+            if (typeof window._adexiumCompletedHandler === 'function') {
+                window._adexiumCompletedHandler();
+            }
+        });
+
+        window.adexiumWidgetInstance = widget;
+        window._adexiumInitError = null;
+        console.log('Adexium initialized successfully.');
+        return widget;
+    } catch (err) {
+        window.adexiumWidgetInstance = null;
+        window._adexiumInitError = err;
+        console.error('Adexium Init Error:', err && err.message ? err.message : err);
         return null;
     }
 }
@@ -3626,7 +3640,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
-        initAdexiumWidget();
     } catch(e) {
         console.warn("Telegram init warning:", e);
     }
@@ -5357,8 +5370,8 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
       } else startTimerModal(4, onAdFinished);
 
   } else if (network === 'adexium') {
-      // Adexium: MANUAL TAP ONLY.
-      // Do not use show(), showAd(), autoMode(), or a fake fallback timer.
+      // Adexium: MANUAL TAP ONLY + PRODUCTION ADS.
+      // Do not use show(), showAd(), autoMode(), debug:true, or a fake fallback timer.
       // Reward is granted only after Adexium reports adPlaybackCompleted.
       try {
           var adex = initAdexiumWidget();
@@ -5395,12 +5408,9 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
               `);
           };
 
-          // The only Adexium call triggered by the card tap.
-          if (typeof adex.requestAd === 'function') {
-              adex.requestAd('interstitial');
-          } else {
-              throw new Error('Adexium requestAd() is unavailable');
-          }
+          // Manual request: only after the user taps this Adexium card.
+          // No autoMode(), no debug/test mode, and no fake fallback timer.
+          adex.requestAd('interstitial');
 
       } catch(e) {
           window._adexiumCompletedHandler = null;
