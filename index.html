@@ -5130,6 +5130,7 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
 /* ADS CYCLE: EACH NETWORK HAS ITS OWN 10 ADS -> 2 HOURS LOCK */
 var adCooldownRemaining = 0;
 var adCooldownTimer = null;
+var adTimerInterval = null;
 var ADS_CYCLE_TOTAL = 10;
 var ADS_CYCLE_COOLDOWN_MS = 2 * 60 * 60 * 1000;
 
