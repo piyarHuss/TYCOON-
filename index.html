@@ -3674,7 +3674,12 @@ var adsWatchedAdsgram = parseInt(localStorage.getItem('pto_ads_adsgram') || '0')
 var adsWatchedAdexium = parseInt(localStorage.getItem('pto_ads_adexium') || '0');
 var adsWatchedMontage = parseInt(localStorage.getItem('pto_ads_montage') || '0');
 // Global ads cycle cooldown: after all 10 ads are completed, lock ALL ad networks for 2 hours.
-var adsCycleCooldownUntil = parseInt(localStorage.getItem('pto_ads_cycle_cooldown_until') || '0');
+var adsCycleCooldownUntil = 0;
+var adsNetworkCooldownUntil = {
+  adsgram: parseInt(localStorage.getItem('pto_ads_cycle_adsgram_until') || '0'),
+  adexium: parseInt(localStorage.getItem('pto_ads_cycle_adexium_until') || '0'),
+  montage: parseInt(localStorage.getItem('pto_ads_cycle_montage_until') || '0')
+};
 var currentAdNetwork = null;
 var adSlotsConfig = [];
 
@@ -5122,19 +5127,23 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
   }
 }
 
-/* ADS CYCLE: 10 ADS -> 2 HOURS LOCK FOR ALL AD NETWORKS */
+/* ADS CYCLE: EACH NETWORK HAS ITS OWN 10 ADS -> 2 HOURS LOCK */
 var adCooldownRemaining = 0;
 var adCooldownTimer = null;
 var ADS_CYCLE_TOTAL = 10;
 var ADS_CYCLE_COOLDOWN_MS = 2 * 60 * 60 * 1000;
 
-function getAdsCycleRemaining() {
-  var diff = adsCycleCooldownUntil - Date.now();
+function getNetworkCooldownUntil(network) {
+  return Number(adsNetworkCooldownUntil[network] || 0);
+}
+
+function getAdsCycleRemaining(network) {
+  var diff = getNetworkCooldownUntil(network) - Date.now();
   return diff > 0 ? Math.ceil(diff / 1000) : 0;
 }
 
-function isAdsCycleLocked() {
-  return getAdsCycleRemaining() > 0;
+function isAdsCycleLocked(network) {
+  return getAdsCycleRemaining(network) > 0;
 }
 
 function formatAdsCooldown(seconds) {
@@ -5144,42 +5153,83 @@ function formatAdsCooldown(seconds) {
   return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
 }
 
-function startAdsCycleCooldown() {
-  adsCycleCooldownUntil = Date.now() + ADS_CYCLE_COOLDOWN_MS;
-  localStorage.setItem('pto_ads_cycle_cooldown_until', String(adsCycleCooldownUntil));
+function startAdsCycleCooldown(network) {
+  if (!network) return;
+
+  var until = Date.now() + ADS_CYCLE_COOLDOWN_MS;
+  adsNetworkCooldownUntil[network] = until;
+  localStorage.setItem('pto_ads_cycle_' + network + '_until', String(until));
+
   if (adCooldownTimer) clearInterval(adCooldownTimer);
   adCooldownTimer = setInterval(function() {
-    if (document.getElementById('ads-tab') && document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) {
+    var anyLocked = false;
+
+    ['adsgram','adexium','montage'].forEach(function(net) {
+      if (isAdsCycleLocked(net)) {
+        anyLocked = true;
+      } else if (getNetworkCooldownUntil(net) > 0) {
+        adsNetworkCooldownUntil[net] = 0;
+        localStorage.removeItem('pto_ads_cycle_' + net + '_until');
+      }
+    });
+
+    if (document.getElementById('ads-tab') &&
+        document.getElementById('ads-tab').classList.contains('active') &&
+        currentAdNetwork) {
       renderAdsTab();
     }
-    if (!isAdsCycleLocked()) {
+
+    if (!anyLocked) {
       clearInterval(adCooldownTimer);
       adCooldownTimer = null;
-      renderAdsTab();
     }
   }, 1000);
+
   renderAdsTab();
 }
 
 function restoreAdsCycleCooldown() {
-  if (isAdsCycleLocked()) {
+  ['adsgram','adexium','montage'].forEach(function(net) {
+    if (!isAdsCycleLocked(net)) {
+      adsNetworkCooldownUntil[net] = 0;
+      localStorage.removeItem('pto_ads_cycle_' + net + '_until');
+    }
+  });
+
+  var anyLocked = ['adsgram','adexium','montage'].some(function(net) {
+    return isAdsCycleLocked(net);
+  });
+
+  if (anyLocked) {
     if (adCooldownTimer) clearInterval(adCooldownTimer);
     adCooldownTimer = setInterval(function() {
-      if (!isAdsCycleLocked()) {
+      var stillLocked = false;
+
+      ['adsgram','adexium','montage'].forEach(function(net) {
+        if (isAdsCycleLocked(net)) {
+          stillLocked = true;
+        } else if (getNetworkCooldownUntil(net) > 0) {
+          adsNetworkCooldownUntil[net] = 0;
+          localStorage.removeItem('pto_ads_cycle_' + net + '_until');
+        }
+      });
+
+      if (document.getElementById('ads-tab') &&
+          document.getElementById('ads-tab').classList.contains('active') &&
+          currentAdNetwork) {
+        renderAdsTab();
+      }
+
+      if (!stillLocked) {
         clearInterval(adCooldownTimer);
         adCooldownTimer = null;
-        adsCycleCooldownUntil = 0;
-        localStorage.removeItem('pto_ads_cycle_cooldown_until');
       }
-      if (document.getElementById('ads-tab') && document.getElementById('ads-tab').classList.contains('active') && currentAdNetwork) renderAdsTab();
     }, 1000);
-  } else {
-    adsCycleCooldownUntil = 0;
-    localStorage.removeItem('pto_ads_cycle_cooldown_until');
   }
 }
 
 restoreAdsCycleCooldown();
+
 function startTimerModal(seconds, onFinished) {
   var adModal = document.getElementById('adWatchModal');
   var countdownEl = document.getElementById('adCountdownNum');
@@ -5250,8 +5300,8 @@ window.renderAdsTab = function() {
 
   var totalAds = 10;
   var adsCompleted = 0;
-  var cycleLocked = isAdsCycleLocked();
-  var cycleRemaining = getAdsCycleRemaining();
+  var cycleLocked = isAdsCycleLocked(currentAdNetwork);
+  var cycleRemaining = getAdsCycleRemaining(currentAdNetwork);
   var networkIcon = '🐶';
   var networkLabel = 'DOGS';
 
@@ -5430,10 +5480,10 @@ window.handleAdClaimReward = function(event, network, coinsReward, altReward, al
     sCoin();
     updateAllDisplays();
 
-    // After the 10th ad, lock every ad network for exactly 2 hours.
+    // After the 10th ad, lock ONLY this ad network for exactly 2 hours.
     var watchedInNetwork = network === 'adsgram' ? adsWatchedAdsgram : (network === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
     if (watchedInNetwork > 0 && watchedInNetwork % ADS_CYCLE_TOTAL === 0) {
-      startAdsCycleCooldown();
+      startAdsCycleCooldown(network);
     } else {
       renderAdsTab();
     }
