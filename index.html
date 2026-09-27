@@ -17,7 +17,7 @@
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
 <!-- Adexium SDK Integration -->
-<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+<script type="text/javascript" src="https://cdn.adexium.tech/assets/js/adexium-widget.min.js"></script>
 
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
@@ -3572,9 +3572,42 @@ function initAdexiumWidget() {
             if (!window.adexiumWidgetInstance) {
                 window.adexiumWidgetInstance = new AdexiumWidget({
                     wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                    adFormat: 'interstitial' // ya 'rewarded' agar aapne dashboard me rewarded select kiya hai
+                    adFormat: 'interstitial',
+                    debug: true
                 });
-                console.log("✅ Adexium successfully initialized!");
+
+                // IMPORTANT:
+                // No autoMode() here.
+                // Adexium will NOT open automatically.
+                // It is requested only after the user taps an Adexium ad card.
+                window.adexiumWidgetInstance.on('adReceived', function(ad) {
+                    console.log("✅ Adexium ad received");
+                    window.adexiumWidgetInstance.displayAd(ad);
+                });
+
+                window.adexiumWidgetInstance.on('adDisplayed', function() {
+                    console.log("✅ Adexium ad displayed");
+                });
+
+                window.adexiumWidgetInstance.on('adClosed', function() {
+                    console.log("ℹ️ Adexium ad closed");
+                });
+
+                window.adexiumWidgetInstance.on('noAdFound', function() {
+                    console.warn("⚠️ Adexium: no ad found");
+                    if (typeof window._adexiumNoAdHandler === 'function') {
+                        window._adexiumNoAdHandler();
+                    }
+                });
+
+                window.adexiumWidgetInstance.on('adPlaybackCompleted', function() {
+                    console.log("✅ Adexium ad playback completed");
+                    if (typeof window._adexiumCompletedHandler === 'function') {
+                        window._adexiumCompletedHandler();
+                    }
+                });
+
+                console.log("✅ Adexium initialized (manual tap mode)");
             }
             return window.adexiumWidgetInstance;
         } else {
@@ -5324,31 +5357,64 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
       } else startTimerModal(4, onAdFinished);
 
   } else if (network === 'adexium') {
+      // Adexium: MANUAL TAP ONLY.
+      // Do not use show(), showAd(), autoMode(), or a fake fallback timer.
+      // Reward is granted only after Adexium reports adPlaybackCompleted.
       try {
-          // 1. Agar instance pehle se nahi bana hai to yahan turant bana lo
-          if (!window.adexiumWidgetInstance && typeof AdexiumWidget !== 'undefined') {
-              window.adexiumWidgetInstance = new AdexiumWidget({
-                  wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                  adFormat: 'interstitial'
-              });
+          var adex = initAdexiumWidget();
+
+          if (!adex) {
+              showModal(`
+                <div style="font-size:42px;">⚠️</div>
+                <div class="m-title">AD NOT READY</div>
+                <div class="m-body">Adexium could not be loaded. Please try again.</div>
+                <div class="m-btn-row">
+                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
+                </div>
+              `);
+              return;
           }
 
-          var adex = window.adexiumWidgetInstance;
+          // These callbacks are consumed by the Adexium event listeners.
+          window._adexiumCompletedHandler = function() {
+              window._adexiumCompletedHandler = null;
+              window._adexiumNoAdHandler = null;
+              onAdFinished();
+          };
 
-          // 2. Asli Adexium function .show() hota hai (na ki .showAd)
-          if (adex && typeof adex.show === 'function') {
-              adex.show();
-              startTimerModal(6, onAdFinished);
-          } else if (adex && typeof adex.showAd === 'function') {
-              adex.showAd();
-              startTimerModal(6, onAdFinished);
+          window._adexiumNoAdHandler = function() {
+              window._adexiumCompletedHandler = null;
+              window._adexiumNoAdHandler = null;
+              showModal(`
+                <div style="font-size:42px;">📺</div>
+                <div class="m-title">NO AD AVAILABLE</div>
+                <div class="m-body">Adexium has no ad available right now. Please try again later.</div>
+                <div class="m-btn-row">
+                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
+                </div>
+              `);
+          };
+
+          // The only Adexium call triggered by the card tap.
+          if (typeof adex.requestAd === 'function') {
+              adex.requestAd('interstitial');
           } else {
-              // Agar SDK block ya fail ho to fallback timer
-              startTimerModal(4, onAdFinished);
+              throw new Error('Adexium requestAd() is unavailable');
           }
+
       } catch(e) {
-          console.warn("Adexium Show Error:", e);
-          startTimerModal(4, onAdFinished);
+          window._adexiumCompletedHandler = null;
+          window._adexiumNoAdHandler = null;
+          console.warn("Adexium request error:", e);
+
+          showModal(`
+            <div style="font-size:42px;">⚠️</div>
+            <div class="m-title">AD ERROR</div>
+            <div class="m-body">Adexium could not start. Please try again.</div>
+            <div class="m-btn-row">
+              <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
+            </div>
+          `);
       }
 
   } else if (network === 'montage') {
