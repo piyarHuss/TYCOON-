@@ -17,7 +17,7 @@
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
 <!-- Adexium SDK Integration -->
-<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+<script type="text/javascript" src="https://cdn.adexium.tech/assets/js/tg-ads-co-widget.min.js"></script>
 
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
@@ -2580,7 +2580,7 @@ body {
       <div class="user-profile-pill" onclick="openProfileInfo()">
         <div class="avatar-badge-wrap">
           <div class="user-avatar-icon">
-             <img src="avatar.png" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+             <img src="avatar.png" alt="Avatar" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
              <span style="display:none;">🐹</span>
           </div>
           <div class="lvl-badge" id="playerLvlBadge">L1</div>
@@ -2597,15 +2597,15 @@ body {
 
     <div class="top-pills-row">
       <div class="header-curr-pill" id="headerCoinPill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="Coins">
-        <img src="coin.png" class="header-curr-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px;">🪙</span>
+        <img src="coin.png" class="header-curr-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px;">🪙</span>
         <span class="header-curr-val" id="topCoinCount">0</span>
       </div>
       <div class="header-curr-pill gem-pill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="Gems">
-        <img src="gem.png" class="header-curr-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px; color:var(--green-neon);">💎</span>
+        <img src="gem.png" class="header-curr-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px; color:var(--green-neon);">💎</span>
         <span class="header-curr-val" id="topGemCount" style="color:var(--green-neon);">0</span>
       </div>
       <div class="header-curr-pill dogs-pill" id="headerDogsPill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="DOGS Coin">
-        <img src="dogs.png" class="header-curr-icon" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}"><span style="display:none; font-size:13px;">🐶</span>
+        <img src="dogs.png" class="header-curr-icon" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}"><span style="display:none; font-size:13px;">🐶</span>
         <span class="header-curr-val" id="topDogsCount" style="color:#ffffff;">130</span>
       </div>
     </div>
@@ -2620,7 +2620,7 @@ body {
       <!-- Balance Hero Box -->
       <div class="balance-hero-box">
         <div class="balance-num-wrap">
-          <img src="coin.png" class="hero-coin-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:36px; filter: drop-shadow(0 0 16px var(--gold));">🪙</span>
+          <img src="coin.png" class="hero-coin-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:36px; filter: drop-shadow(0 0 16px var(--gold));">🪙</span>
           <span class="hero-balance-val" id="mainCoinBalance">0</span>
         </div>
       </div>
@@ -2629,31 +2629,31 @@ body {
       <div class="side-panel left">
         <button class="side-btn-pure" title="Daily Reward" onclick="openDailyReward()">
           <div class="side-pure-dot" id="dailySideDot">1</div>
-          <img src="daily.png" class="side-pure-img" alt="Daily" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <img src="daily.png" class="side-pure-img" alt="Daily" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">🎁</span>
         </button>
         <button class="side-btn-pure" title="Invite Friend" onclick="switchTab('invite-tab', null)">
           <div class="side-pure-dot">1</div>
-          <img src="invite.png" class="side-pure-img" alt="Invite" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <img src="invite.png" class="side-pure-img" alt="Invite" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">👥</span>
         </button>
         <button class="side-btn-pure" title="Tasks" onclick="switchTab('tasks-tab', null)">
-          <img src="tasks.png" class="side-pure-img" alt="Tasks" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <img src="tasks.png" class="side-pure-img" alt="Tasks" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">📋</span>
         </button>
       </div>
 
       <div class="side-panel right">
         <button class="side-btn-pure" title="Watch Ads" onclick="openAdsMenu()">
-          <img src="ads.png" class="side-pure-img" alt="Ads" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <img src="ads.png" class="side-pure-img" alt="Ads" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">▶️</span>
         </button>
         <button class="side-btn-pure" title="Spin & Win" onclick="showModal('<div class=\'m-title\'>SPIN & WIN 🎡</div><div class=\'m-body\'>Spin the wheel feature coming soon!</div><div class=\'m-btn-row\'><button class=\'app-btn\' onclick=\'closeModal()\'>OK</button></div>')">
-          <img src="spin.png" class="side-pure-img" alt="Spin" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <img src="spin.png" class="side-pure-img" alt="Spin" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">🎡</span>
         </button>
         <button class="side-btn-pure" title="$DOGS Airdrop" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" style="animation-delay: 1.5s;">
-          <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}">
+          <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
           <span class="side-pure-fallback" style="display:none;">🦴</span>
         </button>
       </div>
@@ -2683,7 +2683,7 @@ body {
       <!-- Centered Energy Meter -->
       <div class="energy-action-row">
         <div class="energy-meter-pill">
-          <img src="energy.png" class="energy-meter-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:16px; color:var(--gold);">⚡</span>
+          <img src="energy.png" class="energy-meter-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:16px; color:var(--gold);">⚡</span>
           <span class="energy-meter-val" id="energyMeterVal">1,000 / 1,000</span>
         </div>
       </div>
@@ -2756,7 +2756,7 @@ body {
     <section id="daily-tab" class="tab-page">
       <!-- HERO BANNER -->
       <div class="daily-hero-card">
-        <img src="dailyreward.png" class="daily-hero-full-img" alt="Daily Reward" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <img src="dailyreward.png" class="daily-hero-full-img" alt="Daily Reward" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
         <div class="daily-hero-fallback-banner" style="display:none;">
           <div class="daily-banner-left">
             <div class="daily-banner-gift-wrap">
@@ -2769,7 +2769,7 @@ body {
           </div>
           <div class="daily-banner-right">
             <div class="daily-dog-mascot-wrap">
-              <img src="dogs.png" class="daily-dog-mascot-img" alt="DOGS" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}">
+              <img src="dogs.png" class="daily-dog-mascot-img" alt="DOGS" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
               <span style="display:none; font-size:28px;">🐶</span>
             </div>
             <div class="daily-7days-badge-pill">
@@ -2800,7 +2800,7 @@ body {
           <div class="streak-text-wrap">
             <span class="streak-title-lbl">NEXT REWARD</span>
             <div class="streak-next-reward-row" id="dailyNextRewardContent">
-              <img src="coin.png" class="streak-coin-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:14px;">🪙</span>
+              <img src="coin.png" class="streak-coin-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:14px;">🪙</span>
               <span class="streak-reward-val">+200 COINS</span>
             </div>
             <span class="streak-sub-lbl" id="dailyNextSubText">Come back tomorrow</span>
@@ -2965,7 +2965,7 @@ body {
         <div class="my-rank-left">
           <span class="my-rank-pos-lbl" id="myRankPos">--</span>
           <div class="lead-avatar-bubble" style="width:30px;height:30px;border-color:var(--cyan-neon)">
-              <img src="avatar.png" alt="You" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+              <img src="avatar.png" alt="You" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
               <span style="display:none;">👷</span>
           </div>
           <span class="my-rank-user-name" id="myRankName">PILOT (You)</span>
@@ -3089,13 +3089,13 @@ body {
         <!-- Top Header Bar -->
         <div class="wd-top-bar">
           <button class="wd-icon-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))" title="Back">
-            <img src="back.png" alt="<" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <img src="back.png" alt="<" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
             <i class="fa-solid fa-chevron-left" style="display:none;"></i>
           </button>
           
           <div class="wd-header-center">
             <div class="wd-header-title-row">
-              <img src="wallet.png" alt="Wallet" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+              <img src="wallet.png" alt="Wallet" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
               <span style="display:none; font-size:20px; color:#0070f3;"><i class="fa-solid fa-wallet"></i></span>
               <span class="wd-header-title">Withdraw</span>
             </div>
@@ -3107,7 +3107,7 @@ body {
               <i class="fa-solid fa-clock-rotate-left" style="color:#00d2ff; font-size:15px;"></i>
             </button>
             <button class="wd-icon-btn" onclick="openWithdrawalHelp()" title="Help">
-              <img src="help.png" alt="?" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+              <img src="help.png" alt="?" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
               <i class="fa-solid fa-question" style="display:none; color:#00a2ff;"></i>
             </button>
           </div>
@@ -3125,7 +3125,7 @@ body {
         <div class="wd-hero-card">
           <!-- Left Column: Your Balance -->
           <div class="wd-hero-col-left">
-            <img src="coin.png" class="wd-hero-coin-icon" alt="Coins" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <img src="coin.png" class="wd-hero-coin-icon" alt="Coins" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
             <span style="display:none; font-size:32px;">🪙</span>
             <div class="wd-hero-meta">
               <span class="wd-hero-label">Your Balance</span>
@@ -3139,7 +3139,7 @@ body {
 
           <!-- Right Column: Minimum Withdrawal -->
           <div class="wd-hero-col-right">
-            <img src="wallet.png" class="wd-hero-wallet-icon" alt="Wallet" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <img src="wallet.png" class="wd-hero-wallet-icon" alt="Wallet" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
             <span style="display:none; font-size:28px; color:#0070f3;"><i class="fa-solid fa-wallet"></i></span>
             <div class="wd-hero-meta">
               <span class="wd-hero-label">Minimum Withdrawal</span>
@@ -3156,7 +3156,7 @@ body {
           <!-- Method 1: UPI (India) -->
           <div class="wd-method-card active" id="wdCardUPI" onclick="selectWithdrawMethod('UPI')">
             <div class="wd-method-badge-check"><i class="fa-solid fa-check"></i></div>
-            <img src="upi.png" class="wd-method-logo" alt="UPI" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <img src="upi.png" class="wd-method-logo" alt="UPI" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
             <div style="display:none; font-family:sans-serif; font-size:18px; font-weight:900; color:#fff; letter-spacing:1px; margin-bottom:6px;">UPI▸</div>
             <span class="wd-method-title">UPI (India)</span>
           </div>
@@ -3164,7 +3164,7 @@ body {
           <!-- Method 2: USDT (TRC20) -->
           <div class="wd-method-card" id="wdCardUSDT" onclick="selectWithdrawMethod('USDT')">
             <div class="wd-method-badge-check"><i class="fa-solid fa-check"></i></div>
-            <img src="usdt.png" class="wd-method-logo" alt="USDT" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <img src="usdt.png" class="wd-method-logo" alt="USDT" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
             <div style="display:none; width:34px; height:34px; border-radius:50%; background:#26a17b; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; margin-bottom:6px;">₮</div>
             <span class="wd-method-title">USDT (TRC20)</span>
           </div>
@@ -3174,7 +3174,7 @@ body {
         <div class="wd-field-group">
           <div class="wd-field-label" id="wdAccountFieldLabel">UPI ID</div>
           <div class="wd-input-container">
-            <img id="wdAccountFieldIcon" src="upi.png" class="wd-field-icon" alt="Method" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <img id="wdAccountFieldIcon" src="upi.png" class="wd-field-icon" alt="Method" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
             <span id="wdAccountFieldIconFallback" style="display:none; font-size:16px;">💳</span>
             <input type="text" id="withdrawAccountInput" class="wd-text-input" placeholder="Enter your UPI ID">
           </div>
@@ -3184,7 +3184,7 @@ body {
         <div class="wd-field-group">
           <div class="wd-field-label">Withdrawal Amount</div>
           <div class="wd-input-container">
-            <img src="coin.png" class="wd-field-icon" alt="Coins" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <img src="coin.png" class="wd-field-icon" alt="Coins" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
             <span style="display:none; font-size:16px;">🪙</span>
             <input type="number" id="withdrawAmountInput" class="wd-text-input" placeholder="Enter amount (min 1,000,000)" oninput="calculateWithdrawFeeAndReceive(this.value)">
             <button class="wd-max-btn" onclick="setWithdrawMaxCoins()">MAX</button>
@@ -3211,7 +3211,7 @@ body {
 
         <!-- Withdraw Now Button -->
         <button class="wd-submit-btn" onclick="executeCoinWithdrawal()">
-          <img src="send.png" alt="Send" onerror="this.src='telegram.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}">
+          <img src="send.png" alt="Send" onerror="this.src='telegram.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
           <i class="fa-solid fa-paper-plane" style="display:none; font-size:16px;"></i>
           <span>Withdraw Now</span>
         </button>
@@ -3351,7 +3351,7 @@ body {
 
       <div class="airdrop-hero-wrap">
         <div class="airdrop-coin-emblem">
-          <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}">
+          <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
           <span style="display:none; font-size:50px;">🪙</span>
         </div>
         <div class="airdrop-title-main">$DOGS</div>
@@ -3359,7 +3359,7 @@ body {
 
         <div class="airdrop-balance-pill-box">
           <div class="airdrop-pill-dog-icon">
-            <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}">
+            <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
             <span style="display:none; font-size:18px;">🐶</span>
           </div>
           <span class="airdrop-pill-num" id="airdropHeroDogs">130</span>
@@ -3395,7 +3395,7 @@ body {
         <div class="airdrop-input-group-row">
           <div class="airdrop-input-label-wrap">
             <div class="airdrop-input-icon-circle">
-              <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}" style="width:16px;height:16px;object-fit:contain;">
+              <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}" style="width:16px;height:16px;object-fit:contain;">
               <span style="display:none;">🐶</span>
             </div>
             <span class="airdrop-input-label-text">Amount (DOGS)</span>
@@ -3429,14 +3429,14 @@ body {
   <nav class="bottom-nav-bar">
     <div class="nav-tab-item active" id="navTap" onclick="switchTab('tap-tab', this)">
       <div class="nav-icon-container">
-        <img src="tap.png" alt="Tap" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <img src="tap.png" alt="Tap" class="nav-png-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
         <span class="nav-fallback-glyph" style="display:none;">🪙</span>
       </div>
       <span class="nav-tab-label">Tap</span>
     </div>
     <div class="nav-tab-item" id="navRating" onclick="switchTab('rating-tab', this)">
       <div class="nav-icon-container">
-        <img src="rating.png" alt="Rating" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <img src="rating.png" alt="Rating" class="nav-png-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
         <span class="nav-fallback-glyph" style="display:none;">🏆</span>
       </div>
       <span class="nav-tab-label">Rating</span>
@@ -3444,7 +3444,7 @@ body {
     <div class="nav-tab-item dogs-center-tab" id="navAirdrop" onclick="switchTab('airdrop-tab', this)">
       <div class="nav-badge-pill dogs-badge">DOGS</div>
       <div class="nav-icon-container nav-dogs-container">
-        <img src="dogs.png" alt="DOGS" class="nav-png-icon" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}">
+        <img src="dogs.png" alt="DOGS" class="nav-png-icon" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
         <span class="nav-fallback-glyph" style="display:none; font-size:16px;">🐶</span>
       </div>
       <span class="nav-tab-label">Airdrop</span>
@@ -3452,14 +3452,14 @@ body {
     <div class="nav-tab-item" id="navGame" onclick="switchTab('game-tab', this)">
       <div class="nav-badge-pill" style="background:linear-gradient(135deg,#ff9900,#ff5500);">HOT</div>
       <div class="nav-icon-container">
-        <img src="game.png" alt="Game" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <img src="game.png" alt="Game" class="nav-png-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
         <span class="nav-fallback-glyph" style="display:none; font-size:16px;">🎮</span>
       </div>
       <span class="nav-tab-label">Game</span>
     </div>
     <div class="nav-tab-item" id="navWithdraw" onclick="switchTab('withdrawal-tab', this)">
       <div class="nav-icon-container">
-        <img src="coin.png" alt="Withdraw" class="nav-png-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <img src="coin.png" alt="Withdraw" class="nav-png-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
         <span class="nav-fallback-glyph" style="display:none;">💰</span>
       </div>
       <span class="nav-tab-label">Withdraw</span>
@@ -3593,7 +3593,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
-        initAdexiumWidget();
     } catch(e) {
         console.warn("Telegram init warning:", e);
     }
@@ -3988,11 +3987,13 @@ function updateAllDisplays() {
   var airdropHeroDogsEl = document.getElementById('airdropHeroDogs');
   if (airdropHeroDogsEl) airdropHeroDogsEl.innerText = dogsBalance.toLocaleString();
   
-  document.getElementById('playerLvlBadge').innerText = 'L' + playerLevel;
+  var playerLvlBadgeEl = document.getElementById('playerLvlBadge');
+    if (playerLvlBadgeEl) playerLvlBadgeEl.innerText = 'L' + playerLevel;
   
   var xpThreshold = playerLevel * 250;
   var xpPct = Math.min(100, Math.floor((playerXP % xpThreshold) / xpThreshold * 100));
-  document.getElementById('topXpFill').style.width = xpPct + '%';
+  var topXpFillEl = document.getElementById('topXpFill');
+    if (topXpFillEl) topXpFillEl.style.width = xpPct + '%';
 
   // Balance & Energy Display
   document.getElementById('mainCoinBalance').innerText = totalCoins.toLocaleString();
@@ -4128,7 +4129,7 @@ function handleMascotTap(e) {
   
   var rockImg = document.getElementById('rockImage');
   var rockEmoji = document.getElementById('rockEmoji');
-  var targetAnim = rockImg.style.display !== 'none' ? rockImg : rockEmoji;
+  var targetAnim = rockImg ? (rockImg.style.display !== 'none' ? rockImg : rockEmoji) : rockEmoji;
   
   if(targetAnim) {
     targetAnim.classList.remove('shake-anim');
@@ -4517,8 +4518,12 @@ function updateTasksUI() {
 }
 
 window.cancelAdWatch = function() {
-  if (adTimerInterval) clearInterval(adTimerInterval);
-  document.getElementById('adWatchModal').classList.add('hidden');
+  if (adTimerInterval) {
+    clearInterval(adTimerInterval);
+    adTimerInterval = null;
+  }
+  var adModal = document.getElementById('adWatchModal');
+  if (adModal) adModal.classList.add('hidden');
 };
 
 /* ========================================================
@@ -5237,6 +5242,17 @@ function startTimerModal(seconds, onFinished) {
   var progressFill = document.getElementById('adProgressFill');
   var closeBtn = document.getElementById('btnCloseAd');
 
+  if (!adModal || !countdownEl || !progressFill || !closeBtn) {
+    console.warn('Ad timer UI missing:', {
+      adModal: !!adModal,
+      countdownEl: !!countdownEl,
+      progressFill: !!progressFill,
+      closeBtn: !!closeBtn
+    });
+    if (typeof onFinished === 'function') onFinished();
+    return;
+  }
+
   adModal.classList.remove('hidden');
   progressFill.style.width = '0%';
   closeBtn.innerText = 'WAIT...';
@@ -5249,19 +5265,22 @@ function startTimerModal(seconds, onFinished) {
   if (adTimerInterval) clearInterval(adTimerInterval);
   adTimerInterval = setInterval(function(){
     timeLeft--;
-    countdownEl.innerText = timeLeft + 's';
-    progressFill.style.width = ((seconds - timeLeft) / seconds * 100) + '%';
+    if (countdownEl) countdownEl.innerText = timeLeft + 's';
+    if (progressFill) progressFill.style.width = ((seconds - timeLeft) / seconds * 100) + '%';
 
     if (timeLeft <= 0) {
       clearInterval(adTimerInterval);
-      closeBtn.innerText = 'CLAIM REWARD ✓';
-      closeBtn.style.opacity = '1';
-      closeBtn.style.pointerEvents = 'auto';
-      closeBtn.style.background = 'linear-gradient(90deg,#00e676,#00a854)';
-      closeBtn.onclick = function() {
-        adModal.classList.add('hidden');
-        onFinished();
-      };
+      adTimerInterval = null;
+      if (closeBtn) {
+        closeBtn.innerText = 'CLAIM REWARD ✓';
+        closeBtn.style.opacity = '1';
+        closeBtn.style.pointerEvents = 'auto';
+        closeBtn.style.background = 'linear-gradient(90deg,#00e676,#00a854)';
+        closeBtn.onclick = function() {
+          if (adModal) adModal.classList.add('hidden');
+          if (typeof onFinished === 'function') onFinished();
+        };
+      }
     }
   }, 1000);
 }
@@ -5270,15 +5289,19 @@ function startTimerModal(seconds, onFinished) {
 window.openAdsMenu = function() {
   switchTab('ads-tab', null);
   currentAdNetwork = null;
-  document.getElementById('adsCategoriesView').style.display = 'block';
-  document.getElementById('adsSlotsView').style.display = 'none';
+  var adsCategoriesView = document.getElementById('adsCategoriesView');
+  var adsSlotsView = document.getElementById('adsSlotsView');
+  if (adsCategoriesView) adsCategoriesView.style.display = 'block';
+  if (adsSlotsView) adsSlotsView.style.display = 'none';
 };
 
 window.openAdSlots = function(network) {
   initAudio();
   currentAdNetwork = network;
-  document.getElementById('adsCategoriesView').style.display = 'none';
-  document.getElementById('adsSlotsView').style.display = 'flex';
+  var adsCategoriesView = document.getElementById('adsCategoriesView');
+  var adsSlotsView = document.getElementById('adsSlotsView');
+  if (adsCategoriesView) adsCategoriesView.style.display = 'none';
+  if (adsSlotsView) adsSlotsView.style.display = 'flex';
   
   var title = "QUICK ADS";
   if (network === 'adexium') title = "VIDEO SERIES";
@@ -5425,31 +5448,94 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
       } else startTimerModal(4, onAdFinished);
 
   } else if (network === 'adexium') {
+      // Adexium: manual tap -> requestAd -> adReceived -> displayAd.
+      // No show(), showAd(), autoMode(), or fake fallback timer.
       try {
-          // 1. Agar instance pehle se nahi bana hai to yahan turant bana lo
-          if (!window.adexiumWidgetInstance && typeof AdexiumWidget !== 'undefined') {
+          // Create the widget only when the user taps the Adexium card.
+          var adex = null;
+
+          // Adexium TMA requires Telegram Mini App user context.
+          var tgWebApp = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+          if (!tgWebApp || !tgWebApp.initData || !tgWebApp.initDataUnsafe || !tgWebApp.initDataUnsafe.user) {
+              throw new Error('Telegram Mini App user data is unavailable. Open the game from the Telegram bot.');
+          }
+
+          if (typeof AdexiumWidget === 'undefined') {
+              throw new Error('Adexium SDK is not loaded');
+          }
+
+          if (!window.adexiumWidgetInstance) {
               window.adexiumWidgetInstance = new AdexiumWidget({
                   wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
                   adFormat: 'interstitial'
               });
+
+              window.adexiumWidgetInstance.on('adReceived', function(ad) {
+                  try {
+                      window.adexiumWidgetInstance.displayAd(ad);
+                  } catch (displayErr) {
+                      console.warn('Adexium Display Error:', displayErr);
+                      if (typeof window._adexiumNoAdHandler === 'function') {
+                          window._adexiumNoAdHandler();
+                      }
+                  }
+              });
+
+              window.adexiumWidgetInstance.on('noAdFound', function() {
+                  if (typeof window._adexiumNoAdHandler === 'function') {
+                      window._adexiumNoAdHandler();
+                  }
+              });
+
+              window.adexiumWidgetInstance.on('adPlaybackCompleted', function() {
+                  if (typeof window._adexiumCompletedHandler === 'function') {
+                      window._adexiumCompletedHandler();
+                  }
+              });
           }
 
-          var adex = window.adexiumWidgetInstance;
+          adex = window.adexiumWidgetInstance;
 
-          // 2. Asli Adexium function .show() hota hai (na ki .showAd)
-          if (adex && typeof adex.show === 'function') {
-              adex.show();
-              startTimerModal(6, onAdFinished);
-          } else if (adex && typeof adex.showAd === 'function') {
-              adex.showAd();
-              startTimerModal(6, onAdFinished);
-          } else {
-              // Agar SDK block ya fail ho to fallback timer
-              startTimerModal(4, onAdFinished);
+          window._adexiumCompletedHandler = function() {
+              window._adexiumCompletedHandler = null;
+              window._adexiumNoAdHandler = null;
+              onAdFinished();
+          };
+
+          window._adexiumNoAdHandler = function() {
+              window._adexiumCompletedHandler = null;
+              window._adexiumNoAdHandler = null;
+              showModal(`
+                <div style="font-size:42px;">📺</div>
+                <div class="m-title">NO AD AVAILABLE</div>
+                <div class="m-body">Adexium has no ad available right now. Please try again later.</div>
+                <div class="m-btn-row">
+                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
+                </div>
+              `);
+          };
+
+          if (!adex || typeof adex.requestAd !== 'function') {
+              throw new Error('Adexium requestAd() is unavailable');
           }
+
+          // Request only after the user taps this card.
+          adex.requestAd('interstitial');
+
       } catch(e) {
-          console.warn("Adexium Show Error:", e);
-          startTimerModal(4, onAdFinished);
+          window._adexiumCompletedHandler = null;
+          window._adexiumNoAdHandler = null;
+          console.warn("Adexium Request Error:", e && e.message ? e.message : e, e);
+
+          var adexiumErrorText = (e && e.message) ? e.message : 'Adexium could not start. Please try again.';
+          showModal(`
+            <div style="font-size:42px;">⚠️</div>
+            <div class="m-title">AD ERROR</div>
+            <div class="m-body">Adexium could not start. Please try again.</div>
+            <div class="m-btn-row">
+              <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
+            </div>
+          `);
       }
 
   } else if (network === 'montage') {
@@ -5969,7 +6055,7 @@ function renderDynamicGamesGrid() {
     html += `
       <div class="arcade-game-card" onclick="launchAdminGame('${game.id}')">
         <div class="arcade-game-banner">
-          <img src="${game.logo}" alt="${game.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width:100%; height:100%; object-fit:cover;">
+          <img src="${game.logo}" alt="${game.title}" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" style="width:100%; height:100%; object-fit:cover;">
           <div style="display:none; width:100%; height:100%; background:linear-gradient(135deg,#1c2838,#0d1624); align-items:center; justify-content:center; font-size:32px;">🎮</div>
         </div>
         <div class="arcade-play-bar green-btn">
@@ -6030,7 +6116,7 @@ function renderDynamicTasksList() {
       <div class="hk-task-card" onclick="handleAdminTaskClick('${task.id}', '${task.url || ''}', ${task.reward || 5000})">
         <div class="hk-card-left">
           <div class="hk-icon-circle">
-            <img src="${iconImg}" alt="Icon" onerror="this.onerror=null; this.src='tasks.png'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='inline';}" style="width:28px; height:28px; object-fit:cover; border-radius:50%;">
+            <img src="${iconImg}" alt="Icon" onerror="this.onerror=null; this.src='tasks.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}" style="width:28px; height:28px; object-fit:cover; border-radius:50%;">
             <i class="fa-solid fa-circle-check" style="display:none;"></i>
           </div>
           <div class="hk-card-text">
