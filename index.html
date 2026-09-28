@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>POTTO ($DOGS) — Web3 Tap & $DOGS Airdrop Ecosystem</title>
+<title>POTTO ($DOGS) — Web3 Tap & $DOGS Ecosystem</title>
 
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -228,7 +228,7 @@ body {
 .tab-page.active { display: flex; }
 
 /* Scrollable tabs */
-#rating-tab.active, #tasks-tab.active, #invite-tab.active, #withdrawal-tab.active, #history-tab.active, #airdrop-tab.active, #daily-tab.active, #ads-tab.active {
+#rating-tab.active, #tasks-tab.active, #invite-tab.active, #withdrawal-tab.active, #history-tab.active, #-tab.active, #daily-tab.active, #ads-tab.active {
   overflow-y: auto !important;
   touch-action: pan-y !important;
   padding: 12px 14px 20px;
@@ -239,7 +239,7 @@ body {
 #invite-tab *,
 #withdrawal-tab *,
 #history-tab *,
-#airdrop-tab *,
+#-tab *,
 #daily-tab *,
 #ads-tab, #ads-tab *,
 .ads-list-container, .ads-list-container *,
@@ -521,7 +521,7 @@ body {
 .nav-tab-item.active { color: var(--gold); }
 .nav-tab-item.active::after { content: ''; position: absolute; bottom: 0; width: 24px; height: 3px; background: var(--gold); border-radius: 3px 3px 0 0; box-shadow: 0 0 10px var(--gold); }
 
-/* CENTER DOGS AIRDROP BUTTON HIGHLIGHT */
+/* CENTER DOGS  BUTTON HIGHLIGHT */
 .nav-tab-item.dogs-center-tab {
   position: relative;
   transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1446,259 +1446,151 @@ body {
   color: #ffffff;
 }
 
-/* PHOTO-ACCURATE AIRDROP SECTION STYLES */
-.airdrop-hero-wrap {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0 12px;
-  text-align: center;
-}
-.airdrop-coin-emblem {
-  position: relative;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffdf6d 0%, #f59e0b 55%, #b45309 100%);
-  border: 3px solid #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.6), 0 6px 16px rgba(0,0,0,0.6);
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-.airdrop-coin-emblem img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.airdrop-title-main {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: 1.5px;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-  line-height: 1.1;
-}
-.airdrop-title-sub {
-  font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 800;
-  color: #94a3b8;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-.airdrop-balance-pill-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: linear-gradient(135deg, rgba(20, 36, 62, 0.9), rgba(10, 20, 38, 0.95));
-  border: 1.5px solid rgba(0, 240, 255, 0.4);
-  border-radius: 99px;
-  padding: 6px 20px;
-  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2), inset 0 1px 3px rgba(255,255,255,0.2);
-  margin-bottom: 8px;
-}
-.airdrop-pill-dog-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ffffff;
-}
-.airdrop-pill-dog-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.airdrop-pill-num {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-.airdrop-pill-ticker {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 900;
-  color: #94a3b8;
-}
-.airdrop-dots-tagline {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: #7dd3fc;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 8px rgba(125, 211, 252, 0.4);
-}
 
-.airdrop-transfer-card {
-  width: 100%;
-  background: linear-gradient(135deg, rgba(16, 32, 56, 0.92), rgba(8, 18, 34, 0.97));
-  border: 1.5px solid rgba(0, 240, 255, 0.3);
-  border-radius: 20px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255,255,255,0.15);
-  margin-bottom: 10px;
+/* =========================================================
+   NEW $DOGS  HUB — REDESIGNED
+   ========================================================= */
+#-tab{
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0,220,255,.18), transparent 34%),
+    radial-gradient(circle at 15% 65%, rgba(120,50,255,.10), transparent 30%),
+    linear-gradient(180deg,#050a13 0%,#07111e 52%,#03070d 100%);
+  position:relative;
+  overflow-y:auto !important;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y !important;
+  padding:14px 13px 92px !important;
 }
-.airdrop-transfer-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 2px;
+#-tab::before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(to bottom,#000,transparent 88%);
 }
-.airdrop-transfer-plane-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #00b0ff, #0044ff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 15px;
-  box-shadow: 0 0 12px rgba(0, 176, 255, 0.5);
-  flex-shrink: 0;
+#-tab>*{position:relative;z-index:2}
+.-new-wrap{width:100%;display:flex;flex-direction:column;gap:11px}
+.-topline{display:flex;align-items:center;justify-content:space-between;padding:2px 3px 0}
+.-top-title{
+  font-family:var(--font-display);font-size:17px;font-weight:900;
+  letter-spacing:1px;color:#fff;text-transform:uppercase
 }
-.airdrop-transfer-header-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.-live{
+  display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;
+  background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.28);
+  color:#8cff72;font-size:8px;font-weight:900;text-transform:uppercase
 }
-.airdrop-transfer-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: 0.8px;
-}
-.airdrop-transfer-sub {
-  font-size: 9.5px;
-  color: #94a3b8;
-  font-weight: 600;
-}
+.-live i{font-size:6px;animation:Pulse 1.2s infinite}
+@keyframes Pulse{50%{opacity:.25;transform:scale(.7)}}
 
-.airdrop-input-group-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.-token-card{
+  width:100%;position:relative;overflow:hidden;border-radius:25px;
+  padding:18px 16px 16px;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(0,240,255,.14),transparent 38%),
+    linear-gradient(145deg,rgba(19,35,58,.96),rgba(5,12,22,.98));
+  border:1px solid rgba(0,240,255,.28);
+  box-shadow:0 18px 45px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.09);
 }
-.airdrop-input-label-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-left: 2px;
+.-token-card:after{
+  content:"$DOGS";position:absolute;right:-10px;bottom:-22px;
+  font-family:var(--font-display);font-size:72px;font-weight:900;
+  color:rgba(255,255,255,.025);transform:rotate(-12deg);pointer-events:none
 }
-.airdrop-input-icon-circle {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: #00f0ff;
+.-token-head{display:flex;align-items:center;gap:13px}
+.-token-icon{
+  width:76px;height:76px;min-width:76px;border-radius:22px;padding:8px;
+  background:linear-gradient(145deg,#111923,#05080d);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 0 24px rgba(0,240,255,.18),inset 0 1px 5px rgba(255,255,255,.12);
 }
-.airdrop-input-label-text {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #cbd5e1;
+.-token-icon img{width:100%;height:100%;object-fit:contain;display:block}
+.-token-name{font-family:var(--font-display);font-size:23px;font-weight:900;letter-spacing:1px}
+.-token-sub{font-size:9px;color:#8da6c4;font-weight:800;letter-spacing:1.4px;margin-top:3px}
+.-network{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 7px;
+  border-radius:7px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.16);
+  color:#78eaff;font-size:7.5px;font-weight:900;text-transform:uppercase
 }
-.airdrop-input-field-wrap {
-  position: relative;
-  width: 100%;
-  background: rgba(12, 20, 34, 0.95);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 3px 12px;
-  display: flex;
-  align-items: center;
-  transition: border-color 0.2s ease;
+.-balance-panel{
+  margin-top:15px;padding:13px;border-radius:17px;
+  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08)
 }
-.airdrop-input-field-wrap:focus-within {
-  border-color: var(--cyan-neon);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+.-balance-label{font-size:8px;color:#7187a1;font-weight:900;text-transform:uppercase;letter-spacing:1.3px}
+.-balance-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:5px}
+.-balance-number{font-family:var(--font-display);font-size:29px;font-weight:900;color:#fff;letter-spacing:.5px}
+.-balance-unit{font-size:10px;color:#9fb2c8;font-weight:900;margin-left:4px}
+.-balance-mini{
+  display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:10px;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);
+  color:#dbeafe;font-size:8px;font-weight:800
 }
-.airdrop-text-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 12.5px;
-  color: #ffffff;
-  font-weight: 600;
-  padding: 7px 0;
-}
-.airdrop-text-input::placeholder {
-  color: #64748b;
-  font-weight: 500;
-}
-.airdrop-max-btn {
-  background: linear-gradient(135deg, #00b0ff, #0077ff);
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 900;
-  padding: 5px 10px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 176, 255, 0.4);
-  transition: transform 0.1s ease;
-}
-.airdrop-max-btn:active {
-  transform: scale(0.94);
-}
+.-balance-mini img{width:18px;height:18px;object-fit:contain}
 
-.airdrop-transfer-submit-btn {
-  position: relative;
-  width: 100%;
-  height: 46px;
-  background: url('transfer.png') center/cover no-repeat, linear-gradient(135deg, #0088cc, #0055ff);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  cursor: pointer;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 119, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+.-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.-action-card{
+  border-radius:17px;padding:12px;background:linear-gradient(145deg,#0d1b2d,#08111d);
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 22px rgba(0,0,0,.35)
 }
-.airdrop-transfer-submit-btn:active {
-  transform: scale(0.97);
+.-action-icon{width:31px;height:31px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,240,255,.09);border:1px solid rgba(0,240,255,.2);color:#5fefff;font-size:13px;margin-bottom:8px}
+.-action-title{font-size:10px;font-weight:900;color:#fff}
+.-action-sub{font-size:7.5px;color:#7087a2;margin-top:3px;line-height:1.35}
+
+.-transfer-new{
+  width:100%;border-radius:23px;padding:15px;
+  background:linear-gradient(160deg,rgba(16,31,51,.98),rgba(5,12,21,.99));
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 14px 34px rgba(0,0,0,.5)
 }
-.airdrop-transfer-btn-bg {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  z-index: 1;
+.-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.-section-title{font-family:var(--font-display);font-size:14px;font-weight:900;color:#fff;letter-spacing:.5px}
+.-section-sub{font-size:8px;color:#7187a1;margin-top:3px}
+.-sec-badge{padding:5px 7px;border-radius:8px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.18);color:#75ff58;font-size:7px;font-weight:900}
+.-field{margin-bottom:10px}
+.-field-label{display:flex;align-items:center;gap:6px;margin:0 0 5px 2px;color:#9eb1c6;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}
+.-field-box{
+  height:46px;display:flex;align-items:center;border-radius:13px;
+  background:#060d16;border:1px solid rgba(255,255,255,.10);padding:0 10px
 }
-.airdrop-transfer-btn-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}/* GAME HUB & ARCADE STYLES */
+.-field-box:focus-within{border-color:rgba(0,240,255,.65);box-shadow:0 0 0 3px rgba(0,240,255,.07)}
+.-field-box input{
+  width:100%;background:transparent;border:0;outline:0;color:#fff;font-size:12px;font-weight:700;
+  font-family:var(--font-main);touch-action:manipulation
+}
+.-field-box input::placeholder{color:#50657c}
+.-max-new{border:0;border-radius:8px;padding:7px 9px;background:#0d263b;color:#62eaff;
+  border:1px solid rgba(0,240,255,.22);font-size:8px;font-weight:900;cursor:pointer}
+.-token-prefix{width:27px;height:27px;min-width:27px;margin-right:7px}
+.-token-prefix img{width:100%;height:100%;object-fit:contain}
+.-send-btn{
+  width:100%;height:48px;border:0;border-radius:14px;cursor:pointer;
+  background:linear-gradient(100deg,#00d9ff,#0877ff 55%,#6c2cff);
+  box-shadow:0 8px 22px rgba(0,128,255,.30);color:#fff;
+  font-family:var(--font-display);font-size:11px;font-weight:900;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;gap:8px
+}
+.-send-btn:active{transform:scale(.98)}
+.-note{display:flex;gap:7px;align-items:flex-start;margin-top:10px;padding:9px;border-radius:11px;
+  background:rgba(255,190,11,.045);border:1px solid rgba(255,190,11,.12);color:#9baabd;font-size:7.5px;line-height:1.4}
+.-note i{color:#ffbe0b;margin-top:1px}
+
+.-earn-card{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:13px 14px;border-radius:18px;background:linear-gradient(135deg,#101d30,#0a1220);
+  border:1px solid rgba(177,0,232,.22)
+}
+.-earn-left{display:flex;align-items:center;gap:10px}
+.-earn-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#7c3aed,#b100e8);box-shadow:0 0 15px rgba(177,0,232,.25);font-size:15px}
+.-earn-title{font-size:10px;font-weight:900;color:#fff}
+.-earn-sub{font-size:7.5px;color:#7e93aa;margin-top:3px}
+.-earn-btn{border:0;border-radius:10px;padding:9px 10px;background:#fff;color:#07101b;font-size:8px;font-weight:900;cursor:pointer}
+
+/* GAME HUB & ARCADE STYLES */
 .game-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2567,6 +2459,156 @@ body {
   font-size: 12px;
 }
 
+
+/* SIMPLE PROFESSIONAL DOGS  */
+.simple--tab{
+  overflow-y:auto !important;
+  padding:18px 16px 30px !important;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(0,174,255,.10), transparent 32%),
+    #05080d;
+}
+.simple-{
+  width:100%;
+  max-width:390px;
+  margin:0 auto;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.simple--header{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#fff;
+  font-size:17px;
+  font-weight:800;
+  padding:5px 2px 28px;
+}
+.simple-live{
+  font-size:9px;
+  font-weight:800;
+  color:#35e6a4;
+  border:1px solid rgba(53,230,164,.35);
+  padding:4px 8px;
+  border-radius:20px;
+  letter-spacing:.5px;
+}
+.simple-token{
+  width:104px;
+  height:104px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 0 35px rgba(0,174,255,.16);
+  overflow:hidden;
+}
+.simple-token img{
+  width:88px;
+  height:88px;
+  object-fit:contain;
+  display:block;
+}
+.simple-name{
+  margin-top:14px;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.simple-balance{
+  margin-top:5px;
+  display:flex;
+  align-items:baseline;
+  gap:5px;
+}
+.simple-balance span{
+  color:#fff;
+  font-size:30px;
+  line-height:1;
+  font-weight:900;
+}
+.simple-balance small{
+  color:#7890a8;
+  font-size:11px;
+  font-weight:700;
+}
+.simple-send-open{
+  margin-top:25px;
+  width:100%;
+  height:48px;
+  border:0;
+  border-radius:13px;
+  background:linear-gradient(135deg,#087dff,#00b8ff);
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  box-shadow:0 8px 24px rgba(0,145,255,.20);
+  cursor:pointer;
+}
+.simple-send-open:active,.simple-send-btn:active,.simple-amount-row button:active{
+  transform:scale(.98);
+}
+.simple-send-open i{
+  margin-right:7px;
+}
+.simple-transfer{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  border-radius:15px;
+  background:#0a1018;
+  border:1px solid #172432;
+}
+.simple-input-wrap input,
+.simple-amount-row input{
+  box-sizing:border-box;
+  width:100%;
+  height:44px;
+  border:1px solid #1b2b3b;
+  border-radius:11px;
+  background:#060a10;
+  color:#fff;
+  outline:none;
+  padding:0 12px;
+  font-size:13px;
+}
+.simple-input-wrap input:focus,
+.simple-amount-row input:focus{
+  border-color:#159cff;
+}
+.simple-amount-row{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.simple-amount-row input{flex:1;min-width:0;}
+.simple-amount-row button{
+  width:58px;
+  border:1px solid #1b2b3b;
+  border-radius:11px;
+  background:#101a25;
+  color:#55bfff;
+  font-size:10px;
+  font-weight:800;
+}
+.simple-send-btn{
+  width:100%;
+  height:44px;
+  margin-top:8px;
+  border:0;
+  border-radius:11px;
+  background:#fff;
+  color:#05080d;
+  font-size:13px;
+  font-weight:900;
+}
+
 </style>
 </head>
 <body>
@@ -2596,15 +2638,15 @@ body {
     </div>
 
     <div class="top-pills-row">
-      <div class="header-curr-pill" id="headerCoinPill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="Coins">
+      <div class="header-curr-pill" id="headerCoinPill" onclick="switchTab('-tab', document.getElementById('nav'))" title="Coins">
         <img src="coin.png" class="header-curr-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px;">🪙</span>
         <span class="header-curr-val" id="topCoinCount">0</span>
       </div>
-      <div class="header-curr-pill gem-pill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="Gems">
+      <div class="header-curr-pill gem-pill" onclick="switchTab('-tab', document.getElementById('nav'))" title="Gems">
         <img src="gem.png" class="header-curr-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:13px; color:var(--green-neon);">💎</span>
         <span class="header-curr-val" id="topGemCount" style="color:var(--green-neon);">0</span>
       </div>
-      <div class="header-curr-pill dogs-pill" id="headerDogsPill" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" title="DOGS Coin">
+      <div class="header-curr-pill dogs-pill" id="headerDogsPill" onclick="switchTab('-tab', document.getElementById('nav'))" title="DOGS Coin">
         <img src="dogs.png" class="header-curr-icon" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}"><span style="display:none; font-size:13px;">🐶</span>
         <span class="header-curr-val" id="topDogsCount" style="color:#ffffff;">130</span>
       </div>
@@ -2652,8 +2694,8 @@ body {
           <img src="spin.png" class="side-pure-img" alt="Spin" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';">
           <span class="side-pure-fallback" style="display:none;">🎡</span>
         </button>
-        <button class="side-btn-pure" title="$DOGS Airdrop" onclick="switchTab('airdrop-tab', document.getElementById('navAirdrop'))" style="animation-delay: 1.5s;">
-          <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
+        <button class="side-btn-pure" title="$DOGS" onclick="switchTab('-tab', document.getElementById('nav'))" style="animation-delay: 1.5s;">
+          <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
           <span class="side-pure-fallback" style="display:none;">🦴</span>
         </button>
       </div>
@@ -3346,84 +3388,49 @@ body {
       </div>
     </section>
 
-    <!-- 5. AIRDROP PORTAL ($DOGS COIN & ADS SYSTEM) -->
-    <section id="airdrop-tab" class="tab-page">
-
-      <div class="airdrop-hero-wrap">
-        <div class="airdrop-coin-emblem">
-          <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
-          <span style="display:none; font-size:50px;">🪙</span>
-        </div>
-        <div class="airdrop-title-main">$DOGS</div>
-        <div class="airdrop-title-sub">DOGS TOKEN</div>
-
-        <div class="airdrop-balance-pill-box">
-          <div class="airdrop-pill-dog-icon">
-            <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
-            <span style="display:none; font-size:18px;">🐶</span>
-          </div>
-          <span class="airdrop-pill-num" id="airdropHeroDogs">130</span>
-          <span class="airdrop-pill-ticker">$DOGS</span>
+    <!-- 5. SIMPLE $DOGS  -->
+    <section id="-tab" class="tab-page simple--tab">
+      <div class="simple-">
+        <div class="simple--header">
+          <span></span>
+          <span class="simple-live">LIVE</span>
         </div>
 
-        <div class="airdrop-dots-tagline">&mdash; More Dogs &bull; More Rewards &bull; Bigger Future &mdash;</div>
-      </div>
-
-      <div class="airdrop-transfer-card">
-        <div class="airdrop-transfer-header">
-          <div class="airdrop-transfer-plane-icon">
-            <i class="fa-solid fa-paper-plane"></i>
-          </div>
-          <div class="airdrop-transfer-header-text">
-            <div class="airdrop-transfer-title">TRANSFER</div>
-            <div class="airdrop-transfer-sub">Send DOGS tokens to your friends</div>
-          </div>
+        <div class="simple-token">
+          <img src="dogs.png" alt="DOGS"
+               onerror="this.onerror=null;this.src='token.png';">
         </div>
 
-        <div class="airdrop-input-group-row">
-          <div class="airdrop-input-label-wrap">
-            <div class="airdrop-input-icon-circle">
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <span class="airdrop-input-label-text">Deposit Address</span>
-          </div>
-          <div class="airdrop-input-field-wrap">
-            <input type="text" id="transferDepositAddress" class="airdrop-text-input" placeholder="Enter Deposit Address">
-          </div>
+        <div class="simple-name">$DOGS</div>
+
+        <div class="simple-balance">
+          <span id="HeroDogs">130</span>
+          <small>DOGS</small>
         </div>
 
-        <div class="airdrop-input-group-row">
-          <div class="airdrop-input-label-wrap">
-            <div class="airdrop-input-icon-circle">
-              <img src="token.png" alt="DOGS" onerror="this.src='dogs.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}" style="width:16px;height:16px;object-fit:contain;">
-              <span style="display:none;">🐶</span>
-            </div>
-            <span class="airdrop-input-label-text">Amount (DOGS)</span>
-          </div>
-          <div class="airdrop-input-field-wrap" style="padding-right: 4px;">
-            <input type="number" id="transferAmountInput" class="airdrop-text-input" placeholder="Enter Amount">
-            <button class="airdrop-max-btn" onclick="setMaxTransferAmount()">MAX</button>
-          </div>
-        </div>
-
-        <button class="airdrop-transfer-submit-btn" onclick="executePeerTransfer()">
-          <span class="airdrop-transfer-btn-bg"></span>
-          <div class="airdrop-transfer-btn-content">
-            <i class="fa-solid fa-right-left"></i>
-            <span>TRANSFER</span>
-          </div>
+        <button class="simple-send-open" type="button" onclick="toggleSimpleTransfer()">
+          <i class="fa-solid fa-paper-plane"></i>
+          Send DOGS
         </button>
-      </div>
 
-      <div style="width:100%; display:flex; gap:8px; margin-top:2px; padding:0 2px;">
-        <button class="app-btn" style="width:100%; font-size:10px; padding:9px;" onclick="openAdsMenu()">
-          <i class="fa-solid fa-play"></i> EARN MORE DOGS 🚀
-        </button>
-      </div>
+        <div class="simple-transfer" id="simpleTransferBox" style="display:none;">
+          <div class="simple-input-wrap">
+            <input type="text" id="transferDepositAddress"
+                   placeholder="Deposit Address" autocomplete="off" inputmode="text">
+          </div>
 
+          <div class="simple-amount-row">
+            <input type="number" id="transferAmountInput"
+                   placeholder="Amount" min="1" inputmode="numeric">
+            <button type="button" onclick="setMaxTransferAmount()">MAX</button>
+          </div>
+
+          <button class="simple-send-btn" type="button" onclick="executePeerTransfer()">
+            Send
+          </button>
+        </div>
+      </div>
     </section>
-
-  </main>
 
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="bottom-nav-bar">
@@ -3441,13 +3448,13 @@ body {
       </div>
       <span class="nav-tab-label">Rating</span>
     </div>
-    <div class="nav-tab-item dogs-center-tab" id="navAirdrop" onclick="switchTab('airdrop-tab', this)">
+    <div class="nav-tab-item dogs-center-tab" id="nav" onclick="switchTab('-tab', this)">
       <div class="nav-badge-pill dogs-badge">DOGS</div>
       <div class="nav-icon-container nav-dogs-container">
-        <img src="dogs.png" alt="DOGS" class="nav-png-icon" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
+        <img src="dogs.png" alt="DOGS" class="nav-png-icon" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
         <span class="nav-fallback-glyph" style="display:none; font-size:16px;">🐶</span>
       </div>
-      <span class="nav-tab-label">Airdrop</span>
+      <span class="nav-tab-label"></span>
     </div>
     <div class="nav-tab-item" id="navGame" onclick="switchTab('game-tab', this)">
       <div class="nav-badge-pill" style="background:linear-gradient(135deg,#ff9900,#ff5500);">HOT</div>
@@ -3474,11 +3481,11 @@ body {
         <div style="font-family:var(--font-display); font-size:11px; font-weight:900; color:var(--gold);">1. UPLOAD GAME</div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Game Title:</label>
-          <input type="text" id="adminGameTitle" class="airdrop-text-input" placeholder="e.g. Candy Smash" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+          <input type="text" id="adminGameTitle" class="-text-input" placeholder="e.g. Candy Smash" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
         </div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Logo Image URL / Filename:</label>
-          <input type="text" id="adminGameLogo" class="airdrop-text-input" placeholder="e.g. game_candy.png" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+          <input type="text" id="adminGameLogo" class="-text-input" placeholder="e.g. game_candy.png" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
         </div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Game Code / HTML / Iframe / URL:</label>
@@ -3488,12 +3495,12 @@ body {
         <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; font-family:var(--font-display); font-size:11px; font-weight:900; color:var(--cyan-neon);">2. ADD TASK</div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Task Title:</label>
-          <input type="text" id="adminTaskTitle" class="airdrop-text-input" placeholder="e.g. Join Telegram Channel" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+          <input type="text" id="adminTaskTitle" class="-text-input" placeholder="e.g. Join Telegram Channel" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
         </div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Task Logo Image (PNG / URL / File Upload):</label>
           <div style="display:flex; gap:6px; margin-top:2px;">
-            <input type="text" id="adminTaskLogo" class="airdrop-text-input" placeholder="e.g. task_logo.png or https://..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; flex:1; color:#fff; font-size:11.5px;">
+            <input type="text" id="adminTaskLogo" class="-text-input" placeholder="e.g. task_logo.png or https://..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; flex:1; color:#fff; font-size:11.5px;">
             <input type="file" id="adminTaskLogoFile" accept="image/*" style="display:none;" onchange="handleTaskFileSelect(event)">
             <button type="button" class="app-btn btn-sec" onclick="document.getElementById('adminTaskLogoFile').click()" style="padding:6px 10px; font-size:10px; white-space:nowrap;"><i class="fa-solid fa-folder-open"></i> Upload</button>
           </div>
@@ -3505,7 +3512,7 @@ body {
         <div style="display:flex; gap:8px;">
           <div style="flex:1;">
             <label style="font-size:9px; color:#8da6c4;">Reward Coins:</label>
-            <input type="number" id="adminTaskReward" class="airdrop-text-input" value="5000" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
+            <input type="number" id="adminTaskReward" class="-text-input" value="5000" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
           </div>
           <div style="flex:1;">
             <label style="font-size:9px; color:#8da6c4;">Icon Type:</label>
@@ -3518,18 +3525,18 @@ body {
         </div>
         <div>
           <label style="font-size:9.5px; color:#8da6c4;">Task Link / URL:</label>
-          <input type="text" id="adminTaskUrl" class="airdrop-text-input" placeholder="https://t.me/..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
+          <input type="text" id="adminTaskUrl" class="-text-input" placeholder="https://t.me/..." style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:6px 10px; width:100%; color:#fff; font-size:11.5px; margin-top:2px;">
         </div>
 
         <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; font-family:var(--font-display); font-size:11px; font-weight:900; color:#ffbe0b;">3. MINING SETTINGS</div>
         <div style="display:flex; gap:8px;">
           <div style="flex:1;">
             <label style="font-size:9px; color:#8da6c4;">Required Ads:</label>
-            <input type="number" id="adminMiningReqAds" class="airdrop-text-input" value="10" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
+            <input type="number" id="adminMiningReqAds" class="-text-input" value="10" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
           </div>
           <div style="flex:1;">
             <label style="font-size:9px; color:#8da6c4;">Coin Reward:</label>
-            <input type="number" id="adminMiningRewCoins" class="airdrop-text-input" value="5000" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
+            <input type="number" id="adminMiningRewCoins" class="-text-input" value="5000" style="background:#101722; border:1px solid #2a374a; border-radius:8px; padding:5px 8px; width:100%; color:#fff; font-size:11px; margin-top:2px;">
           </div>
         </div>
       </div>
@@ -3630,16 +3637,16 @@ if (tgUser) {
 document.addEventListener('touchmove', function(e) {
   var target = e.target;
   if (target && target.nodeType === 3) target = target.parentElement;
-  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #withdrawal-tab, #history-tab, #airdrop-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
+  var scrollableParent = target && target.closest ? target.closest('#rating-tab, #tasks-tab, #invite-tab, #withdrawal-tab, #history-tab, #-tab, #daily-tab, #ads-tab, .ads-list-container, #miningContainer') : null;
   if (!scrollableParent) {
     e.preventDefault();
   }
 }, { passive: false });
 
-var AIRDROP_CONFIG = {
+var _CONFIG = {
   TOKEN_NAME: "DOGS",
   TOKEN_TICKER: "DOGS",
-  TOTAL_AIRDROP_POOL: 500000, 
+  TOTAL__POOL: 500000, 
   ESTIMATED_NETWORK_TOTAL_POINTS: 15000000,
   TGE_TIMESTAMP: Date.now() + (45 * 24 * 60 * 60 * 1000)
 };
@@ -3647,7 +3654,7 @@ var AIRDROP_CONFIG = {
 var totalCoins = parseInt(localStorage.getItem('pto_coins') || '0');
 var totalGems = parseInt(localStorage.getItem('pto_gems') || '0');
 var goldBalance = parseInt(localStorage.getItem('pto_gold_bal') || '0');
-var airdropPoints = parseInt(localStorage.getItem('pto_airdrop_points') || '0');
+var Points = parseInt(localStorage.getItem('pto__points') || '0');
 var dogsBalance = parseInt(localStorage.getItem('pto_dogs_balance') || '130');
 var transferredDogs = parseInt(localStorage.getItem('pto_dogs_transferred') || '0');
 var dailyStreak = parseInt(localStorage.getItem('pto_daily_streak') || '1');
@@ -3790,7 +3797,7 @@ if (auth) {
             if(data.coins !== undefined && data.coins > totalCoins) totalCoins = data.coins;
             if(data.gems !== undefined && data.gems > totalGems) totalGems = data.gems;
             if(data.goldBalance !== undefined && data.goldBalance > goldBalance) goldBalance = data.goldBalance;
-            if(data.airdropPoints !== undefined && data.airdropPoints > airdropPoints) airdropPoints = data.airdropPoints;
+            if(data.Points !== undefined && data.Points > Points) Points = data.Points;
             if(data.dogsBalance !== undefined && data.dogsBalance > dogsBalance) dogsBalance = data.dogsBalance;
             if(data.transferredDogs !== undefined && data.transferredDogs > transferredDogs) transferredDogs = data.transferredDogs;
             if(data.dailyStreak !== undefined) dailyStreak = data.dailyStreak;
@@ -3812,7 +3819,7 @@ if (auth) {
               coins: totalCoins,
               gems: totalGems,
               goldBalance: goldBalance,
-              airdropPoints: airdropPoints,
+              Points: Points,
               dogsBalance: dogsBalance,
               transferredDogs: transferredDogs,
               dailyStreak: dailyStreak,
@@ -3984,8 +3991,8 @@ function updateAllDisplays() {
   var topDogsEl = document.getElementById('topDogsCount');
   if (topDogsEl) topDogsEl.innerText = formatK(dogsBalance);
 
-  var airdropHeroDogsEl = document.getElementById('airdropHeroDogs');
-  if (airdropHeroDogsEl) airdropHeroDogsEl.innerText = dogsBalance.toLocaleString();
+  var HeroDogsEl = document.getElementById('HeroDogs');
+  if (HeroDogsEl) HeroDogsEl.innerText = dogsBalance.toLocaleString();
   
   var playerLvlBadgeEl = document.getElementById('playerLvlBadge');
     if (playerLvlBadgeEl) playerLvlBadgeEl.innerText = 'L' + playerLevel;
@@ -4024,7 +4031,7 @@ function saveState(force) {
   localStorage.setItem('pto_coins', totalCoins);
   localStorage.setItem('pto_gems', totalGems);
   localStorage.setItem('pto_gold_bal', goldBalance);
-  localStorage.setItem('pto_airdrop_points', airdropPoints);
+  localStorage.setItem('pto__points', Points);
   localStorage.setItem('pto_dogs_balance', dogsBalance);
   localStorage.setItem('pto_dogs_transferred', transferredDogs);
   localStorage.setItem('pto_daily_streak', dailyStreak);
@@ -4054,7 +4061,7 @@ function saveState(force) {
       coins: totalCoins,
       gems: totalGems,
       goldBalance: goldBalance,
-      airdropPoints: airdropPoints,
+      Points: Points,
       dogsBalance: dogsBalance,
       transferredDogs: transferredDogs,
       dailyStreak: dailyStreak,
@@ -4078,7 +4085,7 @@ window.addEventListener('beforeunload', function() { saveState(true); });
 
 function addPointsAndCoins(coins, points, gems=0, gold=0, dogs=0) {
   totalCoins += coins;
-  airdropPoints += points;
+  Points += points;
   totalGems += gems;
   goldBalance += gold;
   dogsBalance += dogs;
@@ -5586,10 +5593,10 @@ window.handleClaimTokens = function() {
   handleInstantTransferDogs();
 };
 
-function updateAirdropTimer() {
-  var timerEl = document.getElementById('airdropCountdown');
+function updateTimer() {
+  var timerEl = document.getElementById('Countdown');
   if (!timerEl) return;
-  var diff = AIRDROP_CONFIG.TGE_TIMESTAMP - Date.now();
+  var diff = _CONFIG.TGE_TIMESTAMP - Date.now();
   if (diff <= 0) { timerEl.innerText = 'DISTRIBUTION LIVE'; return; }
   var d = Math.floor(diff / (1000 * 60 * 60 * 24));
   var h = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -5597,8 +5604,8 @@ function updateAirdropTimer() {
   var s = Math.floor((diff / 1000) % 60);
   timerEl.innerText = d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
 }
-setInterval(updateAirdropTimer, 1000);
-updateAirdropTimer();
+setInterval(updateTimer, 1000);
+updateTimer();
 
 /* ========================================================
    DAILY REWARD SYSTEM
@@ -5913,7 +5920,7 @@ window.executePeerTransfer = function() {
   var amount = parseInt(amountInput ? amountInput.value : '0');
 
   if (!depositAddress) {
-    alert("Please enter recipient User ID!");
+    alert("Please enter recipient Deposit Address!");
     return;
   }
   if (isNaN(amount) || amount <= 0) {
@@ -6357,6 +6364,19 @@ window.winCurrentGame = function(event) {
 };
 
 })();
+</script>
+
+<script>
+function toggleSimpleTransfer(){
+  const box = document.getElementById('simpleTransferBox');
+  const btn = document.querySelector('.simple-send-open');
+  if(!box) return;
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  if(btn) btn.innerHTML = open
+    ? '<i class="fa-solid fa-paper-plane"></i> Send DOGS'
+    : '<i class="fa-solid fa-xmark"></i> Close';
+}
 </script>
 </body>
 </html>
