@@ -2647,7 +2647,7 @@ body {
         <span class="header-curr-val" id="topGemCount" style="color:var(--green-neon);">0</span>
       </div>
       <div class="header-curr-pill dogs-pill" id="headerDogsPill" onclick="switchTab('-tab', document.getElementById('nav'))" title="DOGS Coin">
-        <img src="dogs.png" class="header-curr-icon" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}"><span style="display:none; font-size:13px;">🐶</span>
+        <img src="airdrop.png" class="header-curr-icon" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}"><span style="display:none; font-size:13px;">🐶</span>
         <span class="header-curr-val" id="topDogsCount" style="color:#ffffff;">130</span>
       </div>
     </div>
@@ -2695,7 +2695,7 @@ body {
           <span class="side-pure-fallback" style="display:none;">🎡</span>
         </button>
         <button class="side-btn-pure" title="$DOGS" onclick="switchTab('-tab', document.getElementById('nav'))" style="animation-delay: 1.5s;">
-          <img src="dogs.png" class="side-pure-img" alt="DOGS" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
+          <img src="airdrop.png" class="side-pure-img" alt="DOGS" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
           <span class="side-pure-fallback" style="display:none;">🦴</span>
         </button>
       </div>
@@ -2811,7 +2811,7 @@ body {
           </div>
           <div class="daily-banner-right">
             <div class="daily-dog-mascot-wrap">
-              <img src="dogs.png" class="daily-dog-mascot-img" alt="DOGS" onerror="this.src='token.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
+              <img src="airdrop.png" class="daily-dog-mascot-img" alt="DOGS" onerror="this.src='airdrop.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';}">
               <span style="display:none; font-size:28px;">🐶</span>
             </div>
             <div class="daily-7days-badge-pill">
@@ -2858,7 +2858,7 @@ body {
         <div class="ads-hero-card">
           <div class="ads-hero-left">
             📺
-            <img src="dogs.png" style="position:absolute; width:40px; right:-15px; top:-5px;" onerror="this.style.display='none'">
+            <img src="airdrop.png" style="position:absolute; width:40px; right:-15px; top:-5px;" onerror="this.style.display='none'">
           </div>
           <div class="ads-hero-center">
             <span class="ads-hero-title">WATCH & EARN</span>
@@ -3397,8 +3397,8 @@ body {
         </div>
 
         <div class="simple-token">
-          <img src="dogs.png" alt="DOGS"
-               onerror="this.onerror=null;this.src='token.png';">
+          <img src="airdrop.png" alt="DOGS"
+               onerror="this.onerror=null;this.src='airdrop.png';">
         </div>
 
         <div class="simple-name">$DOGS</div>
@@ -3451,7 +3451,7 @@ body {
     <div class="nav-tab-item dogs-center-tab" id="nav" onclick="switchTab('-tab', this)">
       <div class="nav-badge-pill dogs-badge">DOGS</div>
       <div class="nav-icon-container nav-dogs-container">
-        <img src="dogs.png" alt="DOGS" class="nav-png-icon" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
+        <img src="airdrop.png" alt="DOGS" class="nav-png-icon" onerror="this.src='.png'; this.onerror=function(){this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}">
         <span class="nav-fallback-glyph" style="display:none; font-size:16px;">🐶</span>
       </div>
       <span class="nav-tab-label"></span>
@@ -5097,7 +5097,7 @@ function flyCoinsToBalance(startX, startY, type, amount, callback) {
         var p = document.createElement('div');
         p.className = 'flying-coin-particle';
         if (type === 'dogs') {
-           p.innerHTML = '<img src="dogs.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🐶\'">';
+           p.innerHTML = '<img src="airdrop.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.outerHTML=\'🐶\'">';
         } else if (type === 'gems') {
            p.innerHTML = '💎';
         } else {
@@ -5702,7 +5702,7 @@ function renderDailyRewards() {
     var dogBubbleHtml = '';
     if (item.dogs > 0) {
       var crownHtml = isFeatured ? '<i class="fa-solid fa-crown daily-card-dog-crown"></i>' : '';
-      dogBubbleHtml = '<div class="daily-card-dog-bubble">' + crownHtml + '<img src="dogs.png" alt="DOGS" onerror="this.src=\'token.png\'; this.onerror=function(){this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline\';}"><span style="display:none; font-size:16px;">🐶</span></div>';
+      dogBubbleHtml = '<div class="daily-card-dog-bubble">' + crownHtml + '<img src="airdrop.png" alt="DOGS" onerror="this.src=\'airdrop.png\'; this.onerror=function(){this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline\';}"><span style="display:none; font-size:16px;">🐶</span></div>';
     }
 
     var rewardTextHtml = '';
@@ -5759,7 +5759,7 @@ function renderDailyRewards() {
   var nextReward = DAILY_REWARDS[nextIdx] || DAILY_REWARDS[0];
   var nextRewardContent = document.getElementById('dailyNextRewardContent');
   if (nextRewardContent) {
-    var dogsPart = nextReward.dogs > 0 ? ' &nbsp;<img src="dogs.png" class="streak-dogs-icon" onerror="this.style.display=\'none\'"><span class="streak-reward-val" style="color:var(--cyan-neon);font-size:12px;">+' + nextReward.dogs + ' DOGS</span>' : '';
+    var dogsPart = nextReward.dogs > 0 ? ' &nbsp;<img src="airdrop.png" class="streak-dogs-icon" onerror="this.style.display=\'none\'"><span class="streak-reward-val" style="color:var(--cyan-neon);font-size:12px;">+' + nextReward.dogs + ' DOGS</span>' : '';
     nextRewardContent.innerHTML = '<img src="coin.png" class="streak-coin-icon" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline\';"><span style="display:none; font-size:14px;">🪙</span>' +
       '<span class="streak-reward-val">+' + nextReward.coins.toLocaleString() + ' COINS</span>' + dogsPart;
   }
