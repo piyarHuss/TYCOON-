@@ -2762,85 +2762,68 @@ body {
         </div>
       </div>
 
-      <!-- MINING UI -->
-      <div id="miningContainer" class="mining-stage" style="display:none;">
-          <div class="mining-machine-stage" id="miningMachineStage">
-              <div class="mining-status-badge" id="miningStatusBadge">
-                  <span class="status-dot"></span>
-                  <span id="miningStatusText">MINING READY</span>
+      <!-- MINING UI CONTAINER (NEW) -->
+      <div id="miningContainer" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; margin-top: 20px; z-index: 10;">
+          <div style="background: rgba(10, 26, 48, 0.9); border: 2px solid var(--cyan-neon); border-radius: 16px; padding: 20px; text-align: center; width: 90%; box-shadow: 0 0 20px var(--cyan-glow);">
+              
+              <div id="miningHeader">
+                  <div style="font-size: 45px; margin-bottom: 10px;">⛏️</div>
+                  <h3 id="miningTitle" style="font-family: var(--font-display); color: var(--gold); margin-bottom: 10px;">ENERGY DEPLETED</h3>
+                  <p id="miningDesc" style="font-size: 12px; color: #8da6c4; margin-bottom: 15px;">Watch 10 ads to start 3-hour mining for 30000 Coins!</p>
               </div>
 
-              <!-- 3D Mining Machine -->
-              <div id="miningMachineDiv" class="mining-machine-view">
-                  <model-viewer id="miningModelViewer" src="machine.glb" poster="machine.png"
-                      autoplay camera-controls auto-rotate exposure="1.3" shadow-intensity="1.5"
-                      shadow-softness="0.5" environment-image="neutral" tone-mapping="neutral"
-                      style="width:100%;height:100%;background:transparent;outline:none;">
-                      <div slot="poster" class="machine-poster">
-                          <img src="machine.png" alt="Mining Machine"
-                               onerror="this.onerror=null;this.src='rock_gold.png';">
+              <!-- 3D Machine Viewer -->
+              <div id="miningMachineDiv" style="display: none; width: 100%; height: 250px; margin-bottom: 10px;">
+                  <model-viewer id="miningModelViewer" src="machine.glb" poster="machine.png" autoplay camera-controls auto-rotate exposure="1.3" shadow-intensity="1.5" shadow-softness="0.5" environment-image="neutral" tone-mapping="neutral" style="width:100%; height:100%; background-color: transparent; outline: none;">
+                      <div slot="poster" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                        <img src="machine.png" alt="Goblin Shredder Shield" style="max-width:85%; max-height:85%; object-fit:contain; filter:drop-shadow(0 0 20px #ff7700);" onerror="this.onerror=null; this.src='rock_gold.png';">
                       </div>
                   </model-viewer>
               </div>
 
-              <div class="mining-info">
-                  <div class="mining-title" id="miningTitle">READY TO MINE</div>
-                  <div class="mining-desc" id="miningDesc">
-                      Tap Start Mining and watch 10 ads to activate your mining machine.
-                  </div>
-              </div>
-
-              <!-- First button: only after 1000 tap energy is finished -->
-              <button id="startMiningBtn" class="professional-start-btn" onclick="beginMiningAds()">
-                  <span class="start-btn-icon"><i class="fa-solid fa-bolt"></i></span>
-                  <span class="start-btn-copy">
-                      <strong>START MINING</strong>
-                      <small>WATCH 10 ADS TO ACTIVATE</small>
-                  </span>
-                  <i class="fa-solid fa-chevron-right start-arrow"></i>
-              </button>
-
-              <!-- 10-ad activation flow -->
-              <div id="miningAdsProgress" class="mining-ads-panel" style="display:none;">
-                  <div class="ads-progress-top">
-                      <div>
-                          <span class="ads-progress-label">MINING ACTIVATION</span>
-                          <strong id="miningAdsText">0/10 ADS</strong>
+              <!-- Ads Progress -->
+              <div id="miningAdsProgress" style="display: none; width: 100%; margin-top: 10px;">
+                  <div class="new-ad-card" id="miningAdCard" onclick="watchMiningAd()">
+                    <div class="new-ad-left">
+                      <div class="new-ad-icon-circle" id="miningAdIconCircle">
+                        <svg viewBox="0 0 100 100" width="100%" height="100%" style="display:block;">
+                          <defs>
+                            <linearGradient id="miningFilmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stop-color="#56c2ff"/>
+                              <stop offset="100%" stop-color="#2185e8"/>
+                            </linearGradient>
+                          </defs>
+                          <circle cx="50" cy="50" r="48" fill="url(#miningFilmGrad)"/>
+                          <rect x="16" y="22" width="14" height="14" rx="4" fill="#153e70"/>
+                          <rect x="16" y="43" width="14" height="14" rx="4" fill="#153e70"/>
+                          <rect x="16" y="64" width="14" height="14" rx="4" fill="#153e70"/>
+                          <rect x="70" y="22" width="14" height="14" rx="4" fill="#153e70"/>
+                          <rect x="70" y="43" width="14" height="14" rx="4" fill="#153e70"/>
+                          <rect x="70" y="64" width="14" height="14" rx="4" fill="#153e70"/>
+                          <path d="M41 33 L67 50 L41 67 Z" fill="#ffffff"/>
+                        </svg>
                       </div>
-                      <div class="ads-progress-percent" id="miningAdsPercent">0%</div>
+                      <div class="new-ad-text-col">
+                        <span class="new-ad-title" id="miningAdTitle">Watch ad <strong id="miningAdsText">0/10</strong></span>
+                        <span class="new-ad-reward">🎁 <strong>1</strong> <span class="new-ad-reward-sub">(Start 3h Mining)</span></span>
+                      </div>
+                    </div>
+                    <div class="new-ad-arrow" id="miningAdArrow"><i class="fa-solid fa-chevron-right"></i></div>
                   </div>
-                  <div class="mining-progress-track">
-                      <div id="miningAdsFill" class="mining-progress-fill" style="width:0%;"></div>
-                  </div>
-                  <button id="miningAdCard" class="professional-ad-btn" onclick="watchMiningAd()">
-                      <span class="ad-btn-icon"><i class="fa-solid fa-play"></i></span>
-                      <span class="ad-btn-copy">
-                          <strong id="miningAdTitle">WATCH AD</strong>
-                          <small>Watch one ad to continue</small>
-                      </span>
-                      <i id="miningAdArrow" class="fa-solid fa-chevron-right"></i>
-                  </button>
-                  <div id="miningAdCooldownText" class="mining-cooldown-text"></div>
               </div>
 
-              <!-- Active mining -->
-              <div id="miningTimerProgress" class="active-mining-panel" style="display:none;">
-                  <div class="active-mining-label"><span class="status-dot"></span> MINING ACTIVE</div>
-                  <div class="mining-countdown" id="miningCountdown">03:00:00</div>
-                  <div class="active-mining-sub">Machine is generating coins automatically</div>
+              <!-- Mining Timer -->
+              <div id="miningTimerProgress" style="display: none;">
+                  <div style="font-size: 26px; font-family: var(--font-display); font-weight: 900; color: #39ff14; margin-bottom: 15px;" id="miningCountdown">03:00:00</div>
+                  <button class="app-btn btn-sec" disabled style="width: 100%;">MINING IN PROGRESS...</button>
               </div>
 
-              <!-- Claim -->
-              <div id="miningClaimDiv" class="mining-claim-panel" style="display:none;">
-                  <div class="claim-ready-title">MINING COMPLETE</div>
-                  <div class="claim-ready-sub">Your mining reward is ready.</div>
-                  <button class="professional-claim-btn" onclick="claimMiningReward()">
-                      <i class="fa-solid fa-gift"></i> CLAIM <span id="claimMiningAmount">30000</span> COINS
-                  </button>
+              <!-- Claim Reward -->
+              <div id="miningClaimDiv" style="display: none;">
+                  <button class="app-btn claim-glow-btn" onclick="claimMiningReward()" style="width: 100%;">🎁 CLAIM 30000 COINS</button>
               </div>
           </div>
       </div>
-
     </section>
 
     <!-- 1.5. DAILY REWARD SCREEN -->
@@ -3722,10 +3705,8 @@ var lastDailyClaimDate = localStorage.getItem('pto_daily_last_claim_date') || ''
 var playerLevel = parseInt(localStorage.getItem('pto_player_lvl') || '1');
 var playerXP = parseInt(localStorage.getItem('pto_player_xp') || '0');
 
-var storedTapEnergy = parseInt(localStorage.getItem('pto_tap_energy') || '1000');
-var maxEnergy = 1000;
-/* Migrate the old 100-energy version to the new 1000-tap system. */
-var tapEnergy = (isNaN(storedTapEnergy) || storedTapEnergy <= 100) ? maxEnergy : Math.min(storedTapEnergy, maxEnergy);
+var tapEnergy = parseInt(localStorage.getItem('pto_tap_energy') || '100');
+var maxEnergy = 100;
 var tapMultiplier = 1;
 
 var miningRequiredAds = parseInt(localStorage.getItem('pto_mining_req_ads') || '10');
@@ -4296,102 +4277,58 @@ window.updateTapScreenUI = function() {
     var energyRow = document.querySelector('.energy-action-row');
     var miningContainer = document.getElementById('miningContainer');
 
+    var miningHeader = document.getElementById('miningHeader');
     var miningMachineDiv = document.getElementById('miningMachineDiv');
     var miningAdsProgress = document.getElementById('miningAdsProgress');
     var miningTimerProgress = document.getElementById('miningTimerProgress');
     var miningClaimDiv = document.getElementById('miningClaimDiv');
     var miningTitle = document.getElementById('miningTitle');
     var miningDesc = document.getElementById('miningDesc');
-    var startBtn = document.getElementById('startMiningBtn');
-    var statusText = document.getElementById('miningStatusText');
 
-    /* The mining machine must appear ONLY after all 1000 taps are finished. */
-    if (tapEnergy <= 0 && miningState === 'IDLE') {
-        miningState = 'ADS_PENDING';
-        miningAdsWatched = 0;
-        miningAdCooldownRemaining = 0;
-        saveState(true);
-    }
-
-    if (tapEnergy > 0) {
+    if (tapEnergy > 0 || miningState === 'IDLE') {
         if(arena) arena.style.display = 'flex';
         if(hpBar) hpBar.style.display = 'flex';
         if(energyRow) energyRow.style.display = 'flex';
         if(miningContainer) miningContainer.style.display = 'none';
         stopMiningCoinEffect();
-        return;
+    } else {
+        if(arena) arena.style.display = 'none';
+        if(hpBar) hpBar.style.display = 'none';
+        if(energyRow) energyRow.style.display = 'none';
+        if(miningContainer) miningContainer.style.display = 'flex';
+        
+        if(miningAdsProgress) miningAdsProgress.style.display = 'none';
+        if(miningTimerProgress) miningTimerProgress.style.display = 'none';
+        if(miningClaimDiv) miningClaimDiv.style.display = 'none';
+
+        if (miningState === 'ADS_PENDING') {
+            if(miningHeader) miningHeader.style.display = 'block';
+            if(miningMachineDiv) miningMachineDiv.style.display = 'none';
+            if(miningTitle) miningTitle.innerText = "ENERGY DEPLETED";
+            if(miningDesc) miningDesc.innerText = "Watch " + miningRequiredAds + " ads to start 3-hour mining for " + miningRewardCoins + " Coins!";
+            if(miningAdsProgress) miningAdsProgress.style.display = 'block';
+            updateMiningAdCooldownUI();
+            stopMiningCoinEffect();
+        } else if (miningState === 'MINING') {
+            if(miningHeader) miningHeader.style.display = 'none';
+            if(miningMachineDiv) miningMachineDiv.style.display = 'block';
+            if(miningTimerProgress) miningTimerProgress.style.display = 'block';
+            startMiningCoinEffect();
+        } else if (miningState === 'READY') {
+            if(miningHeader) miningHeader.style.display = 'block';
+            if(miningMachineDiv) miningMachineDiv.style.display = 'block';
+            if(miningTitle) miningTitle.innerText = "MINING COMPLETE";
+            if(miningDesc) miningDesc.innerText = "Your " + miningRewardCoins + " Coins are ready to claim!";
+            if(miningClaimDiv) {
+                miningClaimDiv.style.display = 'block';
+                var claimBtn = miningClaimDiv.querySelector('button');
+                if (claimBtn) {
+                    claimBtn.innerHTML = '🎁 CLAIM ' + miningRewardCoins + ' COINS';
+                }
+            }
+            stopMiningCoinEffect();
+        }
     }
-
-    /* 1000 taps are finished: hide the tap area and show machine.glb + Start Mining. */
-    if(arena) arena.style.display = 'none';
-    if(hpBar) hpBar.style.display = 'none';
-    if(energyRow) energyRow.style.display = 'none';
-    if(miningContainer) miningContainer.style.display = 'flex';
-
-    if(miningMachineDiv) miningMachineDiv.style.display = 'flex';
-    if(miningAdsProgress) miningAdsProgress.style.display = 'none';
-    if(miningTimerProgress) miningTimerProgress.style.display = 'none';
-    if(miningClaimDiv) miningClaimDiv.style.display = 'none';
-    if(startBtn) startBtn.style.display = 'flex';
-
-    if (miningState === 'ADS_PENDING') {
-        if(statusText) statusText.innerText = 'READY TO ACTIVATE';
-        if(miningTitle) miningTitle.innerText = 'START YOUR MINING';
-        if(miningDesc) miningDesc.innerText = 'Tap Start Mining, then watch 10 ads to activate the machine.';
-        if(startBtn) startBtn.style.display = 'flex';
-        stopMiningCoinEffect();
-    } else if (miningState === 'ADS_WATCHING') {
-        if(statusText) statusText.innerText = 'ACTIVATION IN PROGRESS';
-        if(miningTitle) miningTitle.innerText = 'ACTIVATE MINING';
-        if(miningDesc) miningDesc.innerText = 'Complete all 10 ads to start the 3-hour mining session.';
-        if(startBtn) startBtn.style.display = 'none';
-        if(miningAdsProgress) miningAdsProgress.style.display = 'block';
-        updateMiningAdsUI();
-        stopMiningCoinEffect();
-    } else if (miningState === 'MINING') {
-        if(statusText) statusText.innerText = 'MINING ACTIVE';
-        if(miningTitle) miningTitle.innerText = 'MINING IN PROGRESS';
-        if(miningDesc) miningDesc.innerText = 'Your machine is mining automatically. Come back when the timer ends.';
-        if(startBtn) startBtn.style.display = 'none';
-        if(miningTimerProgress) miningTimerProgress.style.display = 'block';
-        startMiningCoinEffect();
-    } else if (miningState === 'READY') {
-        if(statusText) statusText.innerText = 'REWARD READY';
-        if(miningTitle) miningTitle.innerText = 'MINING COMPLETE';
-        if(miningDesc) miningDesc.innerText = 'Your mining reward is ready to claim.';
-        if(startBtn) startBtn.style.display = 'none';
-        if(miningClaimDiv) miningClaimDiv.style.display = 'block';
-        var claimAmount = document.getElementById('claimMiningAmount');
-        if(claimAmount) claimAmount.innerText = miningRewardCoins.toLocaleString();
-        stopMiningCoinEffect();
-    }
-}
-
-window.beginMiningAds = function() {
-    initAudio();
-    if (miningState !== 'ADS_PENDING') return;
-    miningAdsWatched = 0;
-    miningAdCooldownRemaining = 0;
-    miningState = 'ADS_WATCHING';
-    saveState(true);
-    updateMiningAdsUI();
-    updateTapScreenUI();
-
-    var startBtn = document.getElementById('startMiningBtn');
-    var adsPanel = document.getElementById('miningAdsProgress');
-    if(startBtn) startBtn.style.display = 'none';
-    if(adsPanel) adsPanel.style.display = 'block';
-};
-
-function updateMiningAdsUI() {
-    var text = document.getElementById('miningAdsText');
-    var fill = document.getElementById('miningAdsFill');
-    var pct = document.getElementById('miningAdsPercent');
-    if(text) text.innerText = miningAdsWatched + '/' + miningRequiredAds + ' ADS';
-    var percent = Math.round((miningAdsWatched / miningRequiredAds) * 100);
-    if(fill) fill.style.width = percent + '%';
-    if(pct) pct.innerText = percent + '%';
-    updateMiningAdCooldownUI();
 }
 
 var miningCoinEffectInterval = null;
@@ -4492,47 +4429,60 @@ function startMiningAdCooldown(seconds) {
 function updateMiningAdCooldownUI() {
   var card = document.getElementById('miningAdCard');
   var titleEl = document.getElementById('miningAdTitle');
-  var cooldownEl = document.getElementById('miningAdCooldownText');
+  var arrowEl = document.getElementById('miningAdArrow');
   if (!card) return;
 
   if (miningAdCooldownRemaining > 0) {
     card.classList.add('locked');
-    card.disabled = true;
-    if(titleEl) titleEl.innerText = 'WAIT ' + miningAdCooldownRemaining + 's';
-    if(cooldownEl) cooldownEl.innerText = 'Next ad will unlock automatically.';
+    card.style.opacity = '0.8';
+    card.style.borderColor = '#ff4444';
+    card.style.cursor = 'not-allowed';
+    if (titleEl) {
+      titleEl.innerHTML = 'Wait <strong style="color:#ff4444;">' + miningAdCooldownRemaining + 's</strong> <span style="font-size:12px; color:#8da6c4;">(' + miningAdsWatched + '/' + miningRequiredAds + ')</span>';
+    }
+    if (arrowEl) {
+      arrowEl.innerHTML = '<i class="fa-solid fa-hourglass-half" style="color:#ff4444; font-size:13px;"></i>';
+    }
   } else {
     card.classList.remove('locked');
-    card.disabled = false;
-    if(titleEl) titleEl.innerText = 'WATCH AD';
-    if(cooldownEl) cooldownEl.innerText = '';
+    card.style.opacity = '1';
+    card.style.borderColor = '#236bc2';
+    card.style.cursor = 'pointer';
+    if (titleEl) {
+      titleEl.innerHTML = 'Watch ad <strong id="miningAdsText">' + miningAdsWatched + '/' + miningRequiredAds + '</strong>';
+    }
+    if (arrowEl) {
+      arrowEl.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    }
   }
 }
 
 window.watchMiningAd = function() {
     initAudio();
-    if (miningAdCooldownRemaining > 0 || miningState !== 'ADS_WATCHING') return;
-
+    if (miningAdCooldownRemaining > 0) {
+      showModal(`
+        <div class="m-title" style="color:#ff4444;">PLEASE WAIT ⏳</div>
+        <div class="m-body">
+          Ads cooldown active!<br>You can watch the next ad in <strong>${miningAdCooldownRemaining} seconds</strong>.
+        </div>
+        <div class="m-btn-row">
+          <button class="app-btn" onclick="closeModal()">OK</button>
+        </div>
+      `);
+      return;
+    }
     var onAdFinished = function() {
         miningAdsWatched++;
-        totalAdsWatched++;
-        try { localStorage.setItem('pto_all_ads_watched', totalAdsWatched.toString()); } catch(e) {}
-
         if (miningAdsWatched >= miningRequiredAds) {
             miningState = 'MINING';
             miningEndTime = Date.now() + 3 * 60 * 60 * 1000;
-            miningAdCooldownRemaining = 0;
         } else {
             startMiningAdCooldown(4);
         }
         saveState(true);
-        updateMiningAdsUI();
         updateTapScreenUI();
-
-        if (miningAdsWatched >= miningRequiredAds) {
-            showModal('<div class="m-title">MINING ACTIVATED 🚀</div><div class="m-body">All 10 ads are complete.<br>Your mining machine is now running for <strong>3 hours</strong>.</div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">START MINING</button></div>');
-        }
     };
-
+    
     if (window.Adsgram) {
       try {
         const AdController = window.Adsgram.init({ blockId: "int-41522" });
@@ -6568,152 +6518,4 @@ function toggleSimpleTransfer(){
 })();
 </script>
 <div class="dogs-history-wrap" id="dogsWithdrawalHistory"><div class="dogs-history-title">DOGS Withdrawal History</div><div id="dogsWithdrawalHistoryList"><div class="dogs-history-empty">No DOGS withdrawals yet</div></div></div><script>function renderDogsWithdrawalHistory(){const b=document.getElementById('dogsWithdrawalHistoryList');if(!b)return;let a=[];try{a=JSON.parse(localStorage.getItem('dogsWithdrawalHistory')||'[]')}catch(e){};if(!a.length){b.innerHTML='<div class="dogs-history-empty">No DOGS withdrawals yet</div>';return}b.innerHTML=a.slice().reverse().slice(0,20).map(x=>'<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #182333"><b>🐶 '+Number(x.amount||x.dogs||0).toLocaleString()+' DOGS</b><span style="font-size:10px;color:#8b98aa">'+(x.status||'Pending')+'</span></div>').join('')}document.addEventListener('DOMContentLoaded',renderDogsWithdrawalHistory);</script><script>function fixTaskLogos(){document.querySelectorAll('.task-card img,.task-item img,.task-row img').forEach(i=>{i.classList.add('task-logo-img');i.style.display='block';i.style.visibility='visible';i.style.opacity='1'})}new MutationObserver(fixTaskLogos).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('DOMContentLoaded',fixTaskLogos);</script></body>
-</html
-/* PROFESSIONAL MINING SCREEN */
-.mining-stage{
-  width:100%;
-  flex:1;
-  min-height:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:4px 8px 8px;
-  margin-top:4px;
-  position:relative;
-}
-.mining-machine-stage{
-  width:100%;
-  max-width:390px;
-  min-height:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  background:transparent;
-  border:0;
-  box-shadow:none;
-}
-.mining-status-badge{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  padding:6px 12px;
-  border-radius:999px;
-  background:rgba(6,18,34,.78);
-  border:1px solid rgba(0,240,255,.22);
-  box-shadow:0 5px 18px rgba(0,0,0,.35);
-  font-family:var(--font-display);
-  font-size:8px;
-  font-weight:900;
-  letter-spacing:.8px;
-  color:#dcecff;
-  margin-bottom:5px;
-}
-.status-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:#39ff14;
-  box-shadow:0 0 9px rgba(57,255,20,.9);
-}
-.mining-machine-view{
-  width:100%;
-  height:205px;
-  margin:0 auto 2px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.mining-machine-view model-viewer{width:100%;height:100%;}
-.machine-poster{
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-}
-.machine-poster img{
-  max-width:82%;max-height:82%;object-fit:contain;
-  filter:drop-shadow(0 10px 22px rgba(0,0,0,.75)) drop-shadow(0 0 16px rgba(0,240,255,.22));
-}
-.mining-info{text-align:center;width:100%;padding:0 12px 8px;}
-.mining-title{
-  font-family:var(--font-display);
-  font-size:16px;font-weight:900;letter-spacing:1px;
-  color:#fff;margin-bottom:4px;
-  text-shadow:0 0 12px rgba(0,240,255,.28);
-}
-.mining-desc{font-size:10px;line-height:1.45;color:#8da6c4;font-weight:600;max-width:310px;margin:auto;}
-.professional-start-btn,.professional-ad-btn,.professional-claim-btn{
-  width:100%;border:0;cursor:pointer;touch-action:manipulation;
-  transition:transform .15s ease,filter .2s ease,opacity .2s ease;
-}
-.professional-start-btn:active,.professional-ad-btn:active,.professional-claim-btn:active{transform:scale(.97);}
-.professional-start-btn{
-  min-height:64px;border-radius:18px;
-  display:flex;align-items:center;text-align:left;
-  padding:9px 13px;
-  color:#03131b;
-  background:linear-gradient(135deg,#39ff14 0%,#00e676 45%,#00c8ff 100%);
-  box-shadow:0 10px 28px rgba(0,230,118,.24),inset 0 1px 1px rgba(255,255,255,.65);
-}
-.start-btn-icon{
-  width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.16);font-size:17px;margin-right:10px;
-}
-.start-btn-copy{display:flex;flex-direction:column;gap:3px;flex:1;}
-.start-btn-copy strong{font-family:var(--font-display);font-size:13px;font-weight:900;letter-spacing:.7px;}
-.start-btn-copy small{font-size:8px;font-weight:800;opacity:.72;}
-.start-arrow{font-size:14px;margin-left:8px;}
-.mining-ads-panel{
-  width:100%;padding:10px 0 0;
-}
-.ads-progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
-.ads-progress-top>div:first-child{display:flex;flex-direction:column;gap:2px;}
-.ads-progress-label{font-size:7px;font-weight:900;color:#8da6c4;letter-spacing:1px;}
-.ads-progress-top strong{font-family:var(--font-display);font-size:11px;color:#fff;}
-.ads-progress-percent{font-family:var(--font-display);font-size:12px;font-weight:900;color:#39ff14;}
-.mining-progress-track{
-  width:100%;height:7px;background:rgba(0,0,0,.48);border-radius:99px;
-  overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:9px;
-}
-.mining-progress-fill{
-  height:100%;border-radius:99px;
-  background:linear-gradient(90deg,#00e676,#39ff14,#00f0ff);
-  box-shadow:0 0 10px rgba(57,255,20,.55);
-  transition:width .25s ease;
-}
-.professional-ad-btn{
-  min-height:58px;border-radius:16px;padding:9px 12px;
-  display:flex;align-items:center;text-align:left;color:#fff;
-  background:linear-gradient(135deg,#123e70,#0b2444);
-  border:1px solid rgba(0,240,255,.28);
-  box-shadow:0 8px 20px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.08);
-}
-.ad-btn-icon{
-  width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#00e676,#00aaff);color:#04141b;font-size:13px;margin-right:10px;
-}
-.ad-btn-copy{display:flex;flex-direction:column;gap:3px;flex:1;}
-.ad-btn-copy strong{font-family:var(--font-display);font-size:11px;letter-spacing:.5px;}
-.ad-btn-copy small{font-size:8px;color:#8da6c4;font-weight:700;}
-.professional-ad-btn.locked{opacity:.55;filter:grayscale(.25);cursor:not-allowed;}
-.mining-cooldown-text{height:14px;text-align:center;color:#ff5b6e;font-size:8px;font-weight:800;padding-top:4px;}
-.active-mining-panel{
-  width:100%;text-align:center;margin-top:2px;padding:8px 0 0;
-}
-.active-mining-label{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-family:var(--font-display);font-size:8px;font-weight:900;color:#39ff14;letter-spacing:1px;
-}
-.mining-countdown{
-  font-family:var(--font-display);font-size:30px;font-weight:900;
-  color:#fff;margin:5px 0;text-shadow:0 0 18px rgba(57,255,20,.45);
-}
-.active-mining-sub{font-size:9px;color:#8da6c4;font-weight:600;}
-.mining-claim-panel{width:100%;text-align:center;padding-top:7px;}
-.claim-ready-title{font-family:var(--font-display);font-size:13px;color:#39ff14;font-weight:900;}
-.claim-ready-sub{font-size:9px;color:#8da6c4;margin:3px 0 8px;}
-.professional-claim-btn{
-  min-height:52px;border-radius:15px;
-  background:linear-gradient(135deg,#39ff14,#00e676);
-  color:#04240a;font-family:var(--font-display);font-size:11px;font-weight:900;
-  box-shadow:0 8px 22px rgba(57,255,20,.28);
-}
->
+</html>
