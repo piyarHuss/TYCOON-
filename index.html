@@ -3142,8 +3142,8 @@ body {
       <div style="font-size:10px;color:#8da6c4;margin-top:6px;line-height:1.5;">Share your invite link with friends</div>
 
       <div style="margin:16px 0 12px;padding:12px;border-radius:15px;background:rgba(0,240,255,.055);border:1px solid rgba(0,240,255,.12);">
-        <div style="font-size:9px;color:#8da6c4;text-transform:uppercase;letter-spacing:.8px;font-weight:800;">Share Reward</div>
-        <div style="font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--cyan-neon);margin-top:3px;">+50,000 COINS<br><span style="font-size:14px;color:#fff;">+100 DOGS</span></div>
+        <div style="font-size:9px;color:#8da6c4;text-transform:uppercase;letter-spacing:.8px;font-weight:800;">Referral Reward</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--cyan-neon);margin-top:3px;">+50,000 COINS<br><span style="font-size:14px;color:#fff;">+100 DOGS</span></div><div style="margin-top:5px;font-size:8px;color:#8da6c4;">Reward is added when a new user joins through your link.</div>
       </div>
 
       <button onclick="shareReferralAndEarn()" style="width:100%;height:50px;border:0;border-radius:14px;background:linear-gradient(100deg,#00d9ff,#0877ff 55%,#6c2cff);color:#fff;font-family:var(--font-display);font-size:12px;font-weight:900;letter-spacing:.7px;box-shadow:0 8px 22px rgba(0,128,255,.28);cursor:pointer;">
@@ -3809,16 +3809,26 @@ if (auth) {
     if (user) {
       currentUser = user;
       var urlParams = new URLSearchParams(window.location.search);
-      var refCode = urlParams.get('ref');
+      var refCode = urlParams.get('ref') || urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
+
+      // Telegram Mini Apps normally expose ?startapp=... through initDataUnsafe.start_param.
+      // Support both Telegram's official start_param and normal browser query parameters.
+      try {
+        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe &&
+            Telegram.WebApp.initDataUnsafe.start_param) {
+          refCode = Telegram.WebApp.initDataUnsafe.start_param;
+        }
+      } catch(e) {}
+
+      if (refCode && refCode.startsWith('ref_')) {
+        refCode = refCode.replace('ref_', '');
+      } else {
+        refCode = null;
+      }
 
       var inviteLinkEl = document.getElementById('referralLinkInput');
       if(inviteLinkEl) {
         inviteLinkEl.value = "https://t.me/TYCOON_PLAY_BOT/playtoearn?startapp=ref_" + user.uid;
-      }
-
-      var refCode = urlParams.get('ref') || urlParams.get('startapp');
-      if (refCode && refCode.startsWith('ref_')) {
-        refCode = refCode.replace('ref_', '');
       }
 
       if (db) {
@@ -3855,7 +3865,8 @@ if (auth) {
           } else {
             document.getElementById('topUserName').innerText = myDisplayName;
             document.getElementById('myRankName').innerText = myDisplayName + " (You)";
-            db.collection('potto_users').doc(user.uid).set({
+            var newUserRef = db.collection('potto_users').doc(user.uid);
+            newUserRef.set({
               uid: user.uid,
               displayName: myDisplayName,
               coins: totalCoins,
@@ -3869,9 +3880,44 @@ if (auth) {
               playerLevel: playerLevel,
               rockLevel: rockLevel,
               rockHp: rockHp,
-              referredBy: refCode || null,
+              referredBy: (refCode && refCode !== user.uid) ? refCode : null,
+              referralRewardProcessed: false,
               timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(function(){});
+            }).then(function() {
+              /*
+               * REFERRAL REWARD:
+               * The Share button does NOT reward anything.
+               * The inviter gets the reward only when this brand-new user
+               * actually creates their first potto_users account through
+               * the inviter's referral link.
+               */
+              if (refCode && refCode !== user.uid) {
+                var inviterRef = db.collection('potto_users').doc(refCode);
+
+                return db.runTransaction(function(transaction) {
+                  return transaction.get(inviterRef).then(function(inviterSnap) {
+                    if (!inviterSnap.exists) return;
+
+                    var inviterData = inviterSnap.data() || {};
+                    var currentCoins = Number(inviterData.coins || 0);
+                    var currentDogs = Number(inviterData.dogsBalance || 0);
+
+                    transaction.update(inviterRef, {
+                      coins: currentCoins + INVITE_COIN_REWARD,
+                      dogsBalance: currentDogs + INVITE_DOGS_REWARD
+                    });
+                  });
+                }).then(function() {
+                  return newUserRef.update({
+                    referralRewardProcessed: true
+                  });
+                }).catch(function(err) {
+                  console.warn('Referral reward error:', err);
+                });
+              }
+            }).catch(function(err) {
+              console.error('New user creation error:', err);
+            });
           }
           saveState(true);
         }).catch(function(err){ console.error("Firestore get error:", err); });
@@ -5049,7 +5095,6 @@ window.shareReferralAndEarn = async function() {
   var link = input && input.value && input.value.indexOf('Loading') === -1 ? input.value : '';
   if (!link) { alert('Invite link is not ready yet.'); return; }
 
-  var shared = false;
   try {
     if (navigator.share) {
       await navigator.share({
@@ -5057,32 +5102,28 @@ window.shareReferralAndEarn = async function() {
         text: 'Join me on POTTO and start earning coins!',
         url: link
       });
-      shared = true;
     } else if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openTelegramLink) {
-      var shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Join me on POTTO and start earning coins!');
+      var shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) +
+        '&text=' + encodeURIComponent('Join me on POTTO and start earning coins!');
       Telegram.WebApp.openTelegramLink(shareUrl);
-      shared = true;
-    } else {
+    } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(link);
       alert('Invite link copied. Share it with your friends.');
-      shared = true;
+    } else {
+      input.select();
+      document.execCommand('copy');
+      alert('Invite link copied. Share it with your friends.');
     }
   } catch(e) {
-    // User cancelled the native share sheet; do not reward.
+    // User cancelled the share sheet. No reward is given here.
     return;
   }
 
-  if (!shared) return;
-  var rewardKey = 'pto_share_reward_count';
-  var shareCount = parseInt(localStorage.getItem(rewardKey) || '0');
-  shareCount += 1;
-  localStorage.setItem(rewardKey, String(shareCount));
-  addPointsAndCoins(50000, 0, 0, 100, 0);
-  saveState(true);
-  updateAllDisplays();
-  sCoin();
-  showModal('<div style="font-size:40px;">🎉</div><div class="m-title">SHARE REWARD!</div><div class="m-body">+50,000 coins + 100 DOGS added to your balance.</div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">DONE</button></div>');
+  // IMPORTANT: Sharing itself never gives coins or DOGS.
+  // The inviter is rewarded only when a genuinely new user
+  // creates their account through this referral link.
 };
+
 
 window.copyReferralLink = function() {
   var input = document.getElementById('referralLinkInput');
@@ -5102,8 +5143,7 @@ window.openReferralHelp = function() {
     <div class="m-title">REFERRAL PROGRAM 👥</div>
     <div class="m-body">
       Invite friends and earn massive $DOGS rewards together!<br><br>
-      • <strong style="color:#ffffff; font-size:14px;">+50,000 COINS + 100 $DOGS 🐶</strong> per share!<br>
-      • <strong style="color:var(--gold);">+1,000 Coins</strong> per share!<br><br>
+      • <strong style="color:#ffffff; font-size:14px;">+50,000 COINS + 100 $DOGS 🐶</strong> for each new user who joins through your link.<br><br>
       <span style="color:var(--cyan-neon); font-size:10px;">⚡ All earned $DOGS can be withdrawn to your TON wallet!</span>
     </div>
     <div class="m-btn-row"><button class="app-btn" onclick="closeModal()">START INVITING</button></div>
