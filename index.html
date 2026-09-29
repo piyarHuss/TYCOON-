@@ -22,6 +22,9 @@
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 <script>
+const INVITE_COIN_REWARD = 50000;
+const INVITE_DOGS_REWARD = 100;
+
   try {
     window.TelegramAdsController = new TelegramAdsController();
     window.TelegramAdsController.initialize({
@@ -2610,7 +2613,32 @@ body {
 }
 
 </style>
-</head>
+
+<style>
+/* Compact premium coin value display */
+.coin-value-box{
+  display:flex;align-items:center;justify-content:center;gap:0;
+  width:max-content;max-width:100%;margin:10px auto 0;padding:7px 13px;
+  border:1px solid rgba(148,163,184,.16);border-radius:14px;
+  background:linear-gradient(135deg,rgba(24,34,49,.94),rgba(12,18,29,.94));
+  box-shadow:0 5px 16px rgba(0,0,0,.16);font-variant-numeric:tabular-nums;
+}
+.coin-value-box .usd,.coin-value-box .inr{
+  min-width:76px;display:flex;flex-direction:column;align-items:center;
+  gap:2px;font-size:13px;font-weight:800;line-height:1.2;color:#f2f6fc;
+}
+.coin-value-box .usd::before{
+  content:"";font-size:8px;letter-spacing:1px;font-weight:700;color:#8291a8;
+}
+.coin-value-box .inr::before{
+  content:"";font-size:8px;letter-spacing:1px;font-weight:700;color:#8291a8;
+}
+.coin-value-box .inr{border-left:1px solid rgba(148,163,184,.22);padding-left:13px;margin-left:13px}
+.coin-value-box .usd{color:#9be7c4}
+.coin-value-box .inr{color:#f1d58a}
+@media(max-width:380px){.coin-value-box{padding:6px 10px}.coin-value-box .usd,.coin-value-box .inr{min-width:68px;font-size:12px}}
+</style>
+<style>.dogs-history-wrap{margin:14px 0;padding:14px;border:1px solid rgba(148,163,184,.14);border-radius:16px;background:#0c121c}.dogs-history-title{font-size:13px;font-weight:900;margin-bottom:8px}.dogs-history-empty{text-align:center;color:#78869a;font-size:11px;padding:12px}.task-logo-img{display:block!important;width:46px!important;height:46px!important;object-fit:cover!important;border-radius:12px!important;visibility:visible!important;opacity:1!important}</style></head>
 <body>
 
 <div class="app-wrapper">
@@ -2664,6 +2692,10 @@ body {
         <div class="balance-num-wrap">
           <img src="coin.png" class="hero-coin-icon" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';"><span style="display:none; font-size:36px; filter: drop-shadow(0 0 16px var(--gold));">🪙</span>
           <span class="hero-balance-val" id="mainCoinBalance">0</span>
+        </div>
+        <div id="coinValueDisplay" class="coin-value-box">
+          <div class="usd">$0.0000</div>
+          <div class="inr">₹0.00</div>
         </div>
       </div>
 
@@ -2737,7 +2769,7 @@ body {
               <div id="miningHeader">
                   <div style="font-size: 45px; margin-bottom: 10px;">⛏️</div>
                   <h3 id="miningTitle" style="font-family: var(--font-display); color: var(--gold); margin-bottom: 10px;">ENERGY DEPLETED</h3>
-                  <p id="miningDesc" style="font-size: 12px; color: #8da6c4; margin-bottom: 15px;">Watch 10 ads to start 3-hour mining for 5000 Coins!</p>
+                  <p id="miningDesc" style="font-size: 12px; color: #8da6c4; margin-bottom: 15px;">Watch 10 ads to start 3-hour mining for 30000 Coins!</p>
               </div>
 
               <!-- 3D Machine Viewer -->
@@ -2788,7 +2820,7 @@ body {
 
               <!-- Claim Reward -->
               <div id="miningClaimDiv" style="display: none;">
-                  <button class="app-btn claim-glow-btn" onclick="claimMiningReward()" style="width: 100%;">🎁 CLAIM 5000 COINS</button>
+                  <button class="app-btn claim-glow-btn" onclick="claimMiningReward()" style="width: 100%;">🎁 CLAIM 30000 COINS</button>
               </div>
           </div>
       </div>
@@ -3094,37 +3126,46 @@ body {
     </section>
 
     <!-- 4. INVITE FRIENDS SCREEN -->
-    <section id="invite-tab" class="tab-page">
-      <div class="referral-container">
-        <div class="ref-header-bar">
-          <button class="ref-header-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))"><i class="fa-solid fa-xmark"></i></button>
-          <span class="ref-header-title">Settings & Referral</span>
-          <button class="ref-header-btn" onclick="openReferralHelp()"><i class="fa-regular fa-circle-question"></i></button>
-        </div>
+<section id="invite-tab" class="tab-page">
+  <div class="referral-container" style="gap:14px;">
+    <div class="ref-header-bar">
+      <button class="ref-header-btn" onclick="switchTab('tap-tab', document.getElementById('navTap'))"><i class="fa-solid fa-xmark"></i></button>
+      <span class="ref-header-title">Invite Friends</span>
+      <button class="ref-header-btn" onclick="openReferralHelp()"><i class="fa-regular fa-circle-question"></i></button>
+    </div>
 
-        <div class="ref-box-card">
-          <div class="ref-box-title">Referral links</div>
-          <div style="background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); font-size:11.5px; color:#ffffff; font-weight:800; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px;">🐶</span>
-            <div>
-              <span>Earn <strong style="color:var(--cyan-neon);">100 $DOGS Coins</strong> per friend!</span>
-              <div style="font-size:8.5px; color:#8da6c4; font-weight:600;">Share your link and earn instantly when friends join!</div>
-            </div>
-          </div>
-          <div class="ref-link-input-wrap">
-            <input type="text" class="ref-link-input" id="referralLinkInput" value="Loading link..." readonly>
-            <button class="ref-copy-btn" onclick="copyReferralLink()">COPY</button>
-          </div>
-        </div>
-
-        <div class="ref-invited-title">Invited friends</div>
-        <div class="ref-friends-list" id="invitedFriendsList">
-          <div style="text-align:center; padding:10px; font-size:12px; color:#8da6c4;">Loading friends...</div>
-        </div>
+    <div style="width:100%;background:linear-gradient(145deg,#111d2d,#07101b);border:1px solid rgba(0,240,255,.18);border-radius:22px;padding:22px 16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.35);">
+      <div style="width:70px;height:70px;margin:0 auto 12px;border-radius:22px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(0,240,255,.12);">
+        <span style="font-size:34px;">🎁</span>
       </div>
-    </section>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:#fff;letter-spacing:.5px;">Invite & Earn</div>
+      <div style="font-size:10px;color:#8da6c4;margin-top:6px;line-height:1.5;">Share your invite link with friends</div>
 
-    <!-- 4.5. COIN WITHDRAWAL SCREEN -->
+      <div style="margin:16px 0 12px;padding:12px;border-radius:15px;background:rgba(0,240,255,.055);border:1px solid rgba(0,240,255,.12);">
+        <div style="font-size:9px;color:#8da6c4;text-transform:uppercase;letter-spacing:.8px;font-weight:800;">Share Reward</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--cyan-neon);margin-top:3px;">+50,000 COINS<br><span style="font-size:14px;color:#fff;">+100 DOGS</span></div>
+      </div>
+
+      <button onclick="shareReferralAndEarn()" style="width:100%;height:50px;border:0;border-radius:14px;background:linear-gradient(100deg,#00d9ff,#0877ff 55%,#6c2cff);color:#fff;font-family:var(--font-display);font-size:12px;font-weight:900;letter-spacing:.7px;box-shadow:0 8px 22px rgba(0,128,255,.28);cursor:pointer;">
+        <i class="fa-solid fa-share-nodes"></i>&nbsp; SHARE & EARN
+      </button>
+
+      <div style="margin-top:10px;font-size:8px;color:#667d96;">Your invite link is shared with the button above.</div>
+    </div>
+
+    <div class="ref-link-input-wrap" style="width:100%;">
+      <input type="text" class="ref-link-input" id="referralLinkInput" value="Loading link..." readonly>
+      <button class="ref-copy-btn" onclick="copyReferralLink()">COPY</button>
+    </div>
+
+    <div class="ref-invited-title">Invited Friends</div>
+    <div class="ref-friends-list" id="invitedFriendsList">
+      <div style="text-align:center;padding:10px;font-size:12px;color:#8da6c4;">Loading friends...</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.5. COIN WITHDRAWAL SCREEN -->
     <section id="withdrawal-tab" class="tab-page">
       <div class="wd-container">
 
@@ -3669,7 +3710,8 @@ var maxEnergy = 100;
 var tapMultiplier = 1;
 
 var miningRequiredAds = parseInt(localStorage.getItem('pto_mining_req_ads') || '10');
-var miningRewardCoins = parseInt(localStorage.getItem('pto_mining_rew_coins') || '5000');
+var miningRewardCoins = parseInt(localStorage.getItem('pto_mining_rew_coins') || '30000');
+if (miningRewardCoins === 5000) { miningRewardCoins = 30000; localStorage.setItem('pto_mining_rew_coins', '30000'); }
 
 var miningState = localStorage.getItem('pto_mining_state') || 'IDLE';
 var miningAdsWatched = parseInt(localStorage.getItem('pto_mining_ads') || '0');
@@ -4004,6 +4046,7 @@ function updateAllDisplays() {
 
   // Balance & Energy Display
   document.getElementById('mainCoinBalance').innerText = totalCoins.toLocaleString();
+  if (typeof updateCoinValueDisplay === 'function') updateCoinValueDisplay(totalCoins);
   document.getElementById('energyMeterVal').innerText = tapEnergy.toLocaleString() + ' / ' + maxEnergy.toLocaleString();
 
   document.getElementById('myRankPoints').innerText = formatPointsShort(totalCoins);
@@ -5000,6 +5043,47 @@ function renderInvitedFriends() {
   container.innerHTML = html;
 }
 
+window.shareReferralAndEarn = async function() {
+  initAudio();
+  var input = document.getElementById('referralLinkInput');
+  var link = input && input.value && input.value.indexOf('Loading') === -1 ? input.value : '';
+  if (!link) { alert('Invite link is not ready yet.'); return; }
+
+  var shared = false;
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: 'Join POTTO',
+        text: 'Join me on POTTO and start earning coins!',
+        url: link
+      });
+      shared = true;
+    } else if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openTelegramLink) {
+      var shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Join me on POTTO and start earning coins!');
+      Telegram.WebApp.openTelegramLink(shareUrl);
+      shared = true;
+    } else {
+      await navigator.clipboard.writeText(link);
+      alert('Invite link copied. Share it with your friends.');
+      shared = true;
+    }
+  } catch(e) {
+    // User cancelled the native share sheet; do not reward.
+    return;
+  }
+
+  if (!shared) return;
+  var rewardKey = 'pto_share_reward_count';
+  var shareCount = parseInt(localStorage.getItem(rewardKey) || '0');
+  shareCount += 1;
+  localStorage.setItem(rewardKey, String(shareCount));
+  addPointsAndCoins(50000, 0, 0, 100, 0);
+  saveState(true);
+  updateAllDisplays();
+  sCoin();
+  showModal('<div style="font-size:40px;">🎉</div><div class="m-title">SHARE REWARD!</div><div class="m-body">+50,000 coins + 100 DOGS added to your balance.</div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">DONE</button></div>');
+};
+
 window.copyReferralLink = function() {
   var input = document.getElementById('referralLinkInput');
   if (input && input.value.indexOf('Loading') === -1) {
@@ -5018,8 +5102,8 @@ window.openReferralHelp = function() {
     <div class="m-title">REFERRAL PROGRAM 👥</div>
     <div class="m-body">
       Invite friends and earn massive $DOGS rewards together!<br><br>
-      • <strong style="color:#ffffff; font-size:14px;">+100 $DOGS COIN 🐶</strong> per invited friend!<br>
-      • <strong style="color:var(--gold);">+25,000 Coins</strong> bonus!<br><br>
+      • <strong style="color:#ffffff; font-size:14px;">+50,000 COINS + 100 $DOGS 🐶</strong> per share!<br>
+      • <strong style="color:var(--gold);">+1,000 Coins</strong> per share!<br><br>
       <span style="color:var(--cyan-neon); font-size:10px;">⚡ All earned $DOGS can be withdrawn to your TON wallet!</span>
     </div>
     <div class="m-btn-row"><button class="app-btn" onclick="closeModal()">START INVITING</button></div>
@@ -6183,7 +6267,7 @@ window.saveAdminData = function() {
 
   var taskTitle = document.getElementById('adminTaskTitle').value.trim();
   var taskLogo = document.getElementById('adminTaskLogo').value.trim();
-  var taskReward = parseInt(document.getElementById('adminTaskReward').value) || 5000;
+  var taskReward = parseInt(document.getElementById('adminTaskReward').value) || 30000;
   var taskIcon = document.getElementById('adminTaskIcon').value;
   var taskUrl = document.getElementById('adminTaskUrl').value.trim();
 
@@ -6195,7 +6279,7 @@ window.saveAdminData = function() {
     localStorage.setItem('pto_mining_req_ads', miningRequiredAds);
   }
   if (rewCoinsInput && rewCoinsInput.value) {
-    miningRewardCoins = parseInt(rewCoinsInput.value) || 5000;
+    miningRewardCoins = parseInt(rewCoinsInput.value) || 30000;
     localStorage.setItem('pto_mining_rew_coins', miningRewardCoins);
   }
 
@@ -6378,5 +6462,20 @@ function toggleSimpleTransfer(){
     : '<i class="fa-solid fa-xmark"></i> Close';
 }
 </script>
-</body>
+
+<script>
+(function(){
+  const COIN_INR_RATE = 1 / 10000; // App withdrawal value: 10,000 coins = ₹1.
+  const USD_INR_RATE = 90; // Approximate display conversion; edit if needed.
+  window.updateCoinValueDisplay = function(balance){
+    const el = document.getElementById('coinValueDisplay');
+    if(!el) return;
+    const coins = Number(balance) || 0;
+    const inr = coins * COIN_INR_RATE;
+    const usd = inr / USD_INR_RATE;
+    el.innerHTML = '<div class="usd">$' + usd.toFixed(4) + '</div><div class="inr">₹' + inr.toFixed(2) + '</div>';
+  };
+})();
+</script>
+<div class="dogs-history-wrap" id="dogsWithdrawalHistory"><div class="dogs-history-title">DOGS Withdrawal History</div><div id="dogsWithdrawalHistoryList"><div class="dogs-history-empty">No DOGS withdrawals yet</div></div></div><script>function renderDogsWithdrawalHistory(){const b=document.getElementById('dogsWithdrawalHistoryList');if(!b)return;let a=[];try{a=JSON.parse(localStorage.getItem('dogsWithdrawalHistory')||'[]')}catch(e){};if(!a.length){b.innerHTML='<div class="dogs-history-empty">No DOGS withdrawals yet</div>';return}b.innerHTML=a.slice().reverse().slice(0,20).map(x=>'<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #182333"><b>🐶 '+Number(x.amount||x.dogs||0).toLocaleString()+' DOGS</b><span style="font-size:10px;color:#8b98aa">'+(x.status||'Pending')+'</span></div>').join('')}document.addEventListener('DOMContentLoaded',renderDogsWithdrawalHistory);</script><script>function fixTaskLogos(){document.querySelectorAll('.task-card img,.task-item img,.task-row img').forEach(i=>{i.classList.add('task-logo-img');i.style.display='block';i.style.visibility='visible';i.style.opacity='1'})}new MutationObserver(fixTaskLogos).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('DOMContentLoaded',fixTaskLogos);</script></body>
 </html>
