@@ -16,9 +16,6 @@
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <!-- Montage Rewarded Interstitial SDK Integration -->
 <script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
-<!-- Adexium SDK Integration -->
-<script type="text/javascript" src="https://cdn.adexium.tech/assets/js/tg-ads-co-widget.min.js"></script>
-
 <!-- RichAds Telegram Integration -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 <script>
@@ -3022,7 +3019,7 @@ body {
           </div>
 
           <!-- Video Series -->
-          <div class="ads-cat-card" style="border: 1px solid #00ff66; box-shadow: inset 0 0 10px rgba(0,255,102,0.3);" onclick="openAdSlots('adexium')">
+          <div class="ads-cat-card" style="border: 1px solid #00ff66; box-shadow: inset 0 0 10px rgba(0,255,102,0.3);" onclick="openAdSlots('montage_video')">
             <div class="ads-cat-icon" style="background: linear-gradient(135deg, #00b0ff, #00ff66); position: relative;">
               <i class="fa-solid fa-mobile-screen" style="position: absolute;"></i>
               <i class="fa-solid fa-play" style="position: absolute; font-size: 14px; color: #fff; text-shadow: 0 0 5px #000;"></i>
@@ -3699,30 +3696,6 @@ body {
 (function(){
 'use strict';
 
-// NAYA FIXED INITIALIZER (On-Demand Support Ke Saath)
-window.adexiumWidgetInstance = null;
-
-function initAdexiumWidget() {
-    try {
-        if (typeof AdexiumWidget !== 'undefined') {
-            if (!window.adexiumWidgetInstance) {
-                window.adexiumWidgetInstance = new AdexiumWidget({
-                    wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                    adFormat: 'interstitial' // ya 'rewarded' agar aapne dashboard me rewarded select kiya hai
-                });
-                console.log("✅ Adexium successfully initialized!");
-            }
-            return window.adexiumWidgetInstance;
-        } else {
-            console.warn("⚠️ AdexiumWidget SDK abhi load nahi hua.");
-            return null;
-        }
-    } catch(err) {
-        console.error("Adexium Init Error:", err);
-        return null;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     try {
         if (window.Telegram && window.Telegram.WebApp) {
@@ -3808,13 +3781,13 @@ var miningEndTime = parseInt(localStorage.getItem('pto_mining_end') || '0');
 
 var totalAdsWatched = parseInt(localStorage.getItem('pto_all_ads_watched') || '0');
 var adsWatchedAdsgram = parseInt(localStorage.getItem('pto_ads_adsgram') || '0');
-var adsWatchedAdexium = parseInt(localStorage.getItem('pto_ads_adexium') || '0');
+var adsWatchedMontageVideo = parseInt(localStorage.getItem('pto_ads_montage_video') || '0');
 var adsWatchedMontage = parseInt(localStorage.getItem('pto_ads_montage') || '0');
 // Global ads cycle cooldown: after all 10 ads are completed, lock ALL ad networks for 2 hours.
 var adsCycleCooldownUntil = 0;
 var adsNetworkCooldownUntil = {
   adsgram: parseInt(localStorage.getItem('pto_ads_cycle_adsgram_until') || '0'),
-  adexium: parseInt(localStorage.getItem('pto_ads_cycle_adexium_until') || '0'),
+  montage_video: parseInt(localStorage.getItem('pto_ads_cycle_montage_video_until') || '0'),
   montage: parseInt(localStorage.getItem('pto_ads_cycle_montage_until') || '0')
 };
 var currentAdNetwork = null;
@@ -4223,7 +4196,7 @@ function saveState(force) {
   localStorage.setItem('pto_all_ads_watched', totalAdsWatched);
   
   localStorage.setItem('pto_ads_adsgram', adsWatchedAdsgram);
-  localStorage.setItem('pto_ads_adexium', adsWatchedAdexium);
+  localStorage.setItem('pto_ads_montage_video', adsWatchedMontageVideo);
   localStorage.setItem('pto_ads_montage', adsWatchedMontage);
 
   localStorage.setItem('pto_total_tasks_done', totalTasksDone);
@@ -5397,7 +5370,7 @@ function startAdsCycleCooldown(network) {
   adCooldownTimer = setInterval(function() {
     var anyLocked = false;
 
-    ['adsgram','adexium','montage'].forEach(function(net) {
+    ['adsgram','montage_video','montage'].forEach(function(net) {
       if (isAdsCycleLocked(net)) {
         anyLocked = true;
       } else if (getNetworkCooldownUntil(net) > 0) {
@@ -5422,14 +5395,14 @@ function startAdsCycleCooldown(network) {
 }
 
 function restoreAdsCycleCooldown() {
-  ['adsgram','adexium','montage'].forEach(function(net) {
+  ['adsgram','montage_video','montage'].forEach(function(net) {
     if (!isAdsCycleLocked(net)) {
       adsNetworkCooldownUntil[net] = 0;
       localStorage.removeItem('pto_ads_cycle_' + net + '_until');
     }
   });
 
-  var anyLocked = ['adsgram','adexium','montage'].some(function(net) {
+  var anyLocked = ['adsgram','montage_video','montage'].some(function(net) {
     return isAdsCycleLocked(net);
   });
 
@@ -5438,7 +5411,7 @@ function restoreAdsCycleCooldown() {
     adCooldownTimer = setInterval(function() {
       var stillLocked = false;
 
-      ['adsgram','adexium','montage'].forEach(function(net) {
+      ['adsgram','montage_video','montage'].forEach(function(net) {
         if (isAdsCycleLocked(net)) {
           stillLocked = true;
         } else if (getNetworkCooldownUntil(net) > 0) {
@@ -5531,7 +5504,7 @@ window.openAdSlots = function(network) {
   if (adsSlotsView) adsSlotsView.style.display = 'flex';
   
   var title = "QUICK ADS";
-  if (network === 'adexium') title = "VIDEO SERIES";
+  if (network === 'montage_video') title = "VIDEO SERIES";
   if (network === 'montage') title = "FEATURED ADS";
   document.getElementById('adsSlotsTitle').innerText = title;
   
@@ -5557,7 +5530,7 @@ window.renderAdsTab = function() {
   var networkLabel = 'DOGS';
 
   if (currentAdNetwork === 'adsgram') adsCompleted = adsWatchedAdsgram % totalAds;
-  else if (currentAdNetwork === 'adexium') adsCompleted = adsWatchedAdexium % totalAds;
+  else if (currentAdNetwork === 'montage_video') adsCompleted = adsWatchedMontageVideo % totalAds;
   else if (currentAdNetwork === 'montage') {
       adsCompleted = adsWatchedMontage % totalAds;
       networkIcon = '💎';
@@ -5621,7 +5594,7 @@ window.renderAdsTab = function() {
   var progressText = document.getElementById('adsStatProgressText');
   var progressFill = document.getElementById('adsStatProgressFill');
   
-  var totalWatchedInNet = currentAdNetwork === 'adsgram' ? adsWatchedAdsgram : (currentAdNetwork === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
+  var totalWatchedInNet = currentAdNetwork === 'adsgram' ? adsWatchedAdsgram : (currentAdNetwork === 'montage_video' ? adsWatchedMontageVideo : adsWatchedMontage);
 
   if (adsStatCoins) adsStatCoins.innerText = formatK(totalWatchedInNet * 50); 
   if (adsStatDogs) {
@@ -5641,8 +5614,8 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
     return;
   }
 
-  var altName = (network === 'montage') ? 'GEMS 💎' : '$DOGS 🐶';
-  var altType = (network === 'montage') ? 'gems' : 'dogs';
+  var altName = (network === 'montage' || network === 'montage_video') ? (network === 'montage' ? 'GEMS 💎' : '$DOGS 🐶') : '$DOGS 🐶';
+  var altType = (network === 'montage' || network === 'montage_video') ? (network === 'montage' ? 'gems' : 'dogs') : 'dogs';
 
   var onAdFinished = function() {
     showModal(`
@@ -5674,101 +5647,40 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
           } catch(e) { startTimerModal(4, onAdFinished); }
       } else startTimerModal(4, onAdFinished);
 
-  } else if (network === 'adexium') {
-      // Adexium: manual tap -> requestAd -> adReceived -> displayAd.
-      // No show(), showAd(), autoMode(), or fake fallback timer.
+  } else if (network === 'montage_video') {
+      // Video Series now uses Montage In-App Interstitial.
       try {
-          // Create the widget only when the user taps the Adexium card.
-          var adex = null;
-
-          // Adexium TMA requires Telegram Mini App user context.
-          var tgWebApp = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-          if (!tgWebApp || !tgWebApp.initData || !tgWebApp.initDataUnsafe || !tgWebApp.initDataUnsafe.user) {
-              throw new Error('Telegram Mini App user data is unavailable. Open the game from the Telegram bot.');
-          }
-
-          if (typeof AdexiumWidget === 'undefined') {
-              throw new Error('Adexium SDK is not loaded');
-          }
-
-          if (!window.adexiumWidgetInstance) {
-              window.adexiumWidgetInstance = new AdexiumWidget({
-                  wid: 'e8d96061-2730-42af-8557-f171c8e5ddcd',
-                  adFormat: 'interstitial'
-              });
-
-              window.adexiumWidgetInstance.on('adReceived', function(ad) {
-                  try {
-                      window.adexiumWidgetInstance.displayAd(ad);
-                  } catch (displayErr) {
-                      console.warn('Adexium Display Error:', displayErr);
-                      if (typeof window._adexiumNoAdHandler === 'function') {
-                          window._adexiumNoAdHandler();
-                      }
+          if (typeof show_11520403 === 'function') {
+              show_11520403({
+                  type: 'inApp',
+                  inAppSettings: {
+                      frequency: 2,
+                      capping: 0.1,
+                      interval: 30,
+                      timeout: 5,
+                      everyPage: false
                   }
-              });
-
-              window.adexiumWidgetInstance.on('noAdFound', function() {
-                  if (typeof window._adexiumNoAdHandler === 'function') {
-                      window._adexiumNoAdHandler();
-                  }
-              });
-
-              window.adexiumWidgetInstance.on('adPlaybackCompleted', function() {
-                  if (typeof window._adexiumCompletedHandler === 'function') {
-                      window._adexiumCompletedHandler();
-                  }
-              });
+              }).then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
+          } else {
+              startTimerModal(4, onAdFinished);
           }
-
-          adex = window.adexiumWidgetInstance;
-
-          window._adexiumCompletedHandler = function() {
-              window._adexiumCompletedHandler = null;
-              window._adexiumNoAdHandler = null;
-              onAdFinished();
-          };
-
-          window._adexiumNoAdHandler = function() {
-              window._adexiumCompletedHandler = null;
-              window._adexiumNoAdHandler = null;
-              showModal(`
-                <div style="font-size:42px;">📺</div>
-                <div class="m-title">NO AD AVAILABLE</div>
-                <div class="m-body">Adexium has no ad available right now. Please try again later.</div>
-                <div class="m-btn-row">
-                  <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
-                </div>
-              `);
-          };
-
-          if (!adex || typeof adex.requestAd !== 'function') {
-              throw new Error('Adexium requestAd() is unavailable');
-          }
-
-          // Request only after the user taps this card.
-          adex.requestAd('interstitial');
-
       } catch(e) {
-          window._adexiumCompletedHandler = null;
-          window._adexiumNoAdHandler = null;
-          console.warn("Adexium Request Error:", e && e.message ? e.message : e, e);
-
-          var adexiumErrorText = (e && e.message) ? e.message : 'Adexium could not start. Please try again.';
-          showModal(`
-            <div style="font-size:42px;">⚠️</div>
-            <div class="m-title">AD ERROR</div>
-            <div class="m-body">Adexium could not start. Please try again.</div>
-            <div class="m-btn-row">
-              <button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button>
-            </div>
-          `);
+          startTimerModal(4, onAdFinished);
       }
 
   } else if (network === 'montage') {
       try {
           if (typeof show_11520403 === 'function') {
-              show_11520403().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
+              show_11520403({
+                  type: 'inApp',
+                  inAppSettings: {
+                      frequency: 2,
+                      capping: 0.1,
+                      interval: 30,
+                      timeout: 5,
+                      everyPage: false
+                  }
+              }).then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
           } else startTimerModal(4, onAdFinished);
       } catch(e) { startTimerModal(4, onAdFinished); }
   }
@@ -5784,7 +5696,7 @@ window.handleAdClaimReward = function(event, network, coinsReward, altReward, al
   flyCoinsToBalance(startX, startY, altType, altReward, function() {
     totalAdsWatched++;
     if (network === 'adsgram') adsWatchedAdsgram++;
-    else if (network === 'adexium') adsWatchedAdexium++;
+    else if (network === 'montage_video') adsWatchedMontageVideo++;
     else if (network === 'montage') adsWatchedMontage++;
 
     var addGems = (altType === 'gems') ? altReward : 0;
@@ -5795,7 +5707,7 @@ window.handleAdClaimReward = function(event, network, coinsReward, altReward, al
     updateAllDisplays();
 
     // After the 10th ad, lock ONLY this ad network for exactly 2 hours.
-    var watchedInNetwork = network === 'adsgram' ? adsWatchedAdsgram : (network === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
+    var watchedInNetwork = network === 'adsgram' ? adsWatchedAdsgram : (network === 'montage_video' ? adsWatchedMontageVideo : adsWatchedMontage);
     if (watchedInNetwork > 0 && watchedInNetwork % ADS_CYCLE_TOTAL === 0) {
       startAdsCycleCooldown(network);
     } else {
