@@ -3802,6 +3802,23 @@ localStorage.setItem('pto_mining_req_ads', '10');
 var miningRewardCoins = parseInt(localStorage.getItem('pto_mining_rew_coins') || '30000');
 if (miningRewardCoins === 5000) { miningRewardCoins = 30000; localStorage.setItem('pto_mining_rew_coins', '30000'); }
 
+/* 500K REWARD REDUCTION SYSTEM */
+var REWARD_REDUCTION_THRESHOLD = 500000;
+var REWARD_REDUCTION_TARGET = 1000000;
+var REWARD_REDUCTION_DAYS = 11;
+var POST_500K_MINING_REWARD = 5000;
+var POST_500K_AD_REWARD = 15;
+
+function isPost500KRewardMode() {
+  return Number(totalCoins || 0) >= REWARD_REDUCTION_THRESHOLD;
+}
+function getEffectiveMiningReward() {
+  return isPost500KRewardMode() ? POST_500K_MINING_REWARD : miningRewardCoins;
+}
+function getEffectiveAdCoinReward(baseReward) {
+  return isPost500KRewardMode() ? POST_500K_AD_REWARD : (Number(baseReward) || 0);
+}
+
 var miningState = localStorage.getItem('pto_mining_state') || 'IDLE';
 var miningAdsWatched = parseInt(localStorage.getItem('pto_mining_ads') || '0');
 var miningEndTime = parseInt(localStorage.getItem('pto_mining_end') || '0');
@@ -4408,7 +4425,7 @@ window.updateTapScreenUI = function() {
         if(miningClaimDiv) {
             miningClaimDiv.style.display = 'block';
             var claimBtn = miningClaimDiv.querySelector('button');
-            if (claimBtn) claimBtn.innerHTML = '🎁 CLAIM ' + miningRewardCoins + ' COINS';
+            if (claimBtn) claimBtn.innerHTML = '🎁 CLAIM ' + getEffectiveMiningReward() + ' COINS';
         }
         stopMiningCoinEffect();
     }
@@ -4591,7 +4608,8 @@ window.startMiningMachine = function() {
 
 window.claimMiningReward = function() {
     initAudio();
-    addPointsAndCoins(miningRewardCoins, 10, 0, 0, 0); 
+    var effectiveMiningReward = getEffectiveMiningReward();
+    addPointsAndCoins(effectiveMiningReward, 10, 0, 0, 0); 
     miningState = 'IDLE';
     tapEnergy = maxEnergy;
     miningAdsWatched = 0;
@@ -4600,7 +4618,7 @@ window.claimMiningReward = function() {
     saveState(true);
     updateAllDisplays();
     updateTapScreenUI();
-    showModal('<div class="m-title">MINING SUCCESSFUL! 🚀</div><div class="m-body">You got <strong>+' + miningRewardCoins + ' Coins</strong>.<br>Energy is fully restored to 100!</div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">AWESOME</button></div>');
+    showModal('<div class="m-title">MINING SUCCESSFUL! 🚀</div><div class="m-body">You got <strong>+' + effectiveMiningReward + ' Coins</strong>.<br>Energy is fully restored to 100!</div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">AWESOME</button></div>');
 };
 
 /* Real-Time Leaderboard */
@@ -5580,6 +5598,10 @@ window.renderAdsTab = function() {
         rewardAlt = adSlotsConfig[i-1].dogs || 10;
     }
     
+    // After 500K, only the coin part of ad rewards is reduced.
+    // DOGS/GEMS rewards remain unchanged.
+    rewardCoins = getEffectiveAdCoinReward(rewardCoins);
+
     var cardClass = 'new-ad-card';
     if (isLocked) cardClass += ' locked';
     if (isCompleted) cardClass += ' completed';
@@ -5623,7 +5645,10 @@ window.renderAdsTab = function() {
   
   var totalWatchedInNet = currentAdNetwork === 'adsgram' ? adsWatchedAdsgram : (currentAdNetwork === 'adexium' ? adsWatchedAdexium : adsWatchedMontage);
 
-  if (adsStatCoins) adsStatCoins.innerText = formatK(totalWatchedInNet * 50); 
+  if (adsStatCoins) {
+    var statsRewardPerAd = getEffectiveAdCoinReward(50);
+    adsStatCoins.innerText = formatK(totalWatchedInNet * statsRewardPerAd);
+  } 
   if (adsStatDogs) {
       adsStatDogs.innerText = (totalWatchedInNet * 10);
       adsStatDogs.nextElementSibling.innerText = networkLabel;
@@ -5775,6 +5800,8 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
 };
 
 window.handleAdClaimReward = function(event, network, coinsReward, altReward, altType) {
+  // Re-check reward at claim time in case the balance crossed 500K.
+  coinsReward = getEffectiveAdCoinReward(coinsReward);
   var rect = event.target.getBoundingClientRect();
   var startX = rect.left + rect.width / 2;
   var startY = rect.top + rect.height / 2;
