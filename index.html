@@ -19,7 +19,7 @@
 <!-- Adexium SDK Integration -->
 <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/tg-ads-co-widget.min.js"></script>
 
-<!-- RichAds Telegram Integration — AUTO ADS ONLY (NO REWARD) -->
+<!-- RichAds Telegram Integration — BUTTON ONLY / NO REWARD -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 <script>
 const INVITE_COIN_REWARD = 50000;
@@ -32,42 +32,7 @@ try {
     appId: "9031",
     debug: false
   });
-
-  /*
-   * RichAds is used only as a monetization ad.
-   * It is NOT connected to the game's reward/coin system.
-   * No coins, DOGS, GEMS, mining rewards or task rewards are added
-   * when a RichAds ad is shown.
-   *
-   * Start one automatic RichAds interstitial after the Mini App
-   * has had time to load. The existing rewarded-ad system below
-   * remains unchanged.
-   */
-  window.startAutomaticRichAds = function() {
-    try {
-      if (!window.TelegramAdsController ||
-          typeof window.TelegramAdsController.triggerInterstitialVideo !== "function") {
-        return;
-      }
-
-      window.TelegramAdsController.triggerInterstitialVideo()
-        .then(function(result) {
-          console.log("RichAds automatic ad shown:", result);
-        })
-        .catch(function(error) {
-          console.log("RichAds automatic ad unavailable:", error);
-        });
-    } catch (e) {
-      console.warn("RichAds automatic ad error:", e);
-    }
-  };
-
-  // Give the Mini App time to finish loading before showing the first ad.
-  setTimeout(function() {
-    window.startAutomaticRichAds();
-  }, 20000);
-
-} catch(e) {
+} catch (e) {
   console.warn("RichAds init error:", e);
 }
 </script>
@@ -2832,6 +2797,10 @@ body {
     <!-- 1. HOME / TAP SCREEN -->
     <section id="tap-tab" class="tab-page active">
 
+      <!-- RichAds — simple ad button, no reward / no database update / no cooldown -->
+      <div style="display:flex;justify-content:center;margin:12px 16px 4px;">
+</div>
+
       <!-- Balance Hero Box -->
       <div class="balance-hero-box">
         <div class="balance-num-wrap">
@@ -3734,6 +3703,33 @@ body {
 <script>
 (function(){
 'use strict';
+
+// RichAds button: ad only. No reward, no DB/localStorage update, no cooldown.
+window.showRichAd = async function() {
+    const btn = document.getElementById('show-richad-btn');
+    if (!btn) return;
+
+    const originalText = 'Watch Ad';
+    btn.disabled = true;
+    btn.innerText = 'Loading Ad...';
+
+    try {
+        if (!window.TelegramAdsController ||
+            typeof window.TelegramAdsController.triggerInterstitialVideo !== 'function') {
+            throw new Error('RichAds Script/API missing');
+        }
+
+        await window.TelegramAdsController.triggerInterstitialVideo();
+
+        // Intentionally no reward or database/localStorage update here.
+        btn.disabled = false;
+        btn.innerText = originalText;
+    } catch (e) {
+        console.error('RichAds ad error:', e);
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+};
 
 // NAYA FIXED INITIALIZER (On-Demand Support Ke Saath)
 window.adexiumWidgetInstance = null;
