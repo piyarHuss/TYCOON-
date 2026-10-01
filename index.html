@@ -19,21 +19,57 @@
 <!-- Adexium SDK Integration -->
 <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/tg-ads-co-widget.min.js"></script>
 
-<!-- RichAds Telegram Integration -->
+<!-- RichAds Telegram Integration — AUTO ADS ONLY (NO REWARD) -->
 <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 <script>
 const INVITE_COIN_REWARD = 50000;
 const INVITE_DOGS_REWARD = 100;
 
-  try {
-    window.TelegramAdsController = new TelegramAdsController();
-    window.TelegramAdsController.initialize({
-      pubId: "997172",
-      appId: "9031",
-    });
-  } catch(e) {
-    console.warn("RichAds init error:", e);
-  }
+try {
+  window.TelegramAdsController = new TelegramAdsController();
+  window.TelegramAdsController.initialize({
+    pubId: "997172",
+    appId: "9031",
+    debug: false
+  });
+
+  /*
+   * RichAds is used only as a monetization ad.
+   * It is NOT connected to the game's reward/coin system.
+   * No coins, DOGS, GEMS, mining rewards or task rewards are added
+   * when a RichAds ad is shown.
+   *
+   * Start one automatic RichAds interstitial after the Mini App
+   * has had time to load. The existing rewarded-ad system below
+   * remains unchanged.
+   */
+  window.startAutomaticRichAds = function() {
+    try {
+      if (!window.TelegramAdsController ||
+          typeof window.TelegramAdsController.triggerInterstitialVideo !== "function") {
+        return;
+      }
+
+      window.TelegramAdsController.triggerInterstitialVideo()
+        .then(function(result) {
+          console.log("RichAds automatic ad shown:", result);
+        })
+        .catch(function(error) {
+          console.log("RichAds automatic ad unavailable:", error);
+        });
+    } catch (e) {
+      console.warn("RichAds automatic ad error:", e);
+    }
+  };
+
+  // Give the Mini App time to finish loading before showing the first ad.
+  setTimeout(function() {
+    window.startAutomaticRichAds();
+  }, 20000);
+
+} catch(e) {
+  console.warn("RichAds init error:", e);
+}
 </script>
 
 <!-- Firebase SDKs (Compat Version) -->
