@@ -6517,46 +6517,147 @@ window.saveAdminData = function() {
 };
 
 var activeGameTimer = null;
+var activeGameAdTimer = null;
+var gameMontageAdShowing = false;
+
+/* GAME ADS
+   1) Game logo/card tap -> AdsGram interstitial.
+   2) While the game is open -> Montage every 40 seconds.
+*/
+function showGameStartAdsGram(onComplete) {
+  var done = false;
+
+  function finish() {
+    if (done) return;
+    done = true;
+    if (typeof onComplete === 'function') onComplete();
+  }
+
+  try {
+    if (window.Adsgram && typeof window.Adsgram.init === 'function') {
+      var controller = window.Adsgram.init({ blockId: "int-41524" });
+
+      if (controller && typeof controller.show === 'function') {
+        controller.show().then(finish).catch(function(err) {
+          console.warn('Game start AdsGram error:', err);
+          finish();
+        });
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Game start AdsGram init error:', e);
+  }
+
+  finish();
+}
+
+function showGameMontageAd() {
+  if (gameMontageAdShowing) return;
+
+  var play = document.getElementById('gamePlayView');
+  if (!play || play.style.display === 'none' ||
+      getComputedStyle(play).display === 'none') return;
+
+  gameMontageAdShowing = true;
+
+  try {
+    if (typeof show_11520403 === 'function') {
+      var result = show_11520403();
+
+      if (result && typeof result.finally === 'function') {
+        result.finally(function() {
+          gameMontageAdShowing = false;
+        });
+      } else if (result && typeof result.then === 'function') {
+        result.then(function() {
+          gameMontageAdShowing = false;
+        }).catch(function() {
+          gameMontageAdShowing = false;
+        });
+      } else {
+        gameMontageAdShowing = false;
+      }
+    } else {
+      console.warn('Montage SDK/API is not available.');
+      gameMontageAdShowing = false;
+    }
+  } catch (e) {
+    console.warn('Game Montage ad error:', e);
+    gameMontageAdShowing = false;
+  }
+}
+
+function startGameMontageAdTimer() {
+  if (activeGameAdTimer) {
+    clearInterval(activeGameAdTimer);
+    activeGameAdTimer = null;
+  }
+
+  /* First Montage ad appears after 40 seconds of gameplay. */
+  activeGameAdTimer = setInterval(function() {
+    showGameMontageAd();
+  }, 40000);
+}
+
+function stopGameMontageAdTimer() {
+  if (activeGameAdTimer) {
+    clearInterval(activeGameAdTimer);
+    activeGameAdTimer = null;
+  }
+  gameMontageAdShowing = false;
+}
 
 window.launchAdminGame = function(gameId) {
   initAudio();
   var game = adminGamesList.find(function(g){ return g.id === gameId; });
   if (!game) return;
 
-  var play = document.getElementById('gamePlayView');
-  if (play) {
-    play.style.display = 'flex';
-  }
-
-  var titleEl = document.getElementById('currentGameTitleText');
-  if (titleEl) titleEl.innerText = game.title.toUpperCase();
-
-  var frame = document.getElementById('gameContainerFrame');
-  var playBanner = document.getElementById('gamePlayBannerAd');
-  if (playBanner) loadAdsterraBanner(playBanner);
-  if (frame) {
-    var rawCode = game.code.trim();
-    if (rawCode.startsWith('http://') || rawCode.startsWith('https://')) {
-      frame.innerHTML = '<iframe src="' + rawCode + '" style="width:100%; height:100%; border:none; display:block;" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads"></iframe>';
-    } else {
-      var iframe = document.createElement('iframe');
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.border = 'none';
-      iframe.style.display = 'block';
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals');
-      iframe.srcdoc = rawCode;
-      
-      frame.innerHTML = '';
-      frame.appendChild(iframe);
+  /* AdsGram runs when the user taps the game logo/card.
+     The game opens after the ad attempt finishes. */
+  showGameStartAdsGram(function() {
+    var play = document.getElementById('gamePlayView');
+    if (play) {
+      play.style.display = 'flex';
     }
-  }
 
-  if (activeGameTimer) clearTimeout(activeGameTimer);
-  activeGameTimer = setTimeout(function() {
-    showGameClaimOverlay();
-  }, 60000);
+    var titleEl = document.getElementById('currentGameTitleText');
+    if (titleEl) titleEl.innerText = game.title.toUpperCase();
+
+    var frame = document.getElementById('gameContainerFrame');
+    var playBanner = document.getElementById('gamePlayBannerAd');
+    if (playBanner) loadAdsterraBanner(playBanner);
+
+    if (frame) {
+      var rawCode = game.code.trim();
+
+      if (rawCode.startsWith('http://') || rawCode.startsWith('https://')) {
+        frame.innerHTML = '<iframe src="' + rawCode + '" style="width:100%; height:100%; border:none; display:block;" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads"></iframe>';
+      } else {
+        var iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.display = 'block';
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals');
+        iframe.srcdoc = rawCode;
+
+        frame.innerHTML = '';
+        frame.appendChild(iframe);
+      }
+    }
+
+    /* Existing 60-second reward timer remains unchanged. */
+    if (activeGameTimer) clearTimeout(activeGameTimer);
+    activeGameTimer = setTimeout(function() {
+      showGameClaimOverlay();
+    }, 60000);
+
+    /* New: Montage every 40 seconds during gameplay. */
+    startGameMontageAdTimer();
+  });
 };
+
 
 function showGameClaimOverlay() {
   var frame = document.getElementById('gameContainerFrame');
@@ -6604,6 +6705,9 @@ window.showGameHub = function() {
     clearTimeout(activeGameTimer);
     activeGameTimer = null;
   }
+  /* Stop Montage ads when the game is closed. */
+  stopGameMontageAdTimer();
+
   var overlay = document.getElementById('gameClaimOverlay');
   if (overlay) overlay.remove();
 
