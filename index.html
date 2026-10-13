@@ -14,8 +14,6 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- Adsgram SDK Integration -->
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-<!-- Montage Rewarded Interstitial SDK Integration -->
-<script src="//libtl.com/sdk.js" data-zone="11520403" data-sdk="show_11520403"></script>
 <!-- Adexium SDK Integration -->
 <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/tg-ads-co-widget.min.js"></script>
 
@@ -3045,23 +3043,6 @@ body {
             <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
           </div>
 
-          <!-- Featured Ads -->
-          <div class="ads-cat-card" style="border: 1px solid #ff9900; box-shadow: inset 0 0 10px rgba(255,153,0,0.3);" onclick="openAdSlots('montage')">
-            <div class="ads-cat-icon" style="background: linear-gradient(135deg, #ff0055, #ff9900); position: relative;">
-              <i class="fa-solid fa-star" style="position: absolute; font-size: 32px;"></i>
-              <div style="position: absolute; font-size: 9px; font-weight: 900; background: #fff; color: #ff0055; padding: 1px 4px; border-radius: 4px;">AD</div>
-            </div>
-            <div class="ads-cat-info">
-              <div class="ads-cat-title">Featured Ads</div>
-              <div class="ads-cat-sub">Premium & high reward<br>ads (30–60 seconds)</div>
-            </div>
-            <div class="ads-cat-reward">
-              <div class="acr-col"><div class="acr-icon">🪙</div><div class="acr-val" style="color:var(--gold);">100</div><div class="acr-lbl">COINS</div></div>
-              <div class="acr-plus">+</div>
-              <div class="acr-col"><div class="acr-icon">💎</div><div class="acr-val" style="color:var(--cyan-neon);">10</div><div class="acr-lbl">GEMS</div></div>
-            </div>
-            <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-          </div>
         </div>
 
         <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0,150,255,0.2); border-radius: 12px; padding: 10px; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
@@ -4620,7 +4601,7 @@ window.watchMiningAd = function() {
     
     if (window.Adsgram) {
       try {
-        const AdController = window.Adsgram.init({ blockId: "int-41522" });
+        const AdController = window.Adsgram.init({ blockId: "task-50987" });
         AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
       } catch(e) { startTimerModal(4, onAdFinished); }
     } else {
@@ -5726,7 +5707,7 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
   if (network === 'adsgram') {
       if (window.Adsgram) {
           try {
-              const AdController = window.Adsgram.init({ blockId: "int-41524" });
+              const AdController = window.Adsgram.init({ blockId: "task-50987" });
               AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
           } catch(e) { startTimerModal(4, onAdFinished); }
       } else startTimerModal(4, onAdFinished);
@@ -5822,12 +5803,6 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
           `);
       }
 
-  } else if (network === 'montage') {
-      try {
-          if (typeof show_11520403 === 'function') {
-              show_11520403().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
-          } else startTimerModal(4, onAdFinished);
-      } catch(e) { startTimerModal(4, onAdFinished); }
   }
 };
 
@@ -6535,7 +6510,7 @@ function showGameStartAdsGram(onComplete) {
 
   try {
     if (window.Adsgram && typeof window.Adsgram.init === 'function') {
-      var controller = window.Adsgram.init({ blockId: "int-41524" });
+      var controller = window.Adsgram.init({ blockId: "task-50987" });
 
       if (controller && typeof controller.show === 'function') {
         controller.show().then(finish).catch(function(err) {
@@ -6553,53 +6528,14 @@ function showGameStartAdsGram(onComplete) {
 }
 
 function showGameMontageAd() {
-  if (gameMontageAdShowing) return;
-
-  var play = document.getElementById('gamePlayView');
-  if (!play || play.style.display === 'none' ||
-      getComputedStyle(play).display === 'none') return;
-
-  gameMontageAdShowing = true;
-
-  try {
-    if (typeof show_11520403 === 'function') {
-      var result = show_11520403();
-
-      if (result && typeof result.finally === 'function') {
-        result.finally(function() {
-          gameMontageAdShowing = false;
-        });
-      } else if (result && typeof result.then === 'function') {
-        result.then(function() {
-          gameMontageAdShowing = false;
-        }).catch(function() {
-          gameMontageAdShowing = false;
-        });
-      } else {
-        gameMontageAdShowing = false;
-      }
-    } else {
-      console.warn('Montage SDK/API is not available.');
-      gameMontageAdShowing = false;
-    }
-  } catch (e) {
-    console.warn('Game Montage ad error:', e);
-    gameMontageAdShowing = false;
-  }
+  // Montage ads have been removed.
 }
-
 function startGameMontageAdTimer() {
   if (activeGameAdTimer) {
     clearInterval(activeGameAdTimer);
     activeGameAdTimer = null;
   }
-
-  /* First Montage ad appears after 40 seconds of gameplay. */
-  activeGameAdTimer = setInterval(function() {
-    showGameMontageAd();
-  }, 40000);
 }
-
 function stopGameMontageAdTimer() {
   if (activeGameAdTimer) {
     clearInterval(activeGameAdTimer);
