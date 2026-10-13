@@ -4601,7 +4601,7 @@ window.watchMiningAd = function() {
     
     if (window.Adsgram) {
       try {
-        const AdController = window.Adsgram.init({ blockId: "task-50987" });
+        const AdController = window.Adsgram.init({ blockId: "int-41522" });
         AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
       } catch(e) { startTimerModal(4, onAdFinished); }
     } else {
@@ -5707,7 +5707,7 @@ window.watchDogsAd = function(slotId, network, coinsReward, altReward) {
   if (network === 'adsgram') {
       if (window.Adsgram) {
           try {
-              const AdController = window.Adsgram.init({ blockId: "task-50987" });
+              const AdController = window.Adsgram.init({ blockId: "int-41524" });
               AdController.show().then(onAdFinished).catch(() => startTimerModal(4, onAdFinished));
           } catch(e) { startTimerModal(4, onAdFinished); }
       } else startTimerModal(4, onAdFinished);
@@ -6510,7 +6510,7 @@ function showGameStartAdsGram(onComplete) {
 
   try {
     if (window.Adsgram && typeof window.Adsgram.init === 'function') {
-      var controller = window.Adsgram.init({ blockId: "task-50987" });
+      var controller = window.Adsgram.init({ blockId: "int-41524" });
 
       if (controller && typeof controller.show === 'function') {
         controller.show().then(finish).catch(function(err) {
