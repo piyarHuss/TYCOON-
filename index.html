@@ -3124,6 +3124,14 @@ body {
 
     <!-- 3. TASKS & ADS PAGE -->
     <section id="tasks-tab" class="tab-page">
+      <div style="margin:12px 14px 14px;padding:13px;border:1px solid rgba(108,140,255,.28);border-radius:16px;background:linear-gradient(145deg,rgba(20,31,52,.96),rgba(7,13,24,.98));">
+        <div style="font-size:12px;font-weight:900;color:#fff;margin-bottom:5px;">AdsGram Task</div>
+        <div style="font-size:10px;color:#9fb2c8;margin-bottom:10px;">Complete the sponsored task to receive its reward.</div>
+        <div id="adsgramTaskMount" style="width:100%;display:flex;justify-content:center;min-height:54px;">
+          <adsgram-task data-block-id="task-50987" data-debug="false" data-debug-console="false" class="task"></adsgram-task>
+        </div>
+        <div id="adsgramTaskStatus" style="font-size:10px;color:#8da6c4;margin-top:8px;text-align:center;"></div>
+      </div>
       <div class="hk-tasks-screen" id="dynamicTasksContainer">
         <!-- Rendered dynamically from admin tasks list -->
       </div>
@@ -4705,6 +4713,48 @@ function renderLeaderboard() {
   if(!myRankAssigned) document.getElementById('myRankPos').innerText = ">35";
   container.innerHTML = html;
 }
+
+/* AdsGram Task ad: task-50987 is a web-component task block, NOT an Adsgram.init interstitial ID. */
+(function setupAdsgramTaskBlock() {
+  function attachAdsgramTaskEvents() {
+    var taskEl = document.querySelector('adsgram-task[data-block-id="task-50987"]');
+    var statusEl = document.getElementById('adsgramTaskStatus');
+    if (!taskEl || taskEl.dataset.eventsAttached === 'true') return;
+    taskEl.dataset.eventsAttached = 'true';
+
+    taskEl.addEventListener('reward', function() {
+      var rewardKey = 'pto_adsgram_task_50987_rewarded';
+      if (localStorage.getItem(rewardKey) === '1') {
+        if (statusEl) statusEl.textContent = 'Task reward already claimed on this device.';
+        return;
+      }
+      localStorage.setItem(rewardKey, '1');
+      addPointsAndCoins(100, 0, 0, 0, 0);
+      saveState(true);
+      updateAllDisplays();
+      if (statusEl) statusEl.textContent = '+100 coins credited!';
+      showModal('<div class="m-title">ADSGRAM TASK COMPLETED</div><div class="m-body">Your reward: <strong style="color:var(--gold)">+100 COINS</strong></div><div class="m-btn-row"><button class="app-btn" onclick="closeModal()">OK</button></div>');
+    });
+
+    taskEl.addEventListener('onError', function(event) {
+      console.warn('AdsGram task block error:', event && event.detail ? event.detail : event);
+      if (statusEl) statusEl.textContent = 'AdsGram task could not load. Please try again later.';
+    });
+
+    taskEl.addEventListener('onBannerNotFound', function() {
+      if (statusEl) statusEl.textContent = 'No task is available right now.';
+    });
+
+    taskEl.addEventListener('onTooLongSession', function() {
+      if (statusEl) statusEl.textContent = 'Please reopen the app to load the task again.';
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachAdsgramTaskEvents, { once: true });
+  } else {
+    attachAdsgramTaskEvents();
+  }
+})();
 
 /* Tasks & Ads */
 window.openFeaturedVideoTask = function() {
