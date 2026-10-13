@@ -3043,6 +3043,22 @@ body {
             <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
           </div>
 
+          <!-- AdsGram Block 53627: three high-reward slots -->
+          <div class="ads-cat-card" style="border:1px solid #9b6cff;box-shadow:inset 0 0 12px rgba(155,108,255,.25);margin-top:10px;" onclick="openAdSlots('adsgram53627')">
+            <div class="ads-cat-icon" style="background:linear-gradient(135deg,#9b6cff,#287bff);position:relative;">
+              <i class="fa-solid fa-gift" style="position:absolute;"></i>
+              <i class="fa-solid fa-play" style="position:absolute;font-size:13px;color:#fff;right:5px;bottom:5px;text-shadow:0 0 5px #000;"></i>
+            </div>
+            <div class="ads-cat-info">
+              <div class="ads-cat-title">AdsGram Rewards</div>
+              <div class="ads-cat-sub">3 special ads · 1-hour cooldown</div>
+            </div>
+            <div class="ads-cat-reward">
+              <div class="acr-col"><div class="acr-icon">🪙</div><div class="acr-val" style="color:var(--gold);">10K</div><div class="acr-lbl">UP TO</div></div>
+            </div>
+            <div class="ads-cat-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+
         </div>
 
         <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0,150,255,0.2); border-radius: 12px; padding: 10px; display: flex; gap: 10px; align-items: center; margin-top: 10px;">
@@ -3856,6 +3872,9 @@ var adsNetworkCooldownUntil = {
   montage: parseInt(localStorage.getItem('pto_ads_cycle_montage_until') || '0')
 };
 var currentAdNetwork = null;
+var adsgramSpecialCooldowns = {};
+try { adsgramSpecialCooldowns = JSON.parse(localStorage.getItem('pto_adsgram_53627_cooldowns') || '{}') || {}; } catch(e) { adsgramSpecialCooldowns = {}; }
+var adsgramSpecialRefreshTimer = null;
 var adSlotsConfig = [];
 
 var walletAddress = localStorage.getItem('pto_wallet_address') || '';
@@ -5614,14 +5633,20 @@ window.openAdSlots = function(network) {
   var title = "QUICK ADS";
   if (network === 'adexium') title = "VIDEO SERIES";
   if (network === 'montage') title = "FEATURED ADS";
+  if (network === 'adsgram53627') title = "ADSGRAM REWARDS";
   document.getElementById('adsSlotsTitle').innerText = title;
   
+  if (adsgramSpecialRefreshTimer) { clearInterval(adsgramSpecialRefreshTimer); adsgramSpecialRefreshTimer = null; }
   renderAdsTab();
+  if (network === 'adsgram53627') {
+    adsgramSpecialRefreshTimer = setInterval(function(){ if (currentAdNetwork === 'adsgram53627') renderAdsTab(); }, 1000);
+  }
 };
 
 window.closeAdSlots = function() {
   initAudio();
   currentAdNetwork = null;
+  if (adsgramSpecialRefreshTimer) { clearInterval(adsgramSpecialRefreshTimer); adsgramSpecialRefreshTimer = null; }
   document.getElementById('adsSlotsView').style.display = 'none';
   document.getElementById('adsCategoriesView').style.display = 'block';
 };
@@ -5629,6 +5654,34 @@ window.closeAdSlots = function() {
 window.renderAdsTab = function() {
   var container = document.getElementById('adsListContainer');
   if (!container || !currentAdNetwork) return;
+
+  if (currentAdNetwork === 'adsgram53627') {
+    var specialRewards = [10000, 5000, 6000];
+    var specialHtml = '<div style="padding:10px 12px;border:1px solid rgba(155,108,255,.25);border-radius:12px;background:rgba(155,108,255,.07);font-size:11px;color:#b8c7dc;line-height:1.5;margin-bottom:4px;">Watch an AdsGram ad to claim the listed coins. Each slot becomes available again after 1 hour. Rewards are credited only when AdsGram confirms the ad finished.</div>';
+    specialRewards.forEach(function(reward, idx) {
+      var slot = String(idx + 1);
+      var until = Number(adsgramSpecialCooldowns[slot] || 0);
+      var remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+      var locked = remaining > 0;
+      var label = locked ? ('Available in ' + formatAdsCooldown(remaining)) : 'WATCH ADSGRAM AD';
+      var icon = locked ? '<i class="fa-solid fa-hourglass-half"></i>' : '<i class="fa-solid fa-play"></i>';
+      specialHtml += '<div class="new-ad-card' + (locked ? ' locked' : '') + '" ' + (locked ? '' : 'onclick="watchAdsgramSpecial(' + slot + ',' + reward + ')"') + '>' +
+        '<div class="new-ad-left"><div class="new-ad-icon-circle" style="background:linear-gradient(135deg,#9b6cff,#287bff);color:#fff;">' + icon + '</div>' +
+        '<div class="new-ad-text-col"><span class="new-ad-title">' + label + ' <strong>' + (idx + 1) + '/3</strong></span>' +
+        '<span class="new-ad-reward">🎁 <strong>+' + reward.toLocaleString('en-US') + '</strong> <span class="new-ad-reward-sub">COINS</span></span></div></div>' +
+        '<div class="new-ad-arrow">' + (locked ? '<i class="fa-solid fa-lock" style="color:#64748b"></i>' : '<i class="fa-solid fa-chevron-right"></i>') + '</div></div>';
+    });
+    container.innerHTML = specialHtml;
+    var specialStatsCoins = document.getElementById('adsStatCoins');
+    var specialStatsDogs = document.getElementById('adsStatDogs');
+    var specialProgress = document.getElementById('adsStatProgressText');
+    var specialFill = document.getElementById('adsStatProgressFill');
+    if (specialStatsCoins) specialStatsCoins.innerText = '3 SLOTS';
+    if (specialStatsDogs) { specialStatsDogs.innerText = '0'; if (specialStatsDogs.nextElementSibling) specialStatsDogs.nextElementSibling.innerText = 'DOGS'; }
+    if (specialProgress) specialProgress.innerText = '3 ADSGRAM REWARD SLOTS';
+    if (specialFill) specialFill.style.width = '0%';
+    return;
+  }
 
   var totalAds = 10;
   var adsCompleted = 0;
@@ -5719,6 +5772,43 @@ window.renderAdsTab = function() {
   
   if (progressText) progressText.innerText = adsCompleted + ' / 10 ADS COMPLETED';
   if (progressFill) progressFill.style.width = (adsCompleted / 10 * 100) + '%';
+};
+
+/* AdsGram Block 53627: 3 independent reward slots, each with a 1-hour cooldown. */
+window.watchAdsgramSpecial = function(slotId, rewardCoins) {
+  initAudio();
+  var slot = String(slotId);
+  var until = Number(adsgramSpecialCooldowns[slot] || 0);
+  if (until > Date.now()) { renderAdsTab(); return; }
+  if (!window.Adsgram || typeof window.Adsgram.init !== 'function') {
+    showModal('<div class="m-title">AD NOT READY</div><div class="m-body">AdsGram SDK is not available. Please open the mini app again and retry.</div><div class="m-btn-row"><button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button></div>');
+    return;
+  }
+  var buttonCards = document.querySelectorAll('#adsListContainer .new-ad-card');
+  buttonCards.forEach(function(card){ card.style.pointerEvents = 'none'; card.style.opacity = '.65'; });
+  try {
+    var controller = window.Adsgram.init({ blockId: '53627' });
+    if (!controller || typeof controller.show !== 'function') throw new Error('AdsGram show() is unavailable');
+    controller.show().then(function() {
+      // Only a successful SDK completion earns coins and starts the cooldown.
+      adsgramSpecialCooldowns[slot] = Date.now() + 60 * 60 * 1000;
+      localStorage.setItem('pto_adsgram_53627_cooldowns', JSON.stringify(adsgramSpecialCooldowns));
+      addPointsAndCoins(Number(rewardCoins), 10, 0, 5, 0);
+      totalAdsWatched++;
+      sCoin();
+      updateAllDisplays();
+      showModal('<div style="font-size:42px;">🎁</div><div class="m-title" style="color:var(--green-neon);">REWARD AD COMPLETED</div><div class="m-body">You earned <strong style="color:var(--gold);font-size:24px;">+' + Number(rewardCoins).toLocaleString('en-US') + ' COINS</strong><br><br>This slot will be available again in 1 hour.</div><div class="m-btn-row"><button class="app-btn claim-glow-btn" onclick="closeModal();renderAdsTab();">OK</button></div>');
+      renderAdsTab();
+    }).catch(function(err) {
+      console.warn('AdsGram block 53627 ad did not complete:', err);
+      showModal('<div class="m-title">AD NOT COMPLETED</div><div class="m-body">No coins were added because AdsGram did not confirm a completed ad. Please try again later.</div><div class="m-btn-row"><button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button></div>');
+      renderAdsTab();
+    });
+  } catch (err) {
+    console.warn('AdsGram block 53627 error:', err);
+    showModal('<div class="m-title">AD ERROR</div><div class="m-body">AdsGram could not start this ad. No coins were added.</div><div class="m-btn-row"><button class="app-btn btn-sec" onclick="closeModal()">CLOSE</button></div>');
+    renderAdsTab();
+  }
 };
 
 /* WATCH ADS & SHOW CLAIM REWARD WITH FLYING COINS */
